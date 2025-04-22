@@ -1,0 +1,21 @@
+[package]
+name = "quaternion_traits"
+version = "0.1.0"
+edition = "2024"
+categories = ["no-std"]
+keywords = ["quaternion", "math", "trait"]
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+libm = { version = "0.2" }
+num-complex = { version = "0.4", optional = true, default-features = false, features = ["libm"]}
+num-traits = { version = "0.2", optional = true, default-features = false, features = ["libm"]}
+
+[dev-dependencies]
+no-panic = "0.1.35"
+
+[features]
+std = ["alloc"]
+alloc = []
+num-complex = ["dep:num-complex", "num-traits"]
+num-traits = ["dep:num-traits"]
