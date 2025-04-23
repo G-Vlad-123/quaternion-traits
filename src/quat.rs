@@ -1280,7 +1280,7 @@ where
 }
 
 /// Gives the vector rotated by the given quaternion
-pub fn rotate_vector<Num, Out>(vector: &impl Vector<Num>, quaternion: &impl Quaternion<Num>) -> Out
+pub fn rotate_vector<Num, Out>(_vector: &impl Vector<Num>, _quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewVector<Num>,
@@ -1289,7 +1289,7 @@ where
 }
 
 /// Constructs a quaternion representing the rotation inbetween two vectors.
-pub fn rotation_from_to<Num, Out>(from: &impl Vector<Num>, to: &impl Vector<Num>) -> Out
+pub fn rotation_from_to<Num, Out>(_from: &impl Vector<Num>, _to: &impl Vector<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
