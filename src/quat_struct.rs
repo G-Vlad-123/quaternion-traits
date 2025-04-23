@@ -176,9 +176,11 @@ impl_basic_ops_for_quat!{
 }
 
 #[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
 use crate::num_traits::pow::Pow;
 
 #[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {
@@ -187,6 +189,7 @@ impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> fo
 }
 
 #[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for &Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {
@@ -195,6 +198,7 @@ impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> fo
 }
 
 #[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for &mut Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {

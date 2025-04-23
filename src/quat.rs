@@ -459,6 +459,47 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the distance between two quaternions is less then [`Num::ERROR`](Axis::ERROR).
+/// 
+/// ```
+/// use quaternion_traits::{is_near, Axis};
+/// 
+/// let a: [f32; 4] = [0.0; 4];
+/// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
+/// 
+/// assert!( is_near::<f32>(&a, &b) );
+/// ```
+pub fn is_near<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> bool
+where
+    Num: Axis,
+{
+    abs_squared(&sub::<Num, [Num; 4]>(left, right)) < Num::ERROR * Num::ERROR
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Gets the distance inbetween the coordenates of two quaternions.
+/// 
+/// Equivalent to getting the absolute value of 
+/// 
+/// ```
+/// use quaternion_traits::dist;
+/// 
+/// let a: [f32; 4] = [5.0, 0.0, 1.0, 3.0];
+/// let b: [f32; 4] = [2.0, 0.0, 5.0, 3.0];
+/// 
+/// assert_eq!( dist::<f32>(&a, &b), 5.0 );
+/// assert_eq!( dist::<f32>(&a, &a), 0.0 );
+/// ```
+pub fn dist<Num>(from: &impl Quaternion<Num>, to: &impl Quaternion<Num>) -> Num
+where
+    Num: Axis,
+{
+    abs(&sub::<Num, [Num; 4]>(from, to))
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the normal of a quaternion.
 /// 
 /// The normal of a quaternion always has the same "direction"
@@ -744,6 +785,7 @@ where
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[cfg(feature = "unstable")]
 /// Raises a quaternion to a quaternion power.
 /// 
 /// Used this paper as a refrence:
@@ -809,6 +851,27 @@ where
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the hyperbolic sinus of a quaternion.
+pub fn sinh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    let exp = exp::<Num, [Num; 4]>(quaternion);
+    unscale(&sub::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the secant of a quaternion.
+pub fn sec<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    inv(&cos::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the  cosinus of a quaternion.
 pub fn cos<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where
@@ -824,6 +887,27 @@ where
         quaternion.j() * vec_scalar, 
         quaternion.k() * vec_scalar,
     )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the hyperbolic cosinus of a quaternion.
+pub fn cosh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    let exp = exp::<Num, [Num; 4]>(quaternion);
+    unscale(&add::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the cosecant of a quaternion.
+pub fn csc<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    inv(&sin::<Num, [Num; 4]>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -867,6 +951,21 @@ where
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the sinus of a quaternion.
+pub fn tanh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    let exp = exp::<Num, [Num; 4]>(quaternion);
+    let inv = inv::<Num, [Num; 4]>(&exp);
+    div(
+        &sub::<Num, [Num; 4]>(&exp, &inv),
+        &add::<Num, [Num; 4]>(&exp, &inv),
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the cotangent of a quaternion
 pub fn cot<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where
@@ -875,6 +974,21 @@ where
 {
     let (sin, cos) = sin_cos::<Num, [Num; 4]>(quaternion);
     div(&cos, &sin)
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the sinus of a quaternion.
+pub fn coth<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    let exp = exp::<Num, [Num; 4]>(quaternion);
+    let inv = inv::<Num, [Num; 4]>(&exp);
+    div(
+        &add::<Num, [Num; 4]>(&exp, &inv),
+        &sub::<Num, [Num; 4]>(&exp, &inv),
+    )
 }
 
 // Note: You can add the hyperbolic and inverse functions too probably using the linked refrence

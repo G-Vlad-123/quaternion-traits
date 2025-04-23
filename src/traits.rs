@@ -255,6 +255,14 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// 
     /// Check [the inv function](crate::inv) in the root for more info.
     #[inline] fn inv(&self) -> Self { quat::inv(self) }
+    /// Checks if the distance inbetween two quaternions is less then [`Num::ERROR`](Axis::ERROR).
+    /// 
+    /// Check [the is_near function](crate::is_near) in the root for more info.
+    #[inline] fn is_near(&self, other: &impl Quaternion<Num>) -> bool { quat::is_near(self, other) }
+    /// Gets the distance inbetween the coordonates of two quaternions.
+    /// 
+    /// Check [the dist function](crate::dist) in the root for more info.
+    #[inline] fn dist(&self, other: &impl Quaternion<Num>) -> Num { quat::dist(self, other) }
     /// Gets the square root of a quaternion.
     /// 
     /// Check [the sqrt function](crate::sqrt) in the root for more info.
@@ -274,6 +282,7 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// Raises a quaternion to a quaternion power.
     /// 
     /// Check [the pow_q function](crate::pow_q) in the root for more info.
+    #[cfg(feature = "unstable")]
     #[inline] fn pow_q(&self, exp: &impl Quaternion<Num>) -> Self { quat::pow_q(self, exp) }
     /// Raises the number e to a quaternion power.
     /// 
@@ -291,14 +300,24 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// 
     /// Check [the sin function](crate::sin) in the root for more info.
     #[inline] fn sin(&self) -> Self { quat::sin(self) }
+    /// Gets the hyperbolic sinus of a quaternion.
+    #[inline] fn sinh(&self) -> Self { quat::sinh(self) }
+    /// Gets the secant of a quaternion.
+    #[inline] fn sec(&self) -> Self { quat::sec(self) }
     /// Gets the cosinus of a quaternion.
     /// 
     /// Check [the cos function](crate::cos) in the root for more info.
     #[inline] fn cos(&self) -> Self { quat::cos(self) }
+    /// Gets the hyperbolic cosinus of a quaternion.
+    #[inline] fn cosh(&self) -> Self { quat::cosh(self) }
+    /// Gets the cosecant of a quaternion.
+    #[inline] fn csc(&self) -> Self { quat::csc(self) }
     /// Gets the tangent of a quaternion.
     /// 
     /// Check [the tan function](crate::tan) in the root for more info.
     #[inline] fn tan(&self) -> Self { quat::tan(self) }
+    /// Gets the hyperbolic tangent of a quaternion.
+    #[inline] fn tanh(&self) -> Self { quat::tan(self) }
     /// Gets the vector part of a quaternion.
     /// 
     /// Check [the vector_part function](crate::vector_part) in the root for more info.

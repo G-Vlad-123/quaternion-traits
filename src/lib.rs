@@ -3,10 +3,11 @@
 This library provides traits and many function for dealing with quaternions.
 
 # Reason
+
 This library exists to provide two things:
 - A way to tie in the multiple existing implementations of
 quaternions in rust.
-- Add functions for pure maths purpaces in rust (like [`sin`] and [`pow_q`])
+- Add functions for pure maths purpaces in rust (like [`sqrt`], [`cos`] and [`pow`](pow_f))
 
 Curently this library is implemented for:
 - [core](https://doc.rust-lang.org/core/)
@@ -18,18 +19,27 @@ Curently this library is implemented for:
 # Details
 
 Currently the quaternion traits are implemented only in core rust and num,
-but it's planned to add (though optional dependencies) these traits to crates like bevy,
-ggez and the quaternion crates out there.
-
-...
+but it's planned to add (though optional dependencies) these traits to crates like
+[bevy](https://crates.io/crates/bevy), [ggez](https://crates.io/crates/ggez)
+and the other quaternion crates out there.
 
 Due to how the traits are implemented this crate is naturaly usable with the
 [quaternion](https://crates.io/crates/quaternion) crate. So for any crates that use
 this crate this dependency is (hopefully) frictionless.
 
-...
+If possible this crate should implement functions for every quaternion use.
+And it should implement every function that a crate it's comapatble with has.
+
+This crate also currently has these pure maths functions for quaternions (excluding common ones):
+`exp`, `ln`, `log`, `sqrt`, `sin`, `sinh`, `sec`, `cos`, `cosh`, `csc`, `sin_cos`, `tan`, `tanh`,
+`cot`, `coth`.
+
+This crate provides currently an unstable form of these functions:
+- `pow` (the equasion used seams to not be fully agreed on though so it's at risk of change if
+  another equasion comes out that is guaranteed to be correct)
 
 List of features:
+- `unstable`: Enables items that may change functionality or may be removed entirely.
 - `std`: Adds `alloc` feature, adds [Std] struct.
 - `alloc`: Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
 Box, Arc, Rc and Cow.

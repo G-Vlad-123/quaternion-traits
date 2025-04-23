@@ -29,7 +29,8 @@ If possible this crate should implement functions for every quaternion use.
 And it should implement every function that a crate it's comapatble with has.
 
 This crate also currently has these pure maths functions for quaternions (excluding common ones):
-`exp`, `ln`, `log`, `sqrt`, `sin`, `cos`, `sin_cos`, `tan`, `cot`.
+`exp`, `ln`, `log`, `sqrt`, `sin`, `sinh`, `sec`, `cos`, `cosh`, `csc`, `sin_cos`, `tan`, `tanh`,
+`cot`, `coth`.
 
 This crate provides currently unstable forms of these equasions:
 - `pow` (the equasion used seams to not be fully agreed on though so it's at risk of change if
