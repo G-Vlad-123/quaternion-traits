@@ -1,5 +1,4 @@
 
-use crate::core::matches;
 use crate::core::option::Option;
 use crate::{
     Axis,
@@ -52,7 +51,7 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-/// Constructs a quaternion that has all axies set to [`Num::ZERO`s](Axis::ZERO).
+/// Constructs a quaternion that has all axies set to [`Num::NAN`s](Axis::NAN).
 /// 
 /// # Example
 /// ```
@@ -60,7 +59,10 @@ where
 /// 
 /// let quat: [f32; 4] = nan::<f32, [f32; 4]>();
 /// 
-/// assert_eq!( quat, [f32::NAN, f32::NAN, f32::NAN, f32::NAN] );
+/// assert!( quat[0].is_nan() );
+/// assert!( quat[1].is_nan() );
+/// assert!( quat[2].is_nan() );
+/// assert!( quat[3].is_nan() );
 /// ```
 pub fn nan<Num, Out>() -> Out
 where
@@ -228,6 +230,21 @@ where
     Out: NewQuaternion<Num>,
 {
     mul::<Num, Out>(left, &inv::<Num, [Num; 4]>(right))
+}
+
+/// Divides a quaternion by another one in reversed order.
+/// 
+/// Since quaternion multiplication is neather commutative nor
+/// anti-commutative and since division is just multiplying by the inverse
+/// 
+/// `div(q1, q2) = q1 * inv(q2)` 
+/// `div_reversed(q1, q2) = inv(q2) * q1` 
+pub fn div_reversed<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: NewQuaternion<Num>,
+{
+    mul::<Num, Out>(&inv::<Num, [Num; 4]>(left), &right)
 }
 
 #[inline]
@@ -473,7 +490,7 @@ pub fn is_near<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -
 where
     Num: Axis,
 {
-    abs_squared(&sub::<Num, [Num; 4]>(left, right)) < Num::ERROR * Num::ERROR
+    abs_squared::<Num, Num>(&sub::<Num, [Num; 4]>(left, right)) < Num::ERROR * Num::ERROR
 }
 
 #[inline]
@@ -488,12 +505,13 @@ where
 /// let a: [f32; 4] = [5.0, 0.0, 1.0, 3.0];
 /// let b: [f32; 4] = [2.0, 0.0, 5.0, 3.0];
 /// 
-/// assert_eq!( dist::<f32>(&a, &b), 5.0 );
-/// assert_eq!( dist::<f32>(&a, &a), 0.0 );
+/// assert_eq!( dist::<f32, f32>(&a, &b), 5.0 );
+/// assert_eq!( dist::<f32, f32>(&a, &a), 0.0 );
 /// ```
-pub fn dist<Num>(from: &impl Quaternion<Num>, to: &impl Quaternion<Num>) -> Num
+pub fn dist<Num, Out>(from: &impl Quaternion<Num>, to: &impl Quaternion<Num>) -> Out
 where
     Num: Axis,
+    Out: NewScalar<Num>,
 {
     abs(&sub::<Num, [Num; 4]>(from, to))
 }
@@ -541,18 +559,19 @@ where
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// 
-/// assert_eq!( abs::<f32>(&quat), 10.0 );
+/// assert_eq!( abs::<f32, f32>(&quat), 10.0 );
 /// ```
-pub fn abs<Num>(quaternion: &impl Quaternion<Num>) -> Num
+pub fn abs<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
+    Out: NewScalar<Num>,
 {
-    Num::sqrt(
+    Out::new_scalar( Num::sqrt(
         quaternion.r() * quaternion.r()
         + quaternion.i() * quaternion.i()
         + quaternion.j() * quaternion.j()
         + quaternion.k() * quaternion.k()
-    )
+    ) )
 }
 
 #[inline]
@@ -565,16 +584,19 @@ where
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// 
-/// assert_eq!( abs_squared::<f32>(&quat), 100.0 );
+/// assert_eq!( abs_squared::<f32, u32>(&quat), 100 );
 /// ```
-pub fn abs_squared<Num>(quaternion: &impl Quaternion<Num>) -> Num
+pub fn abs_squared<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
+    Out: NewScalar<Num>,
 {
-      quaternion.r() * quaternion.r()
-    + quaternion.i() * quaternion.i()
-    + quaternion.j() * quaternion.j()
-    + quaternion.k() * quaternion.k()
+    Out::new_scalar(
+        quaternion.r() * quaternion.r()
+      + quaternion.i() * quaternion.i()
+      + quaternion.j() * quaternion.j()
+      + quaternion.k() * quaternion.k()
+    )
 }
 
 // use `is_near` instead
@@ -585,16 +607,17 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{inv, mul, identity};
+/// use quaternion_traits::{inv, mul, identity, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// let inv_quat: [f32; 4] = inv::<f32, [f32; 4]>(&quat);
 /// 
-/// assert_eq!(
-///     mul::<f32, [f32; 4]>(&quat, &inv_quat),
-///     identity::<f32, [f32; 4]>()
-/// );
+/// assert!( is_near::<f32>(
+///     &mul::<f32, [f32; 4]>(&quat, &inv_quat),
+///     &identity::<f32, [f32; 4]>()
+/// ) );
 /// ```
+/// The function [`is_near`] is used here because of finite floating point precision.
 pub fn inv<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -617,13 +640,14 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{ln, exp};
+/// use quaternion_traits::{ln, exp, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(&quat);
 /// 
-/// assert_eq!( exp::<f32, [f32; 4]>(&ln_quat), quat );
+/// assert!( is_near::<f32>(&exp::<f32, [f32; 4]>(&ln_quat), &quat) );
 /// ```
+/// The function [`is_near`] is used here because of finite floating point precision.
 pub fn ln<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -646,35 +670,38 @@ where
 /// 
 /// e ≈ 2.71828...
 /// 
-/// # Example
 /// ```
-/// use quaternion_traits::{exp};
+/// use quaternion_traits::{exp, ln, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(&quat);
 /// 
-/// assert_eq!( ln::<f32, [f32; 4]>(&ln_quat), quat );
+/// println!("{:?}", ln::<f32, [f32; 4]>(&exp_quat));
+/// println!("{:?}", quat);
+/// assert!( is_near::<f32>(&ln::<f32, [f32; 4]>(&exp_quat), &quat) );
 /// ```
+/// The function [`is_near`] is used here because of finite floating point precision.
 pub fn exp<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
     let vec: [Num; 4] = vector_part(quaternion);
-    let abs_vec: Num = abs(&vec);
+    let (sin, cos) = abs::<Num, Num>(&vec).sin_cos();
     scale::<Num, Out>(
         &add::<Num, [Num; 4]>(
             &scale::<Num, [Num; 4]>(
                 &norm::<Num, [Num; 4]>(&vec),
-                abs_vec.sin()
+                sin
             ),
-            &(abs_vec.cos(), ())
+            &(cos, ())
         ),
         quaternion.r().exp(),
     )
 }
 
-#[inline(always)]
+#[inline]
+#[cfg(feature = "unstable")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the logarithm of a quaternion with a quaternion base.
 /// 
@@ -682,7 +709,7 @@ where
 /// ```
 /// use quaternion_traits::{log, pow_i};
 /// 
-/// let base: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let base: [f32; 4] = [0.0, 2.0, 1.0, 0.0];
 /// let quat: [f32; 4] = pow_i::<f32, [f32; 4]>(&base, 3);
 /// let log_quat: [f32; 4] = log::<f32, [f32; 4]>(&base, &quat);
 /// 
@@ -775,13 +802,17 @@ where
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if eq(base, &()) {
-        if matches!( exp.scalar().partial_cmp(&Num::ZERO), Option::Some(crate::core::cmp::Ordering::Greater) ) {
-            return origin();
-        }
-        return nan();
-    }
-    crate::quat::exp(&mul::<Num, [Num; 4]>(&ln::<Num, [Num; 4]>(base), &from_scalar::<Num, [Num; 4]>(exp)))
+    let abs: Num = abs(base);
+    let angle = (base.r() / abs).acos();
+    scale(
+        &crate::exp::<Num, [Num; 4]>(
+            &scale::<Num, [Num; 4]>(
+                &vector_part::<Num, [Num; 4]>(base),
+                exp.scalar() * angle
+            )
+        ),
+        abs.pow(exp.scalar()) // replaces one use of sqrt with one div
+    )
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -818,18 +849,21 @@ where
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [5.0, 2.0, 1.0, 2.0];
-/// let dot_product: f32 = dot::<f32>(&a, &b);
+/// let dot_product: f32 = dot::<f32, f32>(&a, &b);
 /// 
 /// assert_eq!( dot_product, 20.0 );
 /// ```
-pub fn dot<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Num
+pub fn dot<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
+    Out: NewScalar<Num>,
 {
-      left.r() * right.r()
-    + left.i() * right.i()
-    + left.j() * right.j()
-    + left.k() * right.k()
+    Out::new_scalar(
+        left.r() * right.r()
+      + left.i() * right.i()
+      + left.j() * right.j()
+      + left.k() * right.k()
+    )
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]

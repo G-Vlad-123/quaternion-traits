@@ -175,6 +175,42 @@ in the future.
 \* With examples that match their respective function.
  */
 pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + Sized {
+    /// Constructs the origin quaternion. (Additive identity)
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionMethods;
+    /// 
+    /// let quat: [f32; 4] = QuaternionMethods::<f32>::origin();
+    /// 
+    /// assert_eq!( quat, [0.0, 0.0, 0.0, 0.0] );
+    /// ```
+    #[inline] fn origin() -> Self { quat::origin() }
+    /// Constructs the positive real unit quaternion. (Multiplicative identity)
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionMethods;
+    /// 
+    /// let quat: [f32; 4] = QuaternionMethods::<f32>::identity();
+    /// 
+    /// assert_eq!( quat, [1.0, 0.0, 0.0, 0.0] );
+    /// ```
+    #[inline] fn identity() -> Self { quat::identity() }
+    /// Constructs a quaternion that has all axies set to [`Num::NAN`s](Axis::NAN).
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionMethods;
+    /// 
+    /// let quat: [f32; 4] = QuaternionMethods::<f32>::nan();
+    /// 
+    /// assert!( quat[0].is_nan() );
+    /// assert!( quat[1].is_nan() );
+    /// assert!( quat[2].is_nan() );
+    /// assert!( quat[3].is_nan() );
+    /// ```
+    #[inline] fn nan() -> Self { quat::nan() }
     /// Adds two quaternions togheder.
     /// 
     /// Check [the add function](crate::add) in the root for more info.
@@ -295,6 +331,7 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// Gets the logarithm of a quaternion.
     /// 
     /// Check [the log function](crate::log) in the root for more info.
+    #[cfg(feature = "unstable")]
     #[inline] fn log(&self, base: &impl Quaternion<Num>) -> Self { quat::log(self, base) }
     /// Gets the sinus of a quaternion.
     /// 

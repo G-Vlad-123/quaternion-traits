@@ -80,3 +80,19 @@ impl Scalar<f64> for f32 {
 impl Scalar<f32> for f64 {
     #[inline] fn scalar(&self) -> f32 { *self as f32 }
 }
+
+impl Scalar<f64> for &f32 {
+    #[inline] fn scalar(&self) -> f64 { **self as f64 }
+}
+
+impl Scalar<f32> for &f64 {
+    #[inline] fn scalar(&self) -> f32 { **self as f32 }
+}
+
+impl Scalar<f32> for &f32 {
+    #[inline] fn scalar(&self) -> f32 { **self as f32 }
+}
+
+impl Scalar<f64> for &f64 {
+    #[inline] fn scalar(&self) -> f64 { **self as f64 }
+}

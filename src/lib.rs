@@ -43,7 +43,7 @@ List of features:
 - `std`: Adds `alloc` feature, adds [Std] struct.
 - `alloc`: Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
 Box, Arc, Rc and Cow.
-- `num-traits`: Adds [Pow](https://docs.rs/num-traits/latest/num_traits/pow/trait.Pow.html) to [Quat],
+- `num-traits`: (If `unstable` is enabled) adds [Pow](https://docs.rs/num-traits/latest/num_traits/pow/trait.Pow.html) to [Quat],
 (if `std` is enabled) adds [Float](https://docs.rs/num-traits/latest/num_traits/float/trait.Float.html)
 and all the required traits to the [Std] struct.
 - `num-complex`: Adds `num-traits` feature, adds [Complex] implementation for the Complex struct in this crate.

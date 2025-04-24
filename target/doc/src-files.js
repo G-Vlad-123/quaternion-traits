@@ -1,0 +1,3 @@
+var srcIndex = new Map(JSON.parse('[["quaternion_traits",["",[["traits",[],["axis.rs","core_impls.rs","dep_impls.rs"]]],["lib.rs","primitive.rs","quat.rs","quat_struct.rs","std_impl.rs","traits.rs"]]]]'));
+createSrcSidebar();
+//{"start":36,"fragment_lengths":[164]}

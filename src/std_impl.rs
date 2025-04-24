@@ -368,6 +368,11 @@ impl Axis for Std<f32> {
     const ERROR: Self = Std(<f32 as Axis>::ERROR);
     #[inline] fn is_nan( &self ) -> bool { std::primitive::f32::is_nan(self.0) }
     #[inline] fn sqrt( self ) -> Self { Std(std::primitive::f32::sqrt(self.0)) }
+    #[inline] fn pow( self, exp: Self ) -> Self { Std(std::primitive::f32::pow(self.0, exp.0)) }
+    #[inline] fn sin_cos( self ) -> (Self, Self) {
+        let (sin, cos) = std::primitive::f32::sin_cos(self.0);
+        ( Std(sin), Std(cos) )
+    }
     #[inline] fn sin( self ) -> Self { Std(std::primitive::f32::sin(self.0)) }
     #[inline] fn asin( self ) -> Self { Std(std::primitive::f32::asin(self.0)) }
     #[inline] fn sinh( self ) -> Self { Std(std::primitive::f32::sinh(self.0)) }
@@ -387,6 +392,11 @@ impl Axis for Std<f64> {
     const ERROR: Self = Std(<f64 as Axis>::ERROR);
     #[inline] fn is_nan( &self ) -> bool { std::primitive::f64::is_nan(self.0) }
     #[inline] fn sqrt( self ) -> Self { Std(std::primitive::f64::sqrt(self.0)) }
+    #[inline] fn pow( self, exp: Self ) -> Self { Std(std::primitive::f64::pow(self.0, exp.0)) }
+    #[inline] fn sin_cos( self ) -> (Self, Self) {
+        let (sin, cos) = std::primitive::f64::sin_cos(self.0);
+        ( Std(sin), Std(cos) )
+    }
     #[inline] fn sin( self ) -> Self { Std(std::primitive::f64::sin(self.0)) }
     #[inline] fn asin( self ) -> Self { Std(std::primitive::f64::asin(self.0)) }
     #[inline] fn sinh( self ) -> Self { Std(std::primitive::f64::sinh(self.0)) }

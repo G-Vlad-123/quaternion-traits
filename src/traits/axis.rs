@@ -75,14 +75,18 @@ pub trait Axis: Sized
 
     /// Calculates the square root of `self`.
     fn sqrt(self) -> Self;
+    /// Calculates the `self` raised to the `exp` power.
+    fn pow(self, exp: Self) -> Self;
+    /// Calculates the sine and cosine of `self` at once.
+    fn sin_cos(self) -> (Self, Self);
     /// Calculates the sine of `self`.
-    fn sin(self) -> Self;
+    fn sin(self) -> Self { self.sin_cos().0 }
     /// Calculates the arcsine of `self`.
     fn asin(self) -> Self;
     /// Calculates the arcsine of `self`.
     fn sinh(self) -> Self;
     /// Calculates the cosine of `self`.
-    fn cos(self) -> Self;
+    fn cos(self) -> Self { self.sin_cos().0 }
     /// Calculates the arccosine of `self`.
     fn acos(self) -> Self;
     /// Calculates the arccosine of `self`.
@@ -109,6 +113,12 @@ impl Axis for f32 {
 
     #[inline(always)]
     fn sqrt( self ) -> Self { libm::sqrtf(self) }
+
+    #[inline(always)]
+    fn pow( self, exp: Self ) -> Self { libm::powf(self, exp) }
+    
+    #[inline(always)]
+    fn sin_cos( self ) -> (Self, Self) { libm::sincosf(self) }
 
     #[inline(always)]
     fn sin( self ) -> Self { libm::sinf(self) }
@@ -150,6 +160,12 @@ impl Axis for f64 {
 
     #[inline(always)]
     fn sqrt( self ) -> Self { libm::sqrt(self) }
+
+    #[inline(always)]
+    fn pow( self, exp: Self ) -> Self { libm::pow(self, exp) }
+    
+    #[inline(always)]
+    fn sin_cos( self ) -> (Self, Self) { libm::sincos(self) }
     
     #[inline(always)]
     fn sin( self ) -> Self { libm::sin(self) }

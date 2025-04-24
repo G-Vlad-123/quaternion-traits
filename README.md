@@ -16,7 +16,12 @@ Curently this library is implemented for:
 
 # Details
 
-Currently the quaternion traits are implemented only in core rust and [num](https://crates.io/crates/num/0.4.3),
+Since this crate is not published on crates.io, any item in this crate
+may or may not be marked as unstable in a future patch up untill
+the initial release.
+
+Currently the quaternion traits are implemented only in core rust and
+[num](https://crates.io/crates/num/0.4.3),
 but it's planned to add (though optional dependencies) these traits to crates like
 [bevy](https://crates.io/crates/bevy), [ggez](https://crates.io/crates/ggez)
 and the quaternion crates out there.
@@ -29,9 +34,10 @@ If possible this crate should implement functions for every quaternion use.
 And it should implement every function that a crate it's comapatble with has.
 
 This crate also currently has these pure maths functions for quaternions (excluding common ones):
-`exp`, `ln`, `log`, `sqrt`, `sin`, `sinh`, `sec`, `cos`, `cosh`, `csc`, `sin_cos`, `tan`, `tanh`,
+`exp`, `ln`, `sqrt`, `sin`, `sinh`, `sec`, `cos`, `cosh`, `csc`, `sin_cos`, `tan`, `tanh`,
 `cot`, `coth`.
 
 This crate provides currently unstable forms of these equasions:
 - `pow` (the equasion used seams to not be fully agreed on though so it's at risk of change if
   another equasion comes out that is guaranteed to be correct)
+- `log` (simple `ln` division only works for complex quaternions that include the real axis and only one of the other 3 imaginary axis. Will remain unstable untill)
