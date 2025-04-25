@@ -84,13 +84,19 @@ pub trait Axis: Sized
     /// Calculates the arcsine of `self`.
     fn asin(self) -> Self;
     /// Calculates the arcsine of `self`.
-    fn sinh(self) -> Self;
+    fn sinh(self) -> Self {
+        let exp = self.exp();
+        (exp - Self::ONE / exp) / (Self::ONE + Self::ONE)
+    }
     /// Calculates the cosine of `self`.
     fn cos(self) -> Self { self.sin_cos().0 }
     /// Calculates the arccosine of `self`.
     fn acos(self) -> Self;
     /// Calculates the arccosine of `self`.
-    fn cosh(self) -> Self;
+    fn cosh(self) -> Self {
+        let exp = self.exp();
+        (exp + Self::ONE / exp) / (Self::ONE + Self::ONE)
+    }
     /// Calculates the arctangent of `self / bottom`.
     fn atan2( self, bottom: Self ) -> Self;
     /// Calculates [`e`](https://en.wikipedia.org/wiki/E_(mathematical_constant)) raised to the power of `self`.
@@ -99,7 +105,6 @@ pub trait Axis: Sized
     fn exp(self) -> Self;
     /// Calculates natural logarithm `self`.
     fn ln(self) -> Self;
-
     /// Calculates the absolute value of `self`.
     #[inline]
     fn abs(self) -> Self {

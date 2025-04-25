@@ -827,7 +827,7 @@
 <a href=#827 id=827 data-nosnippet>827</a><span class="attr">#[cfg_attr(all(test, panic = <span class="string">"abort"</span>), no_panic::no_panic)]
 <a href=#828 id=828 data-nosnippet>828</a></span><span class="doccomment">/// Raises a quaternion to a scalar power.
 <a href=#829 id=829 data-nosnippet>829</a>/// 
-<a href=#830 id=830 data-nosnippet>830</a>/// Calculates `exp(ln(base) * exp)`, `exp(exp * ln(base))` may also be valid but it may give a diferent result.
+<a href=#830 id=830 data-nosnippet>830</a>/// Doesn't use eather `exp(ln(base) * exp)` or `exp(exp * ln(base))`.
 <a href=#831 id=831 data-nosnippet>831</a></span><span class="kw">pub fn </span>pow_f&lt;Num, Out&gt;(base: <span class="kw">impl </span>Quaternion&lt;Num&gt;, exp: <span class="kw">impl </span>Scalar&lt;Num&gt;) -&gt; Out
 <a href=#832 id=832 data-nosnippet>832</a><span class="kw">where 
 <a href=#833 id=833 data-nosnippet>833</a>    </span>Num: Axis,
@@ -859,8 +859,8 @@
 <a href=#859 id=859 data-nosnippet>859</a>    </span>Num: Axis,
 <a href=#860 id=860 data-nosnippet>860</a>    Out: QuaternionConstructor&lt;Num&gt;,
 <a href=#861 id=861 data-nosnippet>861</a>{
-<a href=#862 id=862 data-nosnippet>862</a>    <span class="kw">if </span>eq(base, <span class="kw-2">&amp;</span>()) {
-<a href=#863 id=863 data-nosnippet>863</a>        <span class="kw">if </span>is_scalar(exp) &amp;&amp; <span class="macro">crate::core::matches!</span>( exp.r().partial_cmp(<span class="kw-2">&amp;</span>Num::ZERO), Option::Some(<span class="kw">crate</span>::core::cmp::Ordering::Greater) ) {
+<a href=#862 id=862 data-nosnippet>862</a>    <span class="kw">if </span>eq(<span class="kw-2">&amp;</span>base, <span class="kw-2">&amp;</span>()) {
+<a href=#863 id=863 data-nosnippet>863</a>        <span class="kw">if </span>is_scalar(<span class="kw-2">&amp;</span>exp) &amp;&amp; <span class="macro">crate::core::matches!</span>( exp.r().partial_cmp(<span class="kw-2">&amp;</span>Num::ZERO), Option::Some(<span class="kw">crate</span>::core::cmp::Ordering::Greater) ) {
 <a href=#864 id=864 data-nosnippet>864</a>            <span class="kw">return </span>origin();
 <a href=#865 id=865 data-nosnippet>865</a>        }
 <a href=#866 id=866 data-nosnippet>866</a>        <span class="kw">return </span>nan();
