@@ -1,0 +1,128 @@
+
+use super::*;
+use core::assert;
+use core::assert_eq;
+
+
+
+const F32S: [f32; 61] = [
+    0.0,
+    1.0,
+    f32::EPSILON,
+    core::f32::consts::E,
+    core::f32::consts::FRAC_1_PI,
+    core::f32::consts::FRAC_1_SQRT_2,
+    core::f32::consts::FRAC_2_PI,
+    core::f32::consts::FRAC_2_SQRT_PI,
+    core::f32::consts::FRAC_PI_2,
+    core::f32::consts::FRAC_PI_3,
+    core::f32::consts::FRAC_PI_4,
+    core::f32::consts::FRAC_PI_6,
+    core::f32::consts::FRAC_PI_8,
+    core::f32::consts::LN_2,
+    core::f32::consts::LN_10,
+    core::f32::consts::LOG2_10,
+    core::f32::consts::LOG2_E,
+    core::f32::consts::LOG10_2,
+    core::f32::consts::LOG10_E,
+    core::f32::consts::PI,
+    core::f32::consts::SQRT_2,
+    core::f32::consts::TAU,
+    1e8 * f32::EPSILON,
+    1e8 * core::f32::consts::E,
+    1e8 * core::f32::consts::FRAC_1_PI,
+    1e8 * core::f32::consts::FRAC_1_SQRT_2,
+    1e8 * core::f32::consts::FRAC_2_PI,
+    1e8 * core::f32::consts::FRAC_2_SQRT_PI,
+    1e8 * core::f32::consts::FRAC_PI_2,
+    1e8 * core::f32::consts::FRAC_PI_3,
+    1e8 * core::f32::consts::FRAC_PI_4,
+    1e8 * core::f32::consts::FRAC_PI_6,
+    1e8 * core::f32::consts::FRAC_PI_8,
+    1e8 * core::f32::consts::LN_2,
+    1e8 * core::f32::consts::LN_10,
+    1e8 * core::f32::consts::LOG2_10,
+    1e8 * core::f32::consts::LOG2_E,
+    1e8 * core::f32::consts::LOG10_2,
+    1e8 * core::f32::consts::LOG10_E,
+    1e8 * core::f32::consts::PI,
+    1e8 * core::f32::consts::SQRT_2,
+    1e8 * core::f32::consts::TAU,
+    // 1e-8 * f32::EPSILON,
+    1e-8 * core::f32::consts::E,
+    1e-8 * core::f32::consts::FRAC_1_PI,
+    1e-8 * core::f32::consts::FRAC_1_SQRT_2,
+    1e-8 * core::f32::consts::FRAC_2_PI,
+    1e-8 * core::f32::consts::FRAC_2_SQRT_PI,
+    1e-8 * core::f32::consts::FRAC_PI_2,
+    1e-8 * core::f32::consts::FRAC_PI_3,
+    1e-8 * core::f32::consts::FRAC_PI_4,
+    1e-8 * core::f32::consts::FRAC_PI_6,
+    1e-8 * core::f32::consts::FRAC_PI_8,
+    1e-8 * core::f32::consts::LN_2,
+    1e-8 * core::f32::consts::LN_10,
+    1e-8 * core::f32::consts::LOG2_10,
+    1e-8 * core::f32::consts::LOG2_E,
+    1e-8 * core::f32::consts::LOG10_2,
+    1e-8 * core::f32::consts::LOG10_E,
+    1e-8 * core::f32::consts::PI,
+    1e-8 * core::f32::consts::SQRT_2,
+    1e-8 * core::f32::consts::TAU,
+];
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct F32_Quats {
+    r: usize,
+    i: usize,
+    j: usize,
+    k: usize,
+}
+
+impl F32_Quats {
+    const fn new() -> Self {
+        F32_Quats { r: 0, i: 0, j: 0, k: 0 }
+    }
+}
+
+impl core::iter::ExactSizeIterator for F32_Quats {}
+impl core::iter::FusedIterator for F32_Quats {}
+impl core::iter::Iterator for F32_Quats {
+    type Item = [f32; 4];
+
+    fn next(&mut self) -> core::option::Option<[f32; 4]> {
+        use core::option::Option;
+        if self.k == 60 { return Option::None }
+        if self.j == 60 { self.j = 0; self.k += 1 }
+        if self.i == 60 { self.i = 0; self.j += 1 }
+        if self.r == 60 { self.r = 0; self.i += 1 }
+        let out = [
+            F32S[self.r],
+            F32S[self.i],
+            F32S[self.j],
+            F32S[self.k],
+        ];
+        self.r += 1;
+        Option::Some(out)
+    }
+}
+
+#[test]
+fn sqrt_accuracy() {
+    let mut mul_result: [f32; 4];
+    let mut sqrt_result: [f32; 4];
+    for quat in F32_Quats::new() {
+        if quat == origin::<f32, [f32; 4]>() { continue }
+        mul_result = mul::<f32, [f32; 4]>(&quat, &quat);
+        sqrt_result = sqrt::<f32, [f32; 4]>(&mul_result);
+        let error: f32 = {
+            let original_dist = abs::<f32, f32>(&quat);
+            let checking_dist = abs::<f32, f32>(&sqrt_result);
+            f32::abs(original_dist/checking_dist - 1.0)
+        };
+        assert!(
+            error < 0.005,
+            "{quat:?}\n{mul_result:?}\n{sqrt_result:?}\nerror: {error:?}"
+        );
+    }
+}

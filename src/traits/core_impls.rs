@@ -1,6 +1,7 @@
 
 use crate::Scalar;
 use crate::NewScalar;
+use crate::ScalarConsts;
 use crate::core::num::{
     NonZero,
     Wrapping,
@@ -77,8 +78,20 @@ impl Scalar<f64> for f32 {
     #[inline] fn scalar(&self) -> f64 { *self as f64 }
 }
 
+impl ScalarConsts<f64> for f32 {
+    const ZERO: Self = 0.0;
+    const ONE: Self = 1.0;
+    const NAN: Self = f32::NAN;
+}
+
 impl Scalar<f32> for f64 {
     #[inline] fn scalar(&self) -> f32 { *self as f32 }
+}
+
+impl ScalarConsts<f32> for f64 {
+    const ZERO: Self = 0.0;
+    const ONE: Self = 1.0;
+    const NAN: Self = f64::NAN;
 }
 
 impl Scalar<f64> for &f32 {

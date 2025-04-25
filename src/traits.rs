@@ -6,7 +6,7 @@ use crate::core::marker::Sized;
 /**
 The general representation of any quaternion type.
 
-Note: The [`r`](Quat::r), [`i`](Quat::i), [`j`](Quat::j) and [`k`](Quat::k)
+Note: The [`r`](Quaternion::r), [`i`](Quaternion::i), [`j`](Quaternion::j) and [`k`](Quaternion::k)
 methods are used as if they are cheap operations.
 */
 pub trait Quaternion<Num: Axis> {
@@ -165,6 +165,65 @@ pub trait NewRotation<Num: Axis>: Sized {
     }
 }
 
+/// Adds constants associated with any quaternion.
+pub trait QuaternionConsts<Num: Axis>: Sized + Quaternion<Num> {
+    /// The origin quaternion. (Aditive identity)
+    const ORIGIN: Self;
+    /// The positive real unit quaternion. (Multiplicative identity)
+    const IDENTITY: Self;
+    /// A quaternion with all [`Num::NAN`s](Axis::NAN).
+    const NAN: Self;
+
+    /// The unit quaternion on the real axis.
+    const UNIT_R: Self = Self::IDENTITY;
+    /// The unit quaternion on the first imaginary axis.
+    const UNIT_I: Self;
+    /// The unit quaternion on the second imaginary axis.
+    const UNIT_J: Self;
+    /// The unit quaternion on the third imaginary axis.
+    const UNIT_K: Self;
+}
+
+/// Adds constants associated with any scalar value.
+pub trait ScalarConsts<Num: Axis>: Sized + Scalar<Num> {
+    /// The origin scalar value. (Aditive identity)
+    const ZERO: Self;
+    /// The positive real unit scalar value. (Multiplicative identity)
+    const ONE: Self;
+    /// The scalar representation of [`Num::NAN`](Axis::NAN).
+    const NAN: Self;
+}
+
+/// Adds constants associated with any complex number.
+pub trait ComplexConsts<Num: Axis>: Sized + Complex<Num> {
+    /// The origin complex number. (Aditive identity)
+    const ORIGIN: Self;
+    /// The positive real unit complex number. (Multiplicative identity)
+    const IDENTITY: Self;
+    /// A complex number with all [`Num::NAN`s](Axis::NAN).
+    const NAN: Self;
+
+    /// The unit complex number on the real axis.
+    const UNIT_REAL: Self = Self::IDENTITY;
+    /// The unit  complex number on the imaginary axis.
+    const UNIT_IMAGINARY: Self;
+}
+
+/// Adds constants associated with any vectors.
+pub trait VectorConsts<Num: Axis>: Sized + Vector<Num> {
+    /// The origin vector. (Aditive identity)
+    const ORIGIN: Self;
+    /// A vector with all [`Num::NAN`s](Axis::NAN).
+    const NAN: Self;
+
+    /// The unit vector on the x axis.
+    const UNIT_X: Self;
+    /// The unit vector on the y axis.
+    const UNIT_Y: Self;
+    /// The unit vector on the z axis.
+    const UNIT_Z: Self;
+}
+
 /**
 Adds most functions in this crate as methods that take `self` and/or return `Self`.
 
@@ -214,191 +273,195 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// Adds two quaternions togheder.
     /// 
     /// Check [the add function](crate::add) in the root for more info.
-    #[inline] fn add(&self, other: &impl Quaternion<Num>) -> Self { quat::add(self, other) }
+    #[inline] fn add(self, other: impl Quaternion<Num>) -> Self { quat::add(self, other) }
     /// Subtracts a quaternion from another one.
     /// 
     /// Check [the sub function](crate::sub) in the root for more info.
-    #[inline] fn sub(&self, other: &impl Quaternion<Num>) -> Self { quat::sub(self, other) }
+    #[inline] fn sub(self, other: impl Quaternion<Num>) -> Self { quat::sub(self, other) }
     /// Muliplies a quaternion to another one.
     /// 
     /// Check [the mul function](crate::mul) in the root for more info.
-    #[inline] fn mul(&self, other: &impl Quaternion<Num>) -> Self { quat::mul(self, other) }
+    #[inline] fn mul(self, other: impl Quaternion<Num>) -> Self { quat::mul(self, other) }
     /// Muliplies a quaternion to another one in a reversed order.
     /// 
     /// Check [the mul_reversed function](crate::mul_reversed) in the root for more info.
-    #[inline] fn mul_reversed(&self, other: &impl Quaternion<Num>) -> Self { quat::mul_reversed(self, other) }
+    #[inline] fn mul_reversed(self, other: impl Quaternion<Num>) -> Self { quat::mul_reversed(self, other) }
     /// Divides a quaternion from another one.
     /// 
     /// Check [the div function](crate::div) in the root for more info.
-    #[inline] fn div(&self, other: &impl Quaternion<Num>) -> Self { quat::div(self, other) }
+    #[inline] fn div(self, other: impl Quaternion<Num>) -> Self { quat::div(self, other) }
+    /// Divides a quaternion from another one.
+    /// 
+    /// Check [the div_reversed function](crate::div_reversed) in the root for more info.
+    #[inline] fn div_reversed(self, other: impl Quaternion<Num>) -> Self { quat::div_reversed(self, other) }
     /// Scales a quaternion.
     /// 
     /// Equivalent to multiplying a quaternion by a scalar quaternion.
     /// 
     /// Check [the scale function](crate::scale) in the root for more info.
-    #[inline] fn scale(&self, other: impl Scalar<Num>) -> Self { quat::scale(self, other) }
+    #[inline] fn scale(self, other: impl Scalar<Num>) -> Self { quat::scale(self, other) }
     /// Scales a quaternion by the inverse of the scalar.
     /// 
     /// Equivalent to dividing a quaternion by a scalar quaternion.
     /// 
     /// Check [the unscale function](crate::unscale) in the root for more info.
-    #[inline] fn unscale(&self, other: impl Scalar<Num>) -> Self { quat::unscale(self, other) }
+    #[inline] fn unscale(self, other: impl Scalar<Num>) -> Self { quat::unscale(self, other) }
     /// Checks if a quaternion is a scalar value.
     /// 
     /// Check [the is_scalar function](crate::is_scalar) in the root for more info.
-    #[inline] fn is_scalar(&self) -> bool { quat::is_scalar(self) }
+    #[inline] fn is_scalar(self) -> bool { quat::is_scalar(self) }
     /// Checks if a quaternion is a complex value.
     /// 
     /// Check [the is_complex function](crate::is_complex) in the root for more info.
-    #[inline] fn is_complex(&self) -> bool { quat::is_complex(self) }
+    #[inline] fn is_complex(self) -> bool { quat::is_complex(self) }
     /// Checks if a quaternion is a vector value.
     /// 
     /// Check [the is_vector function](crate::is_vector) in the root for more info.
-    #[inline] fn is_vector(&self) -> bool { quat::is_vector(self) }
+    #[inline] fn is_vector(self) -> bool { quat::is_vector(self) }
     /// Checks if a quaternion is on an axis plane.
     /// 
     /// Check [the is_on_axis_plane function](crate::is_on_axis_plane) in the root for more info.
-    #[inline] fn is_on_axis_plane(&self) -> bool { quat::is_on_axis_plane(self) }
+    #[inline] fn is_on_axis_plane(self) -> bool { quat::is_on_axis_plane(self) }
     /// Checks if two quaternion represent the same value.
     /// 
     /// Check [the eq function](crate::eq) in the root for more info.
-    #[inline] fn eq(&self, other: &impl Quaternion<Num>) -> bool { quat::eq(self, other) }
+    #[inline] fn eq(self, other: impl Quaternion<Num>) -> bool { quat::eq(self, other) }
     /// Gets the absolute value of a quaternion. (Also knows as it's "length")
     /// 
     /// Check [the abs function](crate::abs) in the root for more info.
-    #[inline] fn abs(&self) -> Num { quat::abs(self) }
+    #[inline] fn abs(self) -> Num { quat::abs(self) }
     /// Gets the squared absolute value of a quaternion. (Also knows as it's squared "length")
     /// 
     /// Check [the abs_squared function](crate::abs_squared) in the root for more info.
-    #[inline] fn abs_squared(&self) -> Num { quat::abs_squared(self) }
+    #[inline] fn abs_squared(self) -> Num { quat::abs_squared(self) }
     /// Gets the dot product of two quaternions.
     /// 
     /// Check [the dot function](crate::dot) in the root for more info.
-    #[inline] fn dot(&self, other: &impl Quaternion<Num>) -> Num { quat::dot(self, other) }
+    #[inline] fn dot(self, other: impl Quaternion<Num>) -> Num { quat::dot(self, other) }
     /// Gets the normal of a quaternion.
     /// 
     /// Check [the norm function](crate::norm) in the root for more info.
-    #[inline] fn norm(&self) -> Self { quat::norm(self) }
+    #[inline] fn norm(self) -> Self { quat::norm(self) }
     /// Gets the conjugate of a quaternion.
     /// 
     /// Check [the conj function](crate::conj) in the root for more info.
-    #[inline] fn conj(&self) -> Self { quat::conj(self) }
+    #[inline] fn conj(self) -> Self { quat::conj(self) }
     /// Gets the negative of a quaternion.
     /// 
     /// Check [the neg function](crate::neg) in the root for more info.
-    #[inline] fn neg(&self) -> Self { quat::neg(self) }
+    #[inline] fn neg(self) -> Self { quat::neg(self) }
     /// Gets the inverse of a quaternion.
     /// 
     /// Check [the inv function](crate::inv) in the root for more info.
-    #[inline] fn inv(&self) -> Self { quat::inv(self) }
+    #[inline] fn inv(self) -> Self { quat::inv(self) }
     /// Checks if the distance inbetween two quaternions is less then [`Num::ERROR`](Axis::ERROR).
     /// 
     /// Check [the is_near function](crate::is_near) in the root for more info.
-    #[inline] fn is_near(&self, other: &impl Quaternion<Num>) -> bool { quat::is_near(self, other) }
+    #[inline] fn is_near(self, other: impl Quaternion<Num>) -> bool { quat::is_near(self, other) }
     /// Gets the distance inbetween the coordonates of two quaternions.
     /// 
     /// Check [the dist function](crate::dist) in the root for more info.
-    #[inline] fn dist(&self, other: &impl Quaternion<Num>) -> Num { quat::dist(self, other) }
+    #[inline] fn dist(self, other: impl Quaternion<Num>) -> Num { quat::dist(self, other) }
     /// Gets the square root of a quaternion.
     /// 
     /// Check [the sqrt function](crate::sqrt) in the root for more info.
-    #[inline] fn sqrt(&self) -> Self { quat::sqrt(self) }
+    #[inline] fn sqrt(self) -> Self { quat::sqrt(self) }
     /// Raises a quaternion to an integer power.
     /// 
     /// Check [the pow_i function](crate::pow_i) in the root for more info.
-    #[inline] fn pow_i(&self, exp: i32) -> Self { quat::pow_i(self, exp) }
+    #[inline] fn pow_i(self, exp: i32) -> Self { quat::pow_i(self, exp) }
     /// Raises a quaternion to a positive integer power.
     /// 
     /// Check [the pow_u function](crate::pow_u) in the root for more info.
-    #[inline] fn pow_u(&self, exp: u32) -> Self { quat::pow_u(self, exp) }
+    #[inline] fn pow_u(self, exp: u32) -> Self { quat::pow_u(self, exp) }
     /// Raises a quaternion to a scalar power.
     /// 
     /// Check [the pow_f function](crate::pow_f) in the root for more info.
-    #[inline] fn pow_f(&self, exp: &impl Scalar<Num>) -> Self { quat::pow_f(self, exp) }
+    #[inline] fn pow_f(self, exp: impl Scalar<Num>) -> Self { quat::pow_f(self, exp) }
     /// Raises a quaternion to a quaternion power.
     /// 
     /// Check [the pow_q function](crate::pow_q) in the root for more info.
     #[cfg(feature = "unstable")]
-    #[inline] fn pow_q(&self, exp: &impl Quaternion<Num>) -> Self { quat::pow_q(self, exp) }
+    #[inline] fn pow_q(self, exp: impl Quaternion<Num>) -> Self { quat::pow_q(self, exp) }
     /// Raises the number e to a quaternion power.
     /// 
     /// Check [the exp function](crate::exp) in the root for more info.
-    #[inline] fn exp(&self) -> Self { quat::exp(self) }
+    #[inline] fn exp(self) -> Self { quat::exp(self) }
     /// Gets the natural logarithm of a quaternion.
     /// 
     /// Check [the ln function](crate::ln) in the root for more info.
-    #[inline] fn ln(&self) -> Self { quat::ln(self) }
+    #[inline] fn ln(self) -> Self { quat::ln(self) }
     /// Gets the logarithm of a quaternion.
     /// 
     /// Check [the log function](crate::log) in the root for more info.
     #[cfg(feature = "unstable")]
-    #[inline] fn log(&self, base: &impl Quaternion<Num>) -> Self { quat::log(self, base) }
+    #[inline] fn log(self, base: impl Quaternion<Num>) -> Self { quat::log(self, base) }
     /// Gets the sinus of a quaternion.
     /// 
     /// Check [the sin function](crate::sin) in the root for more info.
-    #[inline] fn sin(&self) -> Self { quat::sin(self) }
+    #[inline] fn sin(self) -> Self { quat::sin(self) }
     /// Gets the hyperbolic sinus of a quaternion.
-    #[inline] fn sinh(&self) -> Self { quat::sinh(self) }
+    #[inline] fn sinh(self) -> Self { quat::sinh(self) }
     /// Gets the secant of a quaternion.
-    #[inline] fn sec(&self) -> Self { quat::sec(self) }
+    #[inline] fn sec(self) -> Self { quat::sec(self) }
     /// Gets the cosinus of a quaternion.
     /// 
     /// Check [the cos function](crate::cos) in the root for more info.
-    #[inline] fn cos(&self) -> Self { quat::cos(self) }
+    #[inline] fn cos(self) -> Self { quat::cos(self) }
     /// Gets the hyperbolic cosinus of a quaternion.
-    #[inline] fn cosh(&self) -> Self { quat::cosh(self) }
+    #[inline] fn cosh(self) -> Self { quat::cosh(self) }
     /// Gets the cosecant of a quaternion.
-    #[inline] fn csc(&self) -> Self { quat::csc(self) }
+    #[inline] fn csc(self) -> Self { quat::csc(self) }
     /// Gets the tangent of a quaternion.
     /// 
     /// Check [the tan function](crate::tan) in the root for more info.
-    #[inline] fn tan(&self) -> Self { quat::tan(self) }
+    #[inline] fn tan(self) -> Self { quat::tan(self) }
     /// Gets the hyperbolic tangent of a quaternion.
-    #[inline] fn tanh(&self) -> Self { quat::tan(self) }
+    #[inline] fn tanh(self) -> Self { quat::tan(self) }
     /// Gets the vector part of a quaternion.
     /// 
     /// Check [the vector_part function](crate::vector_part) in the root for more info.
-    #[inline] fn vector_part(&self) -> Self { quat::vector_part(self) }
+    #[inline] fn vector_part(self) -> Self { quat::vector_part(self) }
     /// Gets the complex part of a quaternion.
     /// 
     /// Check [the complex_part function](crate::complex_part) in the root for more info.
-    #[inline] fn complex_part(&self) -> Self { quat::complex_part(self) }
+    #[inline] fn complex_part(self) -> Self { quat::complex_part(self) }
     /// Gets the scalar part of a quaternion.
     /// 
     /// Check [the scalar_part function](crate::scalar_part) in the root for more info.
-    #[inline] fn scalar_part(&self) -> Self { quat::scalar_part(self) }
+    #[inline] fn scalar_part(self) -> Self { quat::scalar_part(self) }
     /// Turns a quaternion representation into a vector value representation.
     /// 
     /// Check [the to_vector function](crate::to_vector) in the root for more info.
-    #[inline] fn to_vector<V: NewVector<Num>>(&self) -> V { quat::to_vector(self) }
+    #[inline] fn to_vector<V: NewVector<Num>>(self) -> V { quat::to_vector(self) }
     /// Turns a quaternion representation into a complex number representation.
     /// 
     /// Check [the to_complex function](crate::to_complex) in the root for more info.
-    #[inline] fn to_complex<C: NewComplex<Num>>(&self) -> C { quat::to_complex(self) }
+    #[inline] fn to_complex<C: NewComplex<Num>>(self) -> C { quat::to_complex(self) }
     /// Turns a quaternion representation into a scalar representation.
     /// 
     /// Check [the to_scalar function](crate::to_scalar) in the root for more info.
-    #[inline] fn to_scalar<S: NewScalar<Num>>(&self) -> S { quat::to_scalar(self) }
+    #[inline] fn to_scalar<S: NewScalar<Num>>(self) -> S { quat::to_scalar(self) }
     /// Turns a quaternion representation into a rotation.
     /// 
     /// Check [the to_rotation function](crate::to_rotation) in the root for more info.
-    #[inline] fn to_rotation<R: NewRotation<Num>>(&self) -> R { quat::to_rotation(self) }
+    #[inline] fn to_rotation<R: NewRotation<Num>>(self) -> R { quat::to_rotation(self) }
     /// Constructs a quaternion representation from a vector.
     /// 
     /// Check [the from_vector function](crate::from_vector) in the root for more info.
-    #[inline] fn from_vector<V: Vector<Num>>(vector: &V) -> Self { quat::from_vector(vector) }
+    #[inline] fn from_vector<V: Vector<Num>>(vector: V) -> Self { quat::from_vector(vector) }
     /// Constructs a quaternion representation from a complex number.
     /// 
     /// Check [the from_complex function](crate::from_complex) in the root for more info.
-    #[inline] fn from_complex<C: Complex<Num>>(complex: &C) -> Self { quat::from_complex(complex) }
+    #[inline] fn from_complex<C: Complex<Num>>(complex: C) -> Self { quat::from_complex(complex) }
     /// Constructs a quaternion representation from a scalar value.
     /// 
     /// Check [the from_scalar function](crate::from_scalar) in the root for more info.
-    #[inline] fn from_scalar<S: Scalar<Num>>(scalar: &S) -> Self { quat::from_scalar(scalar) }
+    #[inline] fn from_scalar<S: Scalar<Num>>(scalar: S) -> Self { quat::from_scalar(scalar) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_rotation function](crate::from_rotation) in the root for more info.
-    #[inline] fn from_rotation<R: Rotation<Num>>(rotation: &R) -> Self { quat::from_rotation(rotation) }
+    #[inline] fn from_rotation<R: Rotation<Num>>(rotation: R) -> Self { quat::from_rotation(rotation) }
 }
 
 // Quat impls
@@ -540,7 +603,25 @@ where T: Quaternion<Num>
 }
 
 impl<Num: Axis> QuaternionMethods<Num> for () {}
+impl<Num: Axis> QuaternionConsts<Num> for () {
+    const ORIGIN: Self = ();
+    const IDENTITY: Self = ();
+    const NAN: Self = ();
+    const UNIT_I: Self = ();
+    const UNIT_J: Self = ();
+    const UNIT_K: Self = ();
+}
+
 impl<Num: Axis, T> QuaternionMethods<Num> for [T; 0] {}
+impl<Num: Axis, T> QuaternionConsts<Num> for [T; 0] {
+    const ORIGIN: Self = [];
+    const IDENTITY: Self = [];
+    const NAN: Self = [];
+    const UNIT_I: Self = [];
+    const UNIT_J: Self = [];
+    const UNIT_K: Self = [];
+}
+
 impl<Num: Axis, R, I, J, K> QuaternionMethods<Num> for (R, I, J, K)
 where 
     R: Scalar<Num> + NewScalar<Num>,
@@ -548,20 +629,72 @@ where
     J: Scalar<Num> + NewScalar<Num>,
     K: Scalar<Num> + NewScalar<Num>,
 {}
+impl<Num: Axis, R, I, J, K> QuaternionConsts<Num> for (R, I, J, K)
+where 
+    R: ScalarConsts<Num>,
+    I: ScalarConsts<Num>,
+    J: ScalarConsts<Num>,
+    K: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = (R::ZERO, I::ZERO, J::ZERO, K::ZERO);
+    const IDENTITY: Self = (R::ONE, I::ZERO, J::ZERO, K::ZERO);
+    const NAN: Self = (R::NAN, I::NAN, J::NAN, K::NAN);
+    const UNIT_I: Self = (R::ZERO, I::ONE, J::ZERO, K::ZERO);
+    const UNIT_J: Self = (R::ZERO, I::ZERO, J::ONE, K::ZERO);
+    const UNIT_K: Self = (R::ZERO, I::ZERO, J::ZERO, K::ONE);
+}
+
 impl<Num: Axis, S> QuaternionMethods<Num> for [S; 4]
 where S: Scalar<Num> + NewScalar<Num>
 {}
+impl<Num: Axis, S> QuaternionConsts<Num> for [S; 4]
+where S: ScalarConsts<Num>
+{
+    const ORIGIN: Self = [S::ZERO, S::ZERO, S::ZERO, S::ZERO];
+    const IDENTITY: Self = [S::ONE, S::ZERO, S::ZERO, S::ZERO];
+    const NAN: Self = [S::NAN, S::NAN, S::NAN, S::NAN];
+    const UNIT_I: Self = [S::ZERO, S::ONE, S::ZERO, S::ZERO];
+    const UNIT_J: Self = [S::ZERO, S::ZERO, S::ONE, S::ZERO];
+    const UNIT_K: Self = [S::ZERO, S::ZERO, S::ZERO, S::ONE];
+}
+
 impl<Num: Axis, S, V> QuaternionMethods<Num> for (S, V)
 where 
     S: Scalar<Num> + NewScalar<Num>,
     V: Vector<Num> + NewVector<Num>,
 {}
+impl<Num: Axis, S, V> QuaternionConsts<Num> for (S, V)
+where 
+    S: ScalarConsts<Num>,
+    V: VectorConsts<Num>,
+{
+    const ORIGIN: Self = (S::ZERO, V::ORIGIN);
+    const IDENTITY: Self = (S::ONE, V::ORIGIN);
+    const NAN: Self = (S::NAN, V::NAN);
+    const UNIT_I: Self = (S::ZERO, V::UNIT_X);
+    const UNIT_J: Self = (S::ZERO, V::UNIT_Y);
+    const UNIT_K: Self = (S::ZERO, V::UNIT_Z);
+}
+
 impl<Num: Axis, C, J, K> QuaternionMethods<Num> for (C, J, K)
 where 
     C: Complex<Num> + NewComplex<Num>,
     J: Scalar<Num> + NewScalar<Num>,
     K: Scalar<Num> + NewScalar<Num>,
 {}
+impl<Num: Axis, C, J, K> QuaternionConsts<Num> for (C, J, K)
+where 
+    C: ComplexConsts<Num>,
+    J: ScalarConsts<Num>,
+    K: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = (C::ORIGIN, J::ZERO, K::ZERO);
+    const IDENTITY: Self = (C::IDENTITY, J::ZERO, K::ZERO);
+    const NAN: Self = (C::NAN, J::NAN, K::NAN);
+    const UNIT_I: Self = (C::UNIT_IMAGINARY, J::ZERO, K::ZERO);
+    const UNIT_J: Self = (C::ORIGIN, J::ONE, K::ZERO);
+    const UNIT_K: Self = (C::ORIGIN, J::ZERO, K::ONE);
+}
 
 // Scalar impls
 
@@ -575,6 +708,12 @@ impl<Num: Axis, T> Scalar<Num> for [T; 0] {
 
 impl<Num: Axis> Scalar<Num> for Num {
     #[inline] fn scalar(&self) -> Num { *self }
+}
+
+impl<Num: Axis> ScalarConsts<Num> for Num {
+    const ZERO: Self = <Num as Axis>::ZERO;
+    const ONE: Self = <Num as Axis>::ONE;
+    const NAN: Self = <Num as Axis>::NAN;
 }
 
 impl<From: Axis, To: Axis> NewScalar<From> for To
@@ -595,6 +734,14 @@ where S: NewScalar<Num>
     #[inline] fn new_scalar( axis: Num ) -> (S, ) { (NewScalar::new_scalar(axis), ) }
 }
 
+impl<Num: Axis, S> ScalarConsts<Num> for (S, )
+where S: ScalarConsts<Num>
+{
+    const ZERO: Self = (S::ZERO, );
+    const ONE: Self = (S::ONE, );
+    const NAN: Self = (S::NAN, );
+}
+
 impl<Num: Axis, S> Scalar<Num> for [S; 1]
 where S: Scalar<Num>
 {
@@ -605,6 +752,14 @@ impl<Num: Axis, S> NewScalar<Num> for [S; 1]
 where S: NewScalar<Num>
 {
     #[inline] fn new_scalar( axis: Num ) -> [S; 1] { [NewScalar::new_scalar(axis)] }
+}
+
+impl<Num: Axis, S> ScalarConsts<Num> for [S; 1]
+where S: ScalarConsts<Num>
+{
+    const ZERO: Self = [S::ZERO];
+    const ONE: Self = [S::ONE];
+    const NAN: Self = [S::NAN];
 }
 
 // Complex impls
@@ -641,6 +796,17 @@ where
     }
 }
 
+impl<Num: Axis, R, I> ComplexConsts<Num> for (R, I)
+where 
+    R: ScalarConsts<Num>,
+    I: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = (R::ZERO, I::ZERO);
+    const IDENTITY: Self = (R::ONE, I::ZERO);
+    const NAN: Self = (R::NAN, I::NAN);
+    const UNIT_IMAGINARY: Self = (R::ZERO, I::ONE);
+}
+
 impl<Num: Axis, S> Complex<Num> for [S; 2]
 where S: Scalar<Num>
 {
@@ -658,6 +824,16 @@ where
             NewScalar::new_scalar(i),
         ]
     }
+}
+
+impl<Num: Axis, S> ComplexConsts<Num> for [S; 2]
+where 
+    S: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = [S::ZERO, S::ZERO];
+    const IDENTITY: Self = [S::ONE, S::ZERO];
+    const NAN: Self = [S::NAN, S::NAN];
+    const UNIT_IMAGINARY: Self = [S::ZERO, S::ONE];
 }
 
 impl<Num: Axis, T> Complex<Num> for &T
@@ -707,6 +883,19 @@ where
     }
 }
 
+impl<Num: Axis, X, Y, Z> VectorConsts<Num> for (X, Y, Z)
+where
+    X: ScalarConsts<Num>,
+    Y: ScalarConsts<Num>,
+    Z: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = (X::ZERO, Y::ZERO, Z::ZERO);
+    const NAN: Self = (X::NAN, Y::NAN, Z::NAN);
+    const UNIT_X: Self = (X::ONE, Y::ZERO, Z::ZERO);
+    const UNIT_Y: Self = (X::ZERO, Y::ONE, Z::ZERO);
+    const UNIT_Z: Self = (X::ZERO, Y::ZERO, Z::ONE);
+}
+
 impl<Num: Axis, S> Vector<Num> for [S; 3]
 where S: Scalar<Num>
 {
@@ -726,6 +915,17 @@ where
             NewScalar::new_scalar(k),
         ]
     }
+}
+
+impl<Num: Axis, S> VectorConsts<Num> for [S; 3]
+where
+    S: ScalarConsts<Num>,
+{
+    const ORIGIN: Self = [S::ZERO, S::ZERO, S::ZERO];
+    const NAN: Self = [S::NAN, S::NAN, S::NAN];
+    const UNIT_X: Self = [S::ONE, S::ZERO, S::ZERO];
+    const UNIT_Y: Self = [S::ZERO, S::ONE, S::ZERO];
+    const UNIT_Z: Self = [S::ZERO, S::ZERO, S::ONE];
 }
 
 impl<Num: Axis, T> Vector<Num> for &T

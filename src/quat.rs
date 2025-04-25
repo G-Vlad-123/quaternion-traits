@@ -82,7 +82,7 @@ where
 /// 
 /// assert!( eq::<f32>(&[1.0, 2.0, 3.0, 4.0], &(1.0, 2.0, 3.0, 4.0)) );
 /// ```
-pub fn eq<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> bool
+pub fn eq<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
 {
@@ -106,7 +106,7 @@ where
 /// 
 /// assert_eq!( c, [5.0, 5.0, 5.0, 0.0] );
 /// ```
-pub fn add<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn add<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -124,16 +124,16 @@ where
 /// Subtracts a quaternion from another one.
 /// 
 /// # Example
-/// ```
+/// ```rust
 /// use quaternion_traits::sub;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [4.0, 3.0, 2.0, -4.0];
-/// let c: [f32; 4] = sub::<f32; [f32; 4]>(&a, &b);
+/// let c: [f32; 4] = sub::<f32, [f32; 4]>(&a, &b);
 /// 
 /// assert_eq!( c, [-3.0, -1.0, 1.0, 8.0] );
 /// ```
-pub fn sub<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn sub<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -165,7 +165,7 @@ where
 /// 
 /// Since quaternion multiplication is acctualy neather comutative nor anti-comutative,
 /// therefor `mul(q1, q2) == mul(q2, q1)` is NOT guaranteed for any q1 and q2.
-pub fn mul<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn mul<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -198,7 +198,7 @@ where
 /// 
 /// assert_eq!( mul::<f32, [f32; 4]>(&a, &b), mul_reversed::<f32, [f32; 4]>(&b, &a) );
 /// ```
-pub fn mul_reversed<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn mul_reversed<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -224,7 +224,7 @@ where
 ///     div::<f32, [f32; 4]>(&a, &b)
 /// );
 /// ```
-pub fn div<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn div<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -239,7 +239,7 @@ where
 /// 
 /// `div(q1, q2) = q1 * inv(q2)` 
 /// `div_reversed(q1, q2) = inv(q2) * q1` 
-pub fn div_reversed<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn div_reversed<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -260,7 +260,7 @@ where
 /// 
 /// assert_eq!( neg::<f32, [f32; 4]>(&quat), neg_quat );
 /// ```
-pub fn neg<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn neg<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -286,7 +286,7 @@ where
 /// 
 /// assert_eq!( conj::<f32, [f32; 4]>(&quat), conj_quat );
 /// ```
-pub fn conj<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn conj<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -313,7 +313,7 @@ where
 /// assert!( is_scalar::<f32>(&yes_scalar) );
 /// assert!( !is_scalar::<f32>(&no_scalar) );
 /// ```
-pub fn is_scalar<Num>(quaternion: &impl Quaternion<Num>) -> bool
+pub fn is_scalar<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
 {
@@ -339,7 +339,7 @@ where
 /// assert!( is_complex::<f32>(&yes_complex) );
 /// assert!( !is_complex::<f32>(&no_complex) );
 /// ```
-pub fn is_complex<Num>(quaternion: &impl Quaternion<Num>) -> bool
+pub fn is_complex<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
 {
@@ -363,7 +363,7 @@ where
 /// assert!( is_vector::<f32>(&yes_vector) );
 /// assert!( !is_vector::<f32>(&no_vector) );
 /// ```
-pub fn is_vector<Num>(quaternion: &impl Quaternion<Num>) -> bool
+pub fn is_vector<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
 {
@@ -386,7 +386,7 @@ where
 /// assert!( is_on_axis_plane::<f32>(&yes_planar) );
 /// assert!( !is_on_axis_plane::<f32>(&no_planar) );
 /// ```
-pub fn is_on_axis_plane<Num>(quaternion: &impl Quaternion<Num>) -> bool
+pub fn is_on_axis_plane<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
 {
@@ -408,7 +408,7 @@ where
 // /// 
 // /// ass
 // /// ```
-// pub fn is_on_same_plane<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> bool
+// pub fn is_on_same_plane<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
 // where 
 //     Num: Axis,
 // {
@@ -433,7 +433,7 @@ where
 /// 
 /// assert_eq!( scaled, [0.0, 2.0, 4.0, 6.0] );
 /// ```
-pub fn scale<Num, Out>(quaternion: &impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
+pub fn scale<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -461,7 +461,7 @@ where
 /// 
 /// assert_eq!( unscaled, [0.0, 0.5, 1.0, 1.5] );
 /// ```
-pub fn unscale<Num, Out>(quaternion: &impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
+pub fn unscale<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -486,7 +486,7 @@ where
 /// 
 /// assert!( is_near::<f32>(&a, &b) );
 /// ```
-pub fn is_near<Num>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> bool
+pub fn is_near<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
 where
     Num: Axis,
 {
@@ -508,7 +508,7 @@ where
 /// assert_eq!( dist::<f32, f32>(&a, &b), 5.0 );
 /// assert_eq!( dist::<f32, f32>(&a, &a), 0.0 );
 /// ```
-pub fn dist<Num, Out>(from: &impl Quaternion<Num>, to: &impl Quaternion<Num>) -> Out
+pub fn dist<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewScalar<Num>,
@@ -534,13 +534,13 @@ where
 /// 
 /// assert_eq!( normal, [0.0, 1.0, 0.0, 0.0] );
 /// ```
-pub fn norm<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn norm<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if eq(quaternion, &()) { return origin() }
-    let length: Num = Num::ONE / abs(quaternion);
+    if eq(&quaternion, &()) { return origin() }
+    let length: Num = Num::ONE / abs(&quaternion);
     Out::new_quat(
         quaternion.r() * length,
         quaternion.i() * length,
@@ -561,7 +561,7 @@ where
 /// 
 /// assert_eq!( abs::<f32, f32>(&quat), 10.0 );
 /// ```
-pub fn abs<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn abs<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewScalar<Num>,
@@ -572,6 +572,29 @@ where
         + quaternion.j() * quaternion.j()
         + quaternion.k() * quaternion.k()
     ) )
+}
+
+// TODO test this
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Gets the absolute value of a quaternion close to the origin.
+/// 
+/// Calculates the sqared absolute value of the quaternion multiplied by [`Num::ERROR`](Axis::ERROR) to the -2 power.
+/// Then it takes the square root.
+/// The it multiplies by [`Num::ERROR`](Axis::ERROR) to the first power.
+/// 
+/// Note: The operations above are the rough order in which they are done.
+pub fn small_abs<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: NewScalar<Num>,
+{
+    let factor = Num::ONE / Num::ERROR / Num::ERROR;
+    Out::new_scalar( Num::sqrt(
+          quaternion.r() * factor * quaternion.r()
+        + quaternion.i() * factor * quaternion.i()
+        + quaternion.j() * factor * quaternion.j()
+        + quaternion.k() * factor * quaternion.k()
+    ) * Num::ERROR )
 }
 
 #[inline]
@@ -586,7 +609,7 @@ where
 /// 
 /// assert_eq!( abs_squared::<f32, u32>(&quat), 100 );
 /// ```
-pub fn abs_squared<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn abs_squared<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewScalar<Num>,
@@ -618,20 +641,20 @@ where
 /// ) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
-pub fn inv<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn inv<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if eq(quaternion, &()) {
+    if eq(&quaternion, &()) {
         return Out::from_quat([Num::NAN; 4]);
     }
     let inv: Num = Num::ONE / abs_squared(&quaternion);
     Out::new_quat(
-        if quaternion.r() == Num::ZERO { Num::ZERO } else {  quaternion.r() * inv },
-        if quaternion.i() == Num::ZERO { Num::ZERO } else { -quaternion.i() * inv },
-        if quaternion.j() == Num::ZERO { Num::ZERO } else { -quaternion.j() * inv },
-        if quaternion.k() == Num::ZERO { Num::ZERO } else { -quaternion.k() * inv },
+         quaternion.r() * inv,
+        -quaternion.i() * inv,
+        -quaternion.j() * inv,
+        -quaternion.k() * inv,
     )
 }
 
@@ -648,16 +671,16 @@ where
 /// assert!( is_near::<f32>(&exp::<f32, [f32; 4]>(&ln_quat), &quat) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
-pub fn ln<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn ln<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    let absolute: Num = abs(quaternion);
+    let absolute: Num = abs(&quaternion);
     add(
         &scale::<Num, [Num; 4]>(
             &norm::<Num, [Num; 4]>(
-                &vector_part::<Num, [Num; 4]>(quaternion),
+                &vector_part::<Num, [Num; 4]>(&quaternion),
             ),
             (quaternion.r() / absolute).acos()
         ), 
@@ -673,20 +696,21 @@ where
 /// ```
 /// use quaternion_traits::{exp, ln, is_near};
 /// 
-/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let quat: [f32; 4] = [1.0, 3.14, 0.0, 0.0];
 /// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(&quat);
 /// 
+/// println!("{:?}", exp_quat);
 /// println!("{:?}", ln::<f32, [f32; 4]>(&exp_quat));
 /// println!("{:?}", quat);
 /// assert!( is_near::<f32>(&ln::<f32, [f32; 4]>(&exp_quat), &quat) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
-pub fn exp<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn exp<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    let vec: [Num; 4] = vector_part(quaternion);
+    let vec: [Num; 4] = vector_part(&quaternion);
     let (sin, cos) = abs::<Num, Num>(&vec).sin_cos();
     scale::<Num, Out>(
         &add::<Num, [Num; 4]>(
@@ -715,7 +739,7 @@ where
 /// 
 /// assert_eq!( log_quat, [3.0, 0.0, 0.0, 0.0] );
 /// ```
-pub fn log<Num, Out>(base: &impl Quaternion<Num>, num: &impl Quaternion<Num>) -> Out
+pub fn log<Num, Out>(base: impl Quaternion<Num>, num: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -727,21 +751,26 @@ where
 /// Calculates the sqaure root of a quaternion.
 /// 
 /// This uses a diferent algorthm from [`pow_f`].
-pub fn sqrt<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn sqrt<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if is_scalar(quaternion) {
-        return Out::from_quat((quaternion.r().sqrt(), ()));
+    if is_scalar(&quaternion) {
+        use crate::core::cmp::Ordering;
+        use crate::core::option::Option::Some;
+        return match quaternion.r().partial_cmp(&Num::ZERO) {
+            Some(Ordering::Greater) => Out::from_quat((quaternion.r().sqrt(), ())),
+            Some(Ordering::Less) => Out::from_quat((Num::ZERO, (-quaternion.r()).sqrt(), Num::ZERO, Num::ZERO)),
+            _ => nan(),
+        }
     }
-    let a: Num = quaternion.r();
-    let b: Num = abs(&sub::<Num, [Num; 4]>(quaternion, &(quaternion.r(), ())));
-    let unit = norm::<Num, [Num; 4]>(&sub::<Num, [Num; 4]>(quaternion, &(quaternion.r(), ())));
-    let a_b_sqrt: Num = Num::sqrt(a*a + b*b);
-    let unreal_part: Num = Num::sqrt( (a_b_sqrt - a) / (Num::ONE + Num::ONE) );
+    let r: Num = quaternion.r();
+    let unit = norm::<Num, [Num; 4]>(&vector_part::<Num, [Num; 4]>(&quaternion));
+    let abs: Num = abs::<Num, Num>(&quaternion);
+    let unreal_part: Num = Num::sqrt( (abs - r) / (Num::ONE + Num::ONE) );
     Out::new_quat (
-        Num::sqrt( (a_b_sqrt + a) / (Num::ONE + Num::ONE) ),
+        Num::sqrt( (abs + r) / (Num::ONE + Num::ONE) ),
         unit[1] * unreal_part,
         unit[2] * unreal_part,
         unit[3] * unreal_part,
@@ -753,22 +782,22 @@ where
 /// 
 /// This is evaluated by repeated multiplication.
 /// For large (or small) values use [`pow_f`].
-pub fn pow_i<Num, Out>(base: &impl Quaternion<Num>, mut exp: i32) -> Out
+pub fn pow_i<Num, Out>(base: impl Quaternion<Num>, mut exp: i32) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if eq(base, &()) {
+    if eq(&base, &()) {
         if exp > 0 { return origin(); }
         return nan()
     }
-    if eq(base, &identity::<Num, [Num; 4]>()) { return identity() }
+    if eq(&base, &identity::<Num, [Num; 4]>()) { return identity() }
     if exp == 0 { return identity(); }
     let mut out: [Num; 4] = identity::<Num, [Num; 4]>();
     let is_inverse = exp < 0;
     if is_inverse { exp = -exp }
     for _ in 0..exp {
-        out = mul(&out, base);
+        out = mul(&out, &base);
     }
     if is_inverse { inv(&out) } else { Out::from_quat(out) }
 }
@@ -778,17 +807,17 @@ where
 /// 
 /// This is evaluated by repeated multiplication.
 /// For larger values use [`pow_f`].
-pub fn pow_u<Num, Out>(base: &impl Quaternion<Num>, exp: u32) -> Out
+pub fn pow_u<Num, Out>(base: impl Quaternion<Num>, exp: u32) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    if eq(base, &()) { return origin(); }
-    if eq(base, &identity::<Num, [Num; 4]>()) { return identity() }
+    if eq(&base, &()) { return origin(); }
+    if eq(&base, &identity::<Num, [Num; 4]>()) { return identity() }
     if exp == 0 { return identity(); }
     let mut out = identity::<Num, [Num; 4]>();
     for _ in 0..exp {
-        out = mul(&out, base);
+        out = mul(&out, &base);
     }
     Out::from_quat(out)
 }
@@ -797,12 +826,12 @@ where
 /// Raises a quaternion to a scalar power.
 /// 
 /// Calculates `exp(ln(base) * exp)`, `exp(exp * ln(base))` may also be valid but it may give a diferent result.
-pub fn pow_f<Num, Out>(base: &impl Quaternion<Num>, exp: &impl Scalar<Num>) -> Out
+pub fn pow_f<Num, Out>(base: impl Quaternion<Num>, exp: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
 {
-    let abs: Num = abs(base);
+    let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
     scale(
         &crate::exp::<Num, [Num; 4]>(
@@ -823,7 +852,7 @@ where
 /// [link](https://web.archive.org/web/20170705123142/http://www.lce.hut.fi/~ssarkka/pub/quat.pdf)
 /// 
 /// Calculates `exp(ln(base) * exp)`, `exp(exp * ln(base))` may also be valid but it may give a diferent result.
-pub fn pow_q<Num, Out>(base: &impl Quaternion<Num>, exp: &impl Quaternion<Num>) -> Out
+pub fn pow_q<Num, Out>(base: impl Quaternion<Num>, exp: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -853,7 +882,7 @@ where
 /// 
 /// assert_eq!( dot_product, 20.0 );
 /// ```
-pub fn dot<Num, Out>(left: &impl Quaternion<Num>, right: &impl Quaternion<Num>) -> Out
+pub fn dot<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewScalar<Num>,
@@ -868,7 +897,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the sinus of a quaternion.
-pub fn sin<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn sin<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -886,7 +915,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the hyperbolic sinus of a quaternion.
-pub fn sinh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn sinh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -897,7 +926,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the secant of a quaternion.
-pub fn sec<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn sec<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -907,7 +936,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the  cosinus of a quaternion.
-pub fn cos<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn cos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -925,7 +954,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the hyperbolic cosinus of a quaternion.
-pub fn cosh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn cosh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -936,7 +965,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the cosecant of a quaternion.
-pub fn csc<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn csc<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -946,7 +975,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the sinus and cosinus of a quaternion at once.
-pub fn sin_cos<Num, Out>(quaternion: &impl Quaternion<Num>) -> (Out, Out)
+pub fn sin_cos<Num, Out>(quaternion: impl Quaternion<Num>) -> (Out, Out)
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -975,7 +1004,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the tangent of a quaternion
-pub fn tan<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn tan<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -986,7 +1015,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the sinus of a quaternion.
-pub fn tanh<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn tanh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1001,7 +1030,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the cotangent of a quaternion
-pub fn cot<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn cot<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1012,7 +1041,7 @@ where
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the sinus of a quaternion.
-pub fn coth<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn coth<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1122,7 +1151,7 @@ where
 ///     [0.0, 3.4, 5.6, 7.8]
 /// )
 /// ```
-pub fn vector_part<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn vector_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1150,7 +1179,7 @@ where
 ///     [1.2, 3.4, 0.0, 0.0]
 /// )
 /// ```
-pub fn complex_part<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn complex_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1178,7 +1207,7 @@ where
 ///     [1.2, 0.0, 0.0, 0.0]
 /// )
 /// ```
-pub fn scalar_part<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn scalar_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1204,7 +1233,7 @@ where
 /// 
 /// assert_eq!( quat, [0.0, 3.14, 2.71, 1.23] );
 /// ```
-pub fn from_vector<Num, Out>(vector: &impl Vector<Num>) -> Out
+pub fn from_vector<Num, Out>(vector: impl Vector<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1230,7 +1259,7 @@ where
 /// 
 /// assert_eq!( quat, [3.14, 2.71, 0.0, 0.0] );
 /// ```
-pub fn from_complex<Num, Out>(complex: &impl Complex<Num>) -> Out
+pub fn from_complex<Num, Out>(complex: impl Complex<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1256,7 +1285,7 @@ where
 /// 
 /// assert_eq!( quat, [3.14, 0.0, 0.0, 0.0] );
 /// ```
-pub fn from_scalar<Num, Out>(complex: &impl Scalar<Num>) -> Out
+pub fn from_scalar<Num, Out>(complex: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1284,7 +1313,7 @@ where
 /// 
 /// assert_eq!( quat, [-4.371139e-8, 1.0, 0.0, 0.0] );
 /// ```
-pub fn from_rotation<Num, Out>(rotation: &impl Rotation<Num>) -> Out
+pub fn from_rotation<Num, Out>(rotation: impl Rotation<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1316,7 +1345,7 @@ where
 /// 
 /// assert_eq!( vector, [3.4, 5.6, 7.8] );
 /// ```
-pub fn to_vector<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn to_vector<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: NewVector<Num>,
@@ -1341,7 +1370,7 @@ where
 /// 
 /// assert_eq!( complex, [1.2, 3.4] );
 /// ```
-pub fn to_complex<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn to_complex<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewComplex<Num>,
@@ -1365,7 +1394,7 @@ where
 /// 
 /// assert_eq!( scalar, 1.2 );
 /// ```
-pub fn to_scalar<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn to_scalar<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewScalar<Num>,
@@ -1388,7 +1417,7 @@ where
 /// 
 /// assert_eq!( rotation, [PI, 0.0, 0.0] );
 /// ```
-pub fn to_rotation<Num, Out>(quaternion: &impl Quaternion<Num>) -> Out
+pub fn to_rotation<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewRotation<Num>
@@ -1428,7 +1457,7 @@ where
 }
 
 /// Gives the vector rotated by the given quaternion
-pub fn rotate_vector<Num, Out>(_vector: &impl Vector<Num>, _quaternion: &impl Quaternion<Num>) -> Out
+pub fn rotate_vector<Num, Out>(_vector: impl Vector<Num>, _quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: NewVector<Num>,
@@ -1437,7 +1466,7 @@ where
 }
 
 /// Constructs a quaternion representing the rotation inbetween two vectors.
-pub fn rotation_from_to<Num, Out>(_from: &impl Vector<Num>, _to: &impl Vector<Num>) -> Out
+pub fn rotation_from_to<Num, Out>(_from: impl Vector<Num>, _to: impl Vector<Num>) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1447,8 +1476,8 @@ where
 
 /// Constructs a quaternion from a given axis unit vector and a given angle.
 /// 
-/// Returns [`None`] if the vector is not a unit vector
-pub fn axis_angle<Num, Out>(axis: &impl Vector<Num>, angle: Num) -> crate::core::option::Option<Out>
+/// Returns [`None`](Option::None) if the vector is not a unit vector
+pub fn axis_angle<Num, Out>(axis: impl Vector<Num>, angle: Num) -> crate::core::option::Option<Out>
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1467,7 +1496,7 @@ where
 /// 
 /// # Safety
 /// The vector must be a unit vector
-pub unsafe fn axis_angle_unchecked<Num, Out>(axis: &impl Vector<Num>, angle: Num) -> Out
+pub unsafe fn axis_angle_unchecked<Num, Out>(axis: impl Vector<Num>, angle: Num) -> Out
 where 
     Num: Axis,
     Out: NewQuaternion<Num>,
@@ -1487,8 +1516,8 @@ use crate::core::result::Result;
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Writes a quaternion representation to a formatter/string.
-pub fn display<Num: Axis + crate::core::fmt::Display>(quaternion: &impl Quaternion<Num>, target: &mut impl crate::core::fmt::Write) -> crate::core::fmt::Result {
-    if eq(quaternion, &()) {
+pub fn display<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>, target: &mut impl crate::core::fmt::Write) -> crate::core::fmt::Result {
+    if eq(&quaternion, &()) {
         return write!(target, "{}", Num::ZERO);
     }
 
@@ -1564,7 +1593,7 @@ use crate::alloc::string::String;
 #[cfg(feature = "alloc")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Turns a quaternion representation into a [String].
-pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: &impl Quaternion<Num>) -> Result<String, crate::core::fmt::Error> {
+pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>) -> Result<String, crate::core::fmt::Error> {
     let mut string = String::new();
     display(quaternion, &mut string)?;
     Result::Ok(string)

@@ -99,6 +99,13 @@ pub trait Axis: Sized
     fn exp(self) -> Self;
     /// Calculates natural logarithm `self`.
     fn ln(self) -> Self;
+
+    /// Calculates the absolute value of `self`.
+    #[inline]
+    fn abs(self) -> Self {
+        if self < Self::ZERO { -self }
+        else {self}
+    }
 }
 
 impl Axis for f32 {
