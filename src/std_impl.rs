@@ -1,7 +1,7 @@
 
 use crate::Axis;
 use crate::Scalar;
-use crate::NewScalar;
+use crate::ScalarConstructor;
 use crate::core::num::{
     NonZero,
     Wrapping,
@@ -194,19 +194,19 @@ macro_rules! impl_scalar_for_std {
                 }
             }
 
-            impl NewScalar<Std<$for>> for crate::core::option::Option<NonZero<$impl>> {
+            impl ScalarConstructor<Std<$for>> for crate::core::option::Option<NonZero<$impl>> {
                 #[inline] fn new_scalar( axis: Std<$for> ) -> Self {
                     Self::new_scalar(axis.0)
                 }
             }
 
-            impl NewScalar<Std<$for>> for Saturating<$impl> {
+            impl ScalarConstructor<Std<$for>> for Saturating<$impl> {
                 #[inline] fn new_scalar( axis: Std<$for> ) -> Self {
                     Self::new_scalar(axis.0)
                 }
             }
 
-            impl NewScalar<Std<$for>> for Wrapping<$impl> {
+            impl ScalarConstructor<Std<$for>> for Wrapping<$impl> {
                 #[inline] fn new_scalar( axis: Std<$for> ) -> Self {
                     Self::new_scalar(axis.0)
                 }

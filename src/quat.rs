@@ -2,11 +2,11 @@
 use crate::core::option::Option;
 use crate::{
     Axis,
-    Quaternion, NewQuaternion,
-    Vector, NewVector,
-    Complex, NewComplex,
-    Scalar, NewScalar,
-    Rotation, NewRotation,
+    Quaternion, QuaternionConstructor,
+    Vector, VectorConstructor,
+    Complex, ComplexConstructor,
+    Scalar, ScalarConstructor,
+    Rotation, RotationConstructor,
 };
 
 #[inline]
@@ -24,7 +24,7 @@ use crate::{
 pub fn origin<Num, Out>() -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::from_quat(())
 }
@@ -44,7 +44,7 @@ where
 pub fn identity<Num, Out>() -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::from_quat((Num::ONE, ()))
 }
@@ -67,7 +67,7 @@ where
 pub fn nan<Num, Out>() -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::from_quat([Num::NAN; 4])
 }
@@ -109,7 +109,7 @@ where
 pub fn add<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         left.r() + right.r(), 
@@ -136,7 +136,7 @@ where
 pub fn sub<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         left.r() - right.r(), 
@@ -152,9 +152,10 @@ where
 /// 
 /// Quaternion multiplication formula:
 ///     
+///     # "
 ///     let w1, w2, x1, x2, y1, y2, z1, z2 be Real numbers
-///     let q1 = w1 + x1 * i + y1 * j + z1 * k
-///     let q2 = w2 + x2 * i + y2 * j + z2 * k
+///     let q1 = w1 + x1*i + y1*j + z1*k
+///     let q2 = w2 + x2*i + y2*j + z2*k
 /// 
 ///        =>
 /// 
@@ -162,13 +163,14 @@ where
 ///           + ( w1*x2 - x1*w2 - y1*z2 - z1*y2 ) * i | <-- vector part
 ///           + ( w1*y2 - x1*z2 - y1*w2 - z1*x2 ) * j |
 ///           + ( w1*z2 - x1*y2 - y1*x2 - z1*w2 ) * k |
+///     # ";
 /// 
 /// Since quaternion multiplication is acctualy neather comutative nor anti-comutative,
 /// therefor `mul(q1, q2) == mul(q2, q1)` is NOT guaranteed for any q1 and q2.
 pub fn mul<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         left.r() * right.r() - left.i() * right.i() - left.j() * right.j() - left.k() * right.k(),
@@ -201,7 +203,7 @@ where
 pub fn mul_reversed<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 { mul(right, left) }
 
 #[inline]
@@ -227,7 +229,7 @@ where
 pub fn div<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     mul::<Num, Out>(left, &inv::<Num, [Num; 4]>(right))
 }
@@ -242,7 +244,7 @@ where
 pub fn div_reversed<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     mul::<Num, Out>(&inv::<Num, [Num; 4]>(left), &right)
 }
@@ -263,7 +265,7 @@ where
 pub fn neg<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         -quaternion.r(), 
@@ -289,7 +291,7 @@ where
 pub fn conj<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         quaternion.r(),
@@ -436,7 +438,7 @@ where
 pub fn scale<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         quaternion.r() * scalar.scalar(),
@@ -464,7 +466,7 @@ where
 pub fn unscale<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         quaternion.r() / scalar.scalar(),
@@ -511,7 +513,7 @@ where
 pub fn dist<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     abs(&sub::<Num, [Num; 4]>(from, to))
 }
@@ -537,7 +539,7 @@ where
 pub fn norm<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     if eq(&quaternion, &()) { return origin() }
     let length: Num = Num::ONE / abs(&quaternion);
@@ -564,7 +566,7 @@ where
 pub fn abs<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     Out::new_scalar( Num::sqrt(
         quaternion.r() * quaternion.r()
@@ -586,7 +588,7 @@ where
 pub fn small_abs<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     let factor = Num::ONE / Num::ERROR / Num::ERROR;
     Out::new_scalar( Num::sqrt(
@@ -612,7 +614,7 @@ where
 pub fn abs_squared<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     Out::new_scalar(
         quaternion.r() * quaternion.r()
@@ -644,7 +646,7 @@ where
 pub fn inv<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     if eq(&quaternion, &()) {
         return Out::from_quat([Num::NAN; 4]);
@@ -674,7 +676,7 @@ where
 pub fn ln<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let absolute: Num = abs(&quaternion);
     add(
@@ -708,7 +710,7 @@ where
 pub fn exp<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let vec: [Num; 4] = vector_part(&quaternion);
     let (sin, cos) = abs::<Num, Num>(&vec).sin_cos();
@@ -742,7 +744,7 @@ where
 pub fn log<Num, Out>(base: impl Quaternion<Num>, num: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     div::<Num, Out>(&ln::<Num, [Num; 4]>(num), &ln::<Num, [Num; 4]>(base))
 }
@@ -754,7 +756,7 @@ where
 pub fn sqrt<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     if is_scalar(&quaternion) {
         use crate::core::cmp::Ordering;
@@ -785,7 +787,7 @@ where
 pub fn pow_i<Num, Out>(base: impl Quaternion<Num>, mut exp: i32) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     if eq(&base, &()) {
         if exp > 0 { return origin(); }
@@ -810,7 +812,7 @@ where
 pub fn pow_u<Num, Out>(base: impl Quaternion<Num>, exp: u32) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     if eq(&base, &()) { return origin(); }
     if eq(&base, &identity::<Num, [Num; 4]>()) { return identity() }
@@ -825,11 +827,11 @@ where
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises a quaternion to a scalar power.
 /// 
-/// Calculates `exp(ln(base) * exp)`, `exp(exp * ln(base))` may also be valid but it may give a diferent result.
+/// Doesn't use eather `exp(ln(base) * exp)` or `exp(exp * ln(base))`.
 pub fn pow_f<Num, Out>(base: impl Quaternion<Num>, exp: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
@@ -855,10 +857,10 @@ where
 pub fn pow_q<Num, Out>(base: impl Quaternion<Num>, exp: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
-    if eq(base, &()) {
-        if is_scalar(exp) && matches!( exp.r().partial_cmp(&Num::ZERO), Option::Some(crate::core::cmp::Ordering::Greater) ) {
+    if eq(&base, &()) {
+        if is_scalar(&exp) && crate::core::matches!( exp.r().partial_cmp(&Num::ZERO), Option::Some(crate::core::cmp::Ordering::Greater) ) {
             return origin();
         }
         return nan();
@@ -885,7 +887,7 @@ where
 pub fn dot<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     Out::new_scalar(
         left.r() * right.r()
@@ -900,7 +902,7 @@ where
 pub fn sin<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     // refrence: https://math.stackexchange.com/questions/1499095/how-to-calculate-sin-cos-tan-of-a-quaternion
     let abs_vec = Num::sqrt(quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k());
@@ -918,7 +920,7 @@ where
 pub fn sinh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, [Num; 4]>(quaternion);
     unscale(&sub::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
@@ -929,7 +931,7 @@ where
 pub fn sec<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     inv(&cos::<Num, [Num; 4]>(quaternion))
 }
@@ -939,7 +941,7 @@ where
 pub fn cos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     // refrence: https://math.stackexchange.com/questions/1499095/how-to-calculate-sin-cos-tan-of-a-quaternion
     let abs_vec = Num::sqrt(quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k());
@@ -957,7 +959,7 @@ where
 pub fn cosh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, [Num; 4]>(quaternion);
     unscale(&add::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
@@ -968,7 +970,7 @@ where
 pub fn csc<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     inv(&sin::<Num, [Num; 4]>(quaternion))
 }
@@ -978,7 +980,7 @@ where
 pub fn sin_cos<Num, Out>(quaternion: impl Quaternion<Num>) -> (Out, Out)
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     // refrence: https://math.stackexchange.com/questions/1499095/how-to-calculate-sin-cos-tan-of-a-quaternion
     let abs_vec = Num::sqrt(quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k());
@@ -1007,7 +1009,7 @@ where
 pub fn tan<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let (sin, cos) = sin_cos::<Num, [Num; 4]>(quaternion);
     div(&sin, &cos)
@@ -1018,7 +1020,7 @@ where
 pub fn tanh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, [Num; 4]>(quaternion);
     let inv = inv::<Num, [Num; 4]>(&exp);
@@ -1033,7 +1035,7 @@ where
 pub fn cot<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let (sin, cos) = sin_cos::<Num, [Num; 4]>(quaternion);
     div(&cos, &sin)
@@ -1044,7 +1046,7 @@ where
 pub fn coth<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, [Num; 4]>(quaternion);
     let inv = inv::<Num, [Num; 4]>(&exp);
@@ -1079,7 +1081,7 @@ use crate::core::iter::Iterator;
 pub fn sum<Num, Out>(iter: impl crate::core::iter::IntoIterator<Item: Quaternion<Num>>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let mut sum = [Num::ZERO; 4];
     for quaternion in iter {
@@ -1110,7 +1112,7 @@ const PRODUCT_MARGIN: usize = 0xFFFFFFF;
 pub fn product<Num, Out>(iter: impl crate::core::iter::IntoIterator<Item: Quaternion<Num>>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let mut iter = iter.into_iter();
     let mut sum = match iter.next() {
@@ -1154,7 +1156,7 @@ where
 pub fn vector_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         Num::ZERO,
@@ -1182,7 +1184,7 @@ where
 pub fn complex_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         quaternion.r(),
@@ -1210,7 +1212,7 @@ where
 pub fn scalar_part<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     Out::new_quat(
         quaternion.r(),
@@ -1236,9 +1238,9 @@ where
 pub fn from_vector<Num, Out>(vector: impl Vector<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
-    NewQuaternion::new_quat(
+    QuaternionConstructor::new_quat(
         Num::ZERO,
         vector.x(),
         vector.y(),
@@ -1262,9 +1264,9 @@ where
 pub fn from_complex<Num, Out>(complex: impl Complex<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
-    NewQuaternion::new_quat(
+    QuaternionConstructor::new_quat(
         complex.real(),
         complex.imaginary(),
         Num::ZERO,
@@ -1288,9 +1290,9 @@ where
 pub fn from_scalar<Num, Out>(complex: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
-    NewQuaternion::new_quat(
+    QuaternionConstructor::new_quat(
         complex.scalar(),
         Num::ZERO,
         Num::ZERO,
@@ -1316,7 +1318,7 @@ where
 pub fn from_rotation<Num, Out>(rotation: impl Rotation<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let cos_r: Num = Num::cos(rotation.roll() / (Num::ONE + Num::ONE));
     let sin_r: Num = Num::sin(rotation.roll() / (Num::ONE + Num::ONE));
@@ -1324,7 +1326,7 @@ where
     let sin_p: Num = Num::sin(rotation.pitch() / (Num::ONE + Num::ONE));
     let cos_y: Num = Num::cos(rotation.yaw() / (Num::ONE + Num::ONE));
     let sin_y: Num = Num::sin(rotation.yaw() / (Num::ONE + Num::ONE));
-    NewQuaternion::new_quat(
+    QuaternionConstructor::new_quat(
         cos_r * cos_p * cos_y + sin_r * sin_p * sin_y,
         sin_r * cos_p * cos_y + cos_r * sin_p * sin_y,
         cos_r * sin_p * cos_y + sin_r * cos_p * sin_y,
@@ -1348,7 +1350,7 @@ where
 pub fn to_vector<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
-    Out: NewVector<Num>,
+    Out: VectorConstructor<Num>,
 {
     Out::new_vector(
         quaternion.i(),
@@ -1373,7 +1375,7 @@ where
 pub fn to_complex<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewComplex<Num>,
+    Out: ComplexConstructor<Num>,
 {
     Out::new_complex(
         quaternion.r(),
@@ -1397,7 +1399,7 @@ where
 pub fn to_scalar<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewScalar<Num>,
+    Out: ScalarConstructor<Num>,
 {
     Out::new_scalar(
         quaternion.r(),
@@ -1420,7 +1422,7 @@ where
 pub fn to_rotation<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewRotation<Num>
+    Out: RotationConstructor<Num>
 {
     let quat: [Num; 4] = norm(quaternion);
 
@@ -1429,7 +1431,7 @@ where
     let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
 
     if peach > Num::ONE - Num::ERROR {
-        return NewRotation::new_rotation(
+        return RotationConstructor::new_rotation(
             two * Num::atan2(quat.i(), quat.r()),
             Num::TAU / (two + two),
             Num::ZERO,
@@ -1437,7 +1439,7 @@ where
     }
 
     if peach < Num::ERROR - Num::ONE {
-        return NewRotation::new_rotation(
+        return RotationConstructor::new_rotation(
             -two * Num::atan2(quat.i(), quat.r()),
             -Num::TAU / (two + two),
             Num::ZERO,
@@ -1453,14 +1455,14 @@ where
         two * (quat.r() * quat.k() + quat.i() * quat.j()),
         Num::ONE - two * ( quat.j() * quat.j() + quat.k() * quat.k() )
     );
-    NewRotation::new_rotation(roll, pitch, yaw)
+    RotationConstructor::new_rotation(roll, pitch, yaw)
 }
 
 /// Gives the vector rotated by the given quaternion
 pub fn rotate_vector<Num, Out>(_vector: impl Vector<Num>, _quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewVector<Num>,
+    Out: VectorConstructor<Num>,
 {
     crate::core::todo!()
 }
@@ -1469,7 +1471,7 @@ where
 pub fn rotation_from_to<Num, Out>(_from: impl Vector<Num>, _to: impl Vector<Num>) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     crate::core::todo!()
 }
@@ -1480,7 +1482,7 @@ where
 pub fn axis_angle<Num, Out>(axis: impl Vector<Num>, angle: Num) -> crate::core::option::Option<Out>
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let mut len = axis.x()*axis.x() + axis.y()*axis.y() + axis.z()*axis.z() - Num::ONE;
     if len < Num::ZERO { len = -len; }
@@ -1499,7 +1501,7 @@ where
 pub unsafe fn axis_angle_unchecked<Num, Out>(axis: impl Vector<Num>, angle: Num) -> Out
 where 
     Num: Axis,
-    Out: NewQuaternion<Num>,
+    Out: QuaternionConstructor<Num>,
 {
     let half_angle = angle / (Num::ONE + Num::ONE);
     let half_angle_sin = half_angle.sin();

@@ -1,7 +1,8 @@
 
 use crate::Axis;
 use crate::Quaternion;
-use crate::NewQuaternion;
+use crate::QuaternionConsts;
+use crate::QuaternionConstructor;
 use crate::QuaternionMethods;
 use crate::quat;
 
@@ -19,7 +20,7 @@ The struct representation of the [`Quaternion`] trait.
 Try not to use this quaternion struct if:
 - If you don't mind using the a tuple or an array.
 - You don't plan on using any operators like `+` or `*` and just functions/traits.
-- You already have a quaternion type that implements the [`Quaternion`], [`NewQuaternion`] and [`QuaternionMethods`] traits.
+- You already have a quaternion type that implements the [`Quaternion`], [`QuaternionConstructor`], [`QuaternionConsts`] and [`QuaternionMethods`] traits.
 
 Reasoning: This struct exists just as a ease of use if you need
 a quaternion struct and do not want to make your own or get one from another crate.
@@ -48,8 +49,19 @@ impl<Num: Axis, T: Quaternion<Num>> Quaternion<Num> for Quat<Num, T> {
     #[inline] fn k(&self) -> Num { self.quat.k() }
 }
 
-impl<Num: Axis, T: NewQuaternion<Num>> NewQuaternion<Num> for Quat<Num, T> {
-    #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self { Quat::new(NewQuaternion::new_quat(r, i, j, k)) }
+impl<Num: Axis, T: QuaternionConstructor<Num>> QuaternionConstructor<Num> for Quat<Num, T> {
+    #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self { Quat::new(QuaternionConstructor::new_quat(r, i, j, k)) }
+}
+
+impl<Num: Axis, T: QuaternionConsts<Num>> QuaternionConsts<Num> for Quat<Num, T> {
+    const ORIGIN: Self = Quat::new(T::ORIGIN);
+    const IDENTITY: Self = Quat::new(T::IDENTITY);
+    const NAN: Self = Quat::new(T::NAN);
+
+    const UNIT_R: Self = Quat::new(T::UNIT_R);
+    const UNIT_I: Self = Quat::new(T::UNIT_I);
+    const UNIT_J: Self = Quat::new(T::UNIT_J);
+    const UNIT_K: Self = Quat::new(T::UNIT_K);
 }
 
 impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for crate::Quat<Num, T> {}
@@ -73,13 +85,13 @@ impl<Num: Axis, T: Quaternion<Num>, Other: Quaternion<Num>> crate::core::cmp::Pa
 }
 impl<Num: Axis + crate::core::cmp::Eq, T: Quaternion<Num> + crate::core::cmp::Eq> crate::core::cmp::Eq for Quat<Num, T> { }
 
-impl<Num: Axis, T: NewQuaternion<Num>, Q: Quaternion<Num>> crate::core::iter::Sum<Q> for Quat<Num, T> {
+impl<Num: Axis, T: QuaternionConstructor<Num>, Q: Quaternion<Num>> crate::core::iter::Sum<Q> for Quat<Num, T> {
     fn sum<I: crate::core::iter::Iterator<Item = Q>>(iter: I) -> Self {
         quat::sum(iter)
     }
 }
 
-impl<Num: Axis, T: NewQuaternion<Num>, Q: Quaternion<Num>> crate::core::iter::Product<Q> for Quat<Num, T> {
+impl<Num: Axis, T: QuaternionConstructor<Num>, Q: Quaternion<Num>> crate::core::iter::Product<Q> for Quat<Num, T> {
     fn product<I: crate::core::iter::Iterator<Item = Q>>(iter: I) -> Self {
         quat::product(iter)
     }

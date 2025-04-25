@@ -81,7 +81,7 @@ pub trait Rotation<Num: Axis> {
 /**
 A constructor for quaternions.
  */
-pub trait NewQuaternion<Num: Axis>: Sized {
+pub trait QuaternionConstructor<Num: Axis>: Sized {
     /// Constructs a new quaternion
     fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self;
 
@@ -89,7 +89,7 @@ pub trait NewQuaternion<Num: Axis>: Sized {
     /// Constructs a new quaternion from another one.
     /// Will have same values.
     fn from_quat(quat: impl Quaternion<Num>) -> Self {
-        NewQuaternion::new_quat(quat.r(), quat.i(), quat.j(), quat.k())
+        QuaternionConstructor::new_quat(quat.r(), quat.i(), quat.j(), quat.k())
     }
 
     #[inline]
@@ -108,7 +108,7 @@ pub trait NewQuaternion<Num: Axis>: Sized {
 /**
 A constructor for vectors.
  */
-pub trait NewVector<Num: Axis>: Sized {
+pub trait VectorConstructor<Num: Axis>: Sized {
     /// Constructs a new vector.
     fn new_vector(i: Num, j: Num, k: Num) -> Self;
 
@@ -116,14 +116,14 @@ pub trait NewVector<Num: Axis>: Sized {
     /// Constructs a new vector from another one.
     /// Will have same values.
     fn from_vector(vector: impl Vector<Num>) -> Self {
-        NewVector::new_vector(vector.x(), vector.y(), vector.z())
+        VectorConstructor::new_vector(vector.x(), vector.y(), vector.z())
     }
 } 
 
 /**
 A constructor for complex numbers.
  */
-pub trait NewComplex<Num: Axis>: Sized {
+pub trait ComplexConstructor<Num: Axis>: Sized {
     /// Constructs a new complex number.
     fn new_complex(r: Num, i: Num) -> Self;
 
@@ -131,14 +131,14 @@ pub trait NewComplex<Num: Axis>: Sized {
     /// Constructs a new complex number from another one.
     /// Will have same values.
     fn from_complex(complex: impl Complex<Num>) -> Self {
-        NewComplex::new_complex(complex.real(), complex.imaginary())
+        ComplexConstructor::new_complex(complex.real(), complex.imaginary())
     }
 } 
 
 /**
 A constructor for scalar values.
  */
-pub trait NewScalar<Num: Axis>: Sized {
+pub trait ScalarConstructor<Num: Axis>: Sized {
     /// Constructs a new scalar value.
     fn new_scalar(axis: Num) -> Self;
 
@@ -146,14 +146,14 @@ pub trait NewScalar<Num: Axis>: Sized {
     /// Constructs a new scalar value from another one.
     /// Will have same values.
     fn from_scalar(scalar: impl Scalar<Num>) -> Self {
-        NewScalar::new_scalar(scalar.scalar())
+        ScalarConstructor::new_scalar(scalar.scalar())
     }
 } 
 
 /**
 A constructor for scalar values.
  */
-pub trait NewRotation<Num: Axis>: Sized {
+pub trait RotationConstructor<Num: Axis>: Sized {
     /// Constructs a new scalar value.
     fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> Self;
 
@@ -161,7 +161,7 @@ pub trait NewRotation<Num: Axis>: Sized {
     /// Constructs a new rotation from another one.
     /// Will have same values.
     fn from_rotation(rotation: impl Rotation<Num>) -> Self {
-        NewRotation::new_rotation(rotation.roll(), rotation.pitch(), rotation.yaw())
+        RotationConstructor::new_rotation(rotation.roll(), rotation.pitch(), rotation.yaw())
     }
 }
 
@@ -233,7 +233,7 @@ in the future.
 
 \* With examples that match their respective function.
  */
-pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + Sized {
+pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<Num> + Sized {
     /// Constructs the origin quaternion. (Additive identity)
     /// 
     /// # Example
@@ -433,19 +433,19 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + NewQuaternion<Num> + S
     /// Turns a quaternion representation into a vector value representation.
     /// 
     /// Check [the to_vector function](crate::to_vector) in the root for more info.
-    #[inline] fn to_vector<V: NewVector<Num>>(self) -> V { quat::to_vector(self) }
+    #[inline] fn to_vector<V: VectorConstructor<Num>>(self) -> V { quat::to_vector(self) }
     /// Turns a quaternion representation into a complex number representation.
     /// 
     /// Check [the to_complex function](crate::to_complex) in the root for more info.
-    #[inline] fn to_complex<C: NewComplex<Num>>(self) -> C { quat::to_complex(self) }
+    #[inline] fn to_complex<C: ComplexConstructor<Num>>(self) -> C { quat::to_complex(self) }
     /// Turns a quaternion representation into a scalar representation.
     /// 
     /// Check [the to_scalar function](crate::to_scalar) in the root for more info.
-    #[inline] fn to_scalar<S: NewScalar<Num>>(self) -> S { quat::to_scalar(self) }
+    #[inline] fn to_scalar<S: ScalarConstructor<Num>>(self) -> S { quat::to_scalar(self) }
     /// Turns a quaternion representation into a rotation.
     /// 
     /// Check [the to_rotation function](crate::to_rotation) in the root for more info.
-    #[inline] fn to_rotation<R: NewRotation<Num>>(self) -> R { quat::to_rotation(self) }
+    #[inline] fn to_rotation<R: RotationConstructor<Num>>(self) -> R { quat::to_rotation(self) }
     /// Constructs a quaternion representation from a vector.
     /// 
     /// Check [the from_vector function](crate::from_vector) in the root for more info.
@@ -473,7 +473,7 @@ impl<Num: Axis> Quaternion<Num> for () {
     #[inline] fn k(&self) -> Num { Num::ZERO }
 }
 
-impl<Num: Axis> NewQuaternion<Num> for () {
+impl<Num: Axis> QuaternionConstructor<Num> for () {
     #[inline] fn new_quat(_: Num, _: Num, _: Num, _: Num) { }
     #[inline] fn from_quat(_: impl Quaternion<Num>) { }
 }
@@ -485,7 +485,7 @@ impl<Num: Axis, T> Quaternion<Num> for [T; 0] {
     #[inline] fn k(&self) -> Num { Num::ZERO }
 }
 
-impl<Num: Axis, T> NewQuaternion<Num> for [T; 0] {
+impl<Num: Axis, T> QuaternionConstructor<Num> for [T; 0] {
     #[inline] fn new_quat(_: Num, _: Num, _: Num, _: Num) -> Self { [] }
     #[inline] fn from_quat(_: impl Quaternion<Num>) -> Self { [] }
 }
@@ -501,15 +501,15 @@ where
     #[inline] fn k(&self) -> Num { self.1.z()  }
 }
 
-impl<Num: Axis, S, V> NewQuaternion<Num> for (S, V)
+impl<Num: Axis, S, V> QuaternionConstructor<Num> for (S, V)
 where 
-    S: NewScalar<Num>,
-    V: NewVector<Num>,
+    S: ScalarConstructor<Num>,
+    V: VectorConstructor<Num>,
 {
     #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> (S, V) {
         (
-            NewScalar::new_scalar(r),
-            NewVector::new_vector(i, j, k)
+            ScalarConstructor::new_scalar(r),
+            VectorConstructor::new_vector(i, j, k)
         )
     }
 }
@@ -527,19 +527,19 @@ where
     #[inline] fn k(&self) -> Num { self.3.scalar() }
 }
 
-impl<Num: Axis, R, I, J, K> NewQuaternion<Num> for (R, I, J, K)
+impl<Num: Axis, R, I, J, K> QuaternionConstructor<Num> for (R, I, J, K)
 where
-    R: NewScalar<Num>,
-    I: NewScalar<Num>,
-    J: NewScalar<Num>,
-    K: NewScalar<Num>,
+    R: ScalarConstructor<Num>,
+    I: ScalarConstructor<Num>,
+    J: ScalarConstructor<Num>,
+    K: ScalarConstructor<Num>,
 {
     #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> (R, I, J, K) {
         (
-            NewScalar::new_scalar(r),
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(r),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         )
     }
 }
@@ -553,15 +553,15 @@ where S: Scalar<Num>
     #[inline] fn k(&self) -> Num { self[3].scalar() }
 }
 
-impl<Num: Axis, S> NewQuaternion<Num> for [S; 4]
-where S: NewScalar<Num>
+impl<Num: Axis, S> QuaternionConstructor<Num> for [S; 4]
+where S: ScalarConstructor<Num>
 {
     #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> [S; 4] {
         [
-            NewScalar::new_scalar(r),
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(r),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         ]
     }
 }
@@ -578,17 +578,17 @@ where
     #[inline] fn k(&self) -> Num { self.2.scalar() }
 }
 
-impl<Num: Axis, C, J, K> NewQuaternion<Num> for (C, J, K)
+impl<Num: Axis, C, J, K> QuaternionConstructor<Num> for (C, J, K)
 where
-    C: NewComplex<Num>,
-    J: NewScalar<Num>,
-    K: NewScalar<Num>,
+    C: ComplexConstructor<Num>,
+    J: ScalarConstructor<Num>,
+    K: ScalarConstructor<Num>,
 {
     #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> (C, J, K) {
         (
-            NewComplex::new_complex(r, i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ComplexConstructor::new_complex(r, i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         )
     }
 }
@@ -624,10 +624,10 @@ impl<Num: Axis, T> QuaternionConsts<Num> for [T; 0] {
 
 impl<Num: Axis, R, I, J, K> QuaternionMethods<Num> for (R, I, J, K)
 where 
-    R: Scalar<Num> + NewScalar<Num>,
-    I: Scalar<Num> + NewScalar<Num>,
-    J: Scalar<Num> + NewScalar<Num>,
-    K: Scalar<Num> + NewScalar<Num>,
+    R: Scalar<Num> + ScalarConstructor<Num>,
+    I: Scalar<Num> + ScalarConstructor<Num>,
+    J: Scalar<Num> + ScalarConstructor<Num>,
+    K: Scalar<Num> + ScalarConstructor<Num>,
 {}
 impl<Num: Axis, R, I, J, K> QuaternionConsts<Num> for (R, I, J, K)
 where 
@@ -645,7 +645,7 @@ where
 }
 
 impl<Num: Axis, S> QuaternionMethods<Num> for [S; 4]
-where S: Scalar<Num> + NewScalar<Num>
+where S: Scalar<Num> + ScalarConstructor<Num>
 {}
 impl<Num: Axis, S> QuaternionConsts<Num> for [S; 4]
 where S: ScalarConsts<Num>
@@ -660,8 +660,8 @@ where S: ScalarConsts<Num>
 
 impl<Num: Axis, S, V> QuaternionMethods<Num> for (S, V)
 where 
-    S: Scalar<Num> + NewScalar<Num>,
-    V: Vector<Num> + NewVector<Num>,
+    S: Scalar<Num> + ScalarConstructor<Num>,
+    V: Vector<Num> + VectorConstructor<Num>,
 {}
 impl<Num: Axis, S, V> QuaternionConsts<Num> for (S, V)
 where 
@@ -678,9 +678,9 @@ where
 
 impl<Num: Axis, C, J, K> QuaternionMethods<Num> for (C, J, K)
 where 
-    C: Complex<Num> + NewComplex<Num>,
-    J: Scalar<Num> + NewScalar<Num>,
-    K: Scalar<Num> + NewScalar<Num>,
+    C: Complex<Num> + ComplexConstructor<Num>,
+    J: Scalar<Num> + ScalarConstructor<Num>,
+    K: Scalar<Num> + ScalarConstructor<Num>,
 {}
 impl<Num: Axis, C, J, K> QuaternionConsts<Num> for (C, J, K)
 where 
@@ -716,7 +716,7 @@ impl<Num: Axis> ScalarConsts<Num> for Num {
     const NAN: Self = <Num as Axis>::NAN;
 }
 
-impl<From: Axis, To: Axis> NewScalar<From> for To
+impl<From: Axis, To: Axis> ScalarConstructor<From> for To
 where From: Scalar<To>
 {
     #[inline] fn new_scalar( scalar: From ) -> To { scalar.scalar() }
@@ -728,10 +728,10 @@ where S: Scalar<Num>
     #[inline] fn scalar(&self) -> Num { self.0.scalar() }
 }
 
-impl<Num: Axis, S> NewScalar<Num> for (S, )
-where S: NewScalar<Num>
+impl<Num: Axis, S> ScalarConstructor<Num> for (S, )
+where S: ScalarConstructor<Num>
 {
-    #[inline] fn new_scalar( axis: Num ) -> (S, ) { (NewScalar::new_scalar(axis), ) }
+    #[inline] fn new_scalar( axis: Num ) -> (S, ) { (ScalarConstructor::new_scalar(axis), ) }
 }
 
 impl<Num: Axis, S> ScalarConsts<Num> for (S, )
@@ -748,10 +748,10 @@ where S: Scalar<Num>
     #[inline] fn scalar(&self) -> Num { self[0].scalar() }
 }
 
-impl<Num: Axis, S> NewScalar<Num> for [S; 1]
-where S: NewScalar<Num>
+impl<Num: Axis, S> ScalarConstructor<Num> for [S; 1]
+where S: ScalarConstructor<Num>
 {
-    #[inline] fn new_scalar( axis: Num ) -> [S; 1] { [NewScalar::new_scalar(axis)] }
+    #[inline] fn new_scalar( axis: Num ) -> [S; 1] { [ScalarConstructor::new_scalar(axis)] }
 }
 
 impl<Num: Axis, S> ScalarConsts<Num> for [S; 1]
@@ -783,15 +783,15 @@ where
     #[inline] fn imaginary(&self) -> Num { self.1.scalar() }
 }
 
-impl<Num: Axis, R, I> NewComplex<Num> for (R, I)
+impl<Num: Axis, R, I> ComplexConstructor<Num> for (R, I)
 where 
-    R: NewScalar<Num>,
-    I: NewScalar<Num>,
+    R: ScalarConstructor<Num>,
+    I: ScalarConstructor<Num>,
 {
     #[inline] fn new_complex(r: Num, i: Num) -> (R, I) {
         (
-            NewScalar::new_scalar(r),
-            NewScalar::new_scalar(i),
+            ScalarConstructor::new_scalar(r),
+            ScalarConstructor::new_scalar(i),
         )
     }
 }
@@ -814,14 +814,14 @@ where S: Scalar<Num>
     #[inline] fn imaginary(&self) -> Num { self[1].scalar() }
 }
 
-impl<Num: Axis, S> NewComplex<Num> for [S; 2]
+impl<Num: Axis, S> ComplexConstructor<Num> for [S; 2]
 where 
-    S: NewScalar<Num>,
+    S: ScalarConstructor<Num>,
 {
     #[inline] fn new_complex(r: Num, i: Num) -> [S; 2] {
         [
-            NewScalar::new_scalar(r),
-            NewScalar::new_scalar(i),
+            ScalarConstructor::new_scalar(r),
+            ScalarConstructor::new_scalar(i),
         ]
     }
 }
@@ -868,17 +868,17 @@ where
     #[inline] fn z(&self) -> Num { self.2.scalar() }
 }
 
-impl<Num: Axis, X, Y, Z> NewVector<Num> for (X, Y, Z)
+impl<Num: Axis, X, Y, Z> VectorConstructor<Num> for (X, Y, Z)
 where
-    X: NewScalar<Num>,
-    Y: NewScalar<Num>,
-    Z: NewScalar<Num>,
+    X: ScalarConstructor<Num>,
+    Y: ScalarConstructor<Num>,
+    Z: ScalarConstructor<Num>,
 {
     #[inline] fn new_vector(i: Num, j: Num, k: Num) -> (X, Y, Z) {
         (
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         )
     }
 }
@@ -904,15 +904,15 @@ where S: Scalar<Num>
     #[inline] fn z(&self) -> Num { self[2].scalar() }
 }
 
-impl<Num: Axis, S> NewVector<Num> for [S; 3]
+impl<Num: Axis, S> VectorConstructor<Num> for [S; 3]
 where
-    S: NewScalar<Num>,
+    S: ScalarConstructor<Num>,
 {
     #[inline] fn new_vector(i: Num, j: Num, k: Num) -> [S; 3] {
         [
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         ]
     }
 }
@@ -961,17 +961,17 @@ where
     #[inline] fn yaw(&self) -> Num { self.2.scalar() }
 }
 
-impl<Num: Axis, X, Y, Z> NewRotation<Num> for (X, Y, Z)
+impl<Num: Axis, X, Y, Z> RotationConstructor<Num> for (X, Y, Z)
 where
-    X: NewScalar<Num>,
-    Y: NewScalar<Num>,
-    Z: NewScalar<Num>,
+    X: ScalarConstructor<Num>,
+    Y: ScalarConstructor<Num>,
+    Z: ScalarConstructor<Num>,
 {
     #[inline] fn new_rotation(i: Num, j: Num, k: Num) -> (X, Y, Z) {
         (
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         )
     }
 }
@@ -984,15 +984,15 @@ where S: Scalar<Num>
     #[inline] fn yaw(&self) -> Num { self[2].scalar() }
 }
 
-impl<Num: Axis, S> NewRotation<Num> for [S; 3]
+impl<Num: Axis, S> RotationConstructor<Num> for [S; 3]
 where
-    S: NewScalar<Num>,
+    S: ScalarConstructor<Num>,
 {
     #[inline] fn new_rotation(i: Num, j: Num, k: Num) -> [S; 3] {
         [
-            NewScalar::new_scalar(i),
-            NewScalar::new_scalar(j),
-            NewScalar::new_scalar(k),
+            ScalarConstructor::new_scalar(i),
+            ScalarConstructor::new_scalar(j),
+            ScalarConstructor::new_scalar(k),
         ]
     }
 }

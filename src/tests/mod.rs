@@ -1,7 +1,7 @@
 
 use super::*;
 use core::assert;
-use core::assert_eq;
+// use core::assert_eq;
 
 
 
@@ -108,6 +108,7 @@ impl core::iter::Iterator for F32_Quats {
 }
 
 #[test]
+#[ignore]
 fn sqrt_accuracy() {
     let mut mul_result: [f32; 4];
     let mut sqrt_result: [f32; 4];

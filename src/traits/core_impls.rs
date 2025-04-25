@@ -1,6 +1,6 @@
 
 use crate::Scalar;
-use crate::NewScalar;
+use crate::ScalarConstructor;
 use crate::ScalarConsts;
 use crate::core::num::{
     NonZero,
@@ -46,19 +46,19 @@ macro_rules! impl_scalar_T_for_primitive {
             #[inline] fn scalar(&self) -> $float { self.0 as $float }
         }
 
-        impl NewScalar<$float> for $ty {
+        impl ScalarConstructor<$float> for $ty {
             #[inline] fn new_scalar(axis: $float) -> $ty { axis as $ty }
         }
 
-        impl NewScalar<$float> for crate::core::option::Option<NonZero<$ty>> {
+        impl ScalarConstructor<$float> for crate::core::option::Option<NonZero<$ty>> {
             #[inline] fn new_scalar(axis: $float) -> Self { NonZero::new(axis as $ty) }
         }
 
-        impl NewScalar<$float> for Wrapping<$ty> {
+        impl ScalarConstructor<$float> for Wrapping<$ty> {
             #[inline] fn new_scalar(axis: $float) -> Self { Wrapping(axis as $ty) }
         }
 
-        impl NewScalar<$float> for Saturating<$ty> {
+        impl ScalarConstructor<$float> for Saturating<$ty> {
             #[inline] fn new_scalar(axis: $float) -> Self { Saturating(axis as $ty) }
         }
     };

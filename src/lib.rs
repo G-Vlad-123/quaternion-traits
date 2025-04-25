@@ -83,11 +83,11 @@ extern crate libm;
 mod traits;
 pub use traits::{
     Axis,
-    Quaternion, NewQuaternion, QuaternionConsts, QuaternionMethods,
-    Vector, NewVector, VectorConsts,
-    Complex, NewComplex, ComplexConsts,
-    Scalar, NewScalar, ScalarConsts,
-    Rotation, NewRotation,
+    Quaternion, QuaternionConstructor, QuaternionConsts, QuaternionMethods,
+    Vector, VectorConstructor, VectorConsts,
+    Complex, ComplexConstructor, ComplexConsts,
+    Scalar, ScalarConstructor, ScalarConsts,
+    Rotation, RotationConstructor,
 };
 
 mod quat;
