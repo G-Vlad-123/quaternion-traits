@@ -96,14 +96,7 @@ pub use quat::*;
 mod quat_struct;
 pub use quat_struct::Quat;
 
-mod primitive;
-#[allow(unused_imports)]
-use primitive::Primitive;
-
 #[cfg(feature = "std")]
 mod std_impl;
 #[cfg(feature = "std")]
 pub use std_impl::Std;
-
-#[cfg(test)]
-mod tests;
