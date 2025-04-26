@@ -51,7 +51,6 @@ pub trait Axis: Sized
               + PartialOrd
               + PartialEq
               + Copy
-              + 'static
 {
     /// The multiplicative identity.
     const ONE: Self;

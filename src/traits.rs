@@ -70,11 +70,11 @@ Note: The [`roll`](Rotation::roll), [`pitch`](Rotation::pitch) and [`yaw`](Rotat
 methods are used as if they are cheap operations.
 */
 pub trait Rotation<Num: Axis> {
-    /// The roll of this rotation.
+    /// The roll of this rotation. (angle on the z axis)
     fn roll( &self ) -> Num;
-    /// The pitch of this rotation.
+    /// The pitch of this rotation. (angle on the y axis)
     fn pitch( &self ) -> Num;
-    /// The yaw of this rotation.
+    /// The yaw of this rotation. (angle on the x axis)
     fn yaw( &self ) -> Num;
 }
 
@@ -706,6 +706,12 @@ impl<Num: Axis, T> Scalar<Num> for [T; 0] {
     #[inline] fn scalar(&self) -> Num { Num::ZERO }
 }
 
+impl<Num: Axis, T> ScalarConsts<Num> for [T; 0] {
+    const ZERO: Self = [];
+    const ONE: Self = [];
+    const NAN: Self = [];
+}
+
 impl<Num: Axis> Scalar<Num> for Num {
     #[inline] fn scalar(&self) -> Num { *self }
 }
@@ -769,9 +775,23 @@ impl<Num: Axis> Complex<Num> for () {
     #[inline] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
+impl<Num: Axis> ComplexConsts<Num> for () {
+    const ORIGIN: Self = ();
+    const IDENTITY: Self = ();
+    const NAN: Self = ();
+    const UNIT_IMAGINARY: Self = ();
+}
+
 impl<Num: Axis, T> Complex<Num> for [T; 0] {
     #[inline] fn real(&self) -> Num { Num::ZERO }
     #[inline] fn imaginary(&self) -> Num { Num::ZERO }
+}
+
+impl<Num: Axis, T> ComplexConsts<Num> for [T; 0] {
+    const ORIGIN: Self = [];
+    const IDENTITY: Self = [];
+    const NAN: Self = [];
+    const UNIT_IMAGINARY: Self = [];
 }
 
 impl<Num: Axis, R, I> Complex<Num> for (R, I)
@@ -851,10 +871,26 @@ impl<Num: Axis> Vector<Num> for () {
     #[inline] fn z(&self) -> Num { Num::ZERO }
 }
 
+impl<Num: Axis> VectorConsts<Num> for () {
+    const ORIGIN: Self = ();
+    const NAN: Self = ();
+    const UNIT_X: Self = ();
+    const UNIT_Y: Self = ();
+    const UNIT_Z: Self = ();
+}
+
 impl<Num: Axis, T> Vector<Num> for [T; 0] {
     #[inline] fn x(&self) -> Num { Num::ZERO }
     #[inline] fn y(&self) -> Num { Num::ZERO }
     #[inline] fn z(&self) -> Num { Num::ZERO }
+}
+
+impl<Num: Axis, T> VectorConsts<Num> for [T; 0] {
+    const ORIGIN: Self = [];
+    const NAN: Self = [];
+    const UNIT_X: Self = [];
+    const UNIT_Y: Self = [];
+    const UNIT_Z: Self = [];
 }
 
 impl<Num: Axis, X, Y, Z> Vector<Num> for (X, Y, Z)

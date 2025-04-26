@@ -1,5 +1,6 @@
 
 #![allow(unused_imports)]
+#![allow(dead_code)]
 
 use quaternion_traits::*;
 use core::assert;
@@ -113,7 +114,7 @@ const F32S: [f32; 61] = [
     1e8 * core::f32::consts::PI,
     1e8 * core::f32::consts::SQRT_2,
     1e8 * core::f32::consts::TAU,
-    // 1e-8 * f32::EPSILON,
+    // 1e-8 * f32::EPSILON, // <--- Only thing that breaks sqrt (it's square is too small)
     1e-8 * core::f32::consts::E,
     1e-8 * core::f32::consts::FRAC_1_PI,
     1e-8 * core::f32::consts::FRAC_1_SQRT_2,

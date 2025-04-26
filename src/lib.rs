@@ -31,14 +31,15 @@ If possible this crate should implement functions for every quaternion use.
 And it should implement every function that a crate it's comapatble with has.
 
 This crate also currently has these pure maths functions for quaternions (excluding common ones):
-`exp`, `ln`, `sqrt`, `sin`, `sinh`, `sec`, `cos`, `cosh`, `csc`, `sin_cos`, `tan`, `tanh`,
-`cot`, `coth`.
+[`exp`], [`ln`], [`sqrt`], [`sin`], [`sinh`], [`sec`], [`cos`], [`cosh`], [`csc`], [`sin_cos`], [`tan`],
+[`tanh`], [`cot`], [`coth`].
 
 This crate provides currently an unstable form of these functions:
-- `pow` (the equasion used seams to not be fully agreed on though so it's at risk of change if
+- [`pow`](pow_q) (the equasion used seams to not be fully agreed on though so it's at risk of change if
   another equasion comes out that is guaranteed to be correct)
-- `log` (simple `ln` division only works for complex quaternions that include the real axis and
-  only one of the other 3 imaginary axis. Will remain unstable untill)
+- [`log`] (simple [`ln`] division only works for complex quaternions that include the real axis and
+  only one of the other 3 imaginary axis. Will remain unstable unill a better algorithm is found
+  or it's found that quaternion logs can not have a formula for whatever reason)
 
 List of features:
 - `unstable`: Enables items that may change functionality or may be removed entirely.
@@ -83,11 +84,26 @@ extern crate libm;
 mod traits;
 pub use traits::{
     Axis,
-    Quaternion, QuaternionConstructor, QuaternionConsts, QuaternionMethods,
-    Vector, VectorConstructor, VectorConsts,
-    Complex, ComplexConstructor, ComplexConsts,
-    Scalar, ScalarConstructor, ScalarConsts,
-    Rotation, RotationConstructor,
+
+    Quaternion,
+    QuaternionConstructor,
+    QuaternionConsts,
+    QuaternionMethods,
+
+    Vector,
+    VectorConstructor,
+    VectorConsts,
+
+    Complex,
+    ComplexConstructor,
+    ComplexConsts,
+
+    Scalar,
+    ScalarConstructor,
+    ScalarConsts,
+
+    Rotation,
+    RotationConstructor,
 };
 
 mod quat;

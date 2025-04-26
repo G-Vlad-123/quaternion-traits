@@ -20,7 +20,9 @@ The struct representation of the [`Quaternion`] trait.
 Try not to use this quaternion struct if:
 - If you don't mind using the a tuple or an array.
 - You don't plan on using any operators like `+` or `*` and just functions/traits.
-- You already have a quaternion type that implements the [`Quaternion`], [`QuaternionConstructor`], [`QuaternionConsts`] and [`QuaternionMethods`] traits.
+- You already have a quaternion type that implements the
+[`Quaternion`], [`QuaternionConstructor`], [`QuaternionConsts`]
+and [`QuaternionMethods`] traits.
 
 Reasoning: This struct exists just as a ease of use if you need
 a quaternion struct and do not want to make your own or get one from another crate.
@@ -40,6 +42,20 @@ impl<Num: Axis, T> Quat<Num, T> {
             quat, _num: crate::core::marker::PhantomData
         }
     }
+
+    #[inline]
+    /// Gets the wrapped value.
+    pub fn get(self) -> T {
+        self.quat
+    }
+
+    #[inline]
+    /// Gets a cloned version of the wrapped value.
+    pub fn get_cloned(&self) -> T
+    where T: crate::core::clone::Clone
+    {
+        <Self as crate::core::clone::Clone>::clone(self).quat
+    }
 }
 
 impl<Num: Axis, T: Quaternion<Num>> Quaternion<Num> for Quat<Num, T> {
@@ -51,6 +67,7 @@ impl<Num: Axis, T: Quaternion<Num>> Quaternion<Num> for Quat<Num, T> {
 
 impl<Num: Axis, T: QuaternionConstructor<Num>> QuaternionConstructor<Num> for Quat<Num, T> {
     #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self { Quat::new(QuaternionConstructor::new_quat(r, i, j, k)) }
+    #[inline] fn from_quat(quat: impl Quaternion<Num>) -> Self { Quat::new(T::from_quat(quat)) }
 }
 
 impl<Num: Axis, T: QuaternionConsts<Num>> QuaternionConsts<Num> for Quat<Num, T> {
@@ -64,7 +81,15 @@ impl<Num: Axis, T: QuaternionConsts<Num>> QuaternionConsts<Num> for Quat<Num, T>
     const UNIT_K: Self = Quat::new(T::UNIT_K);
 }
 
-impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for crate::Quat<Num, T> {}
+impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for crate::Quat<Num, T> { }
+
+impl<Num: Axis, T> crate::core::ops::Deref for Quat<Num, T> {
+    type Target = T;
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.quat
+    }
+}
 
 impl<Num: Axis, T: crate::core::default::Default> crate::core::default::Default for Quat<Num, T> {
     #[inline] fn default() -> Self {

@@ -40,4 +40,6 @@ This crate also currently has these pure maths functions for quaternions (exclud
 This crate provides currently unstable forms of these equasions:
 - `pow` (the equasion used seams to not be fully agreed on though so it's at risk of change if
   another equasion comes out that is guaranteed to be correct)
-- `log` (simple `ln` division only works for complex quaternions that include the real axis and only one of the other 3 imaginary axis. Will remain unstable untill)
+- `log` (simple `ln` division only works for complex quaternions that include the real axis and only one of 
+  the other 3 imaginary axis. Will remain unstable untill a better algorithm is found
+  or it's found that quaternion logs can not have a formula for whatever reason)
