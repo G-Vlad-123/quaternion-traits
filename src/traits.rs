@@ -110,7 +110,7 @@ A constructor for vectors.
  */
 pub trait VectorConstructor<Num: Axis>: Sized {
     /// Constructs a new vector.
-    fn new_vector(i: Num, j: Num, k: Num) -> Self;
+    fn new_vector(x: Num, y: Num, z: Num) -> Self;
 
     #[inline]
     /// Constructs a new vector from another one.
@@ -334,6 +334,14 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the abs_squared function](crate::abs_squared) in the root for more info.
     #[inline] fn abs_squared(self) -> Num { quat::abs_squared(self) }
+    /// Gets the angle from a quaternion's polar form.
+    /// 
+    /// Check [the angle function](crate::angle) in the root for more info.
+    #[inline] fn angle(self) -> Num { quat::angle(self) }
+    /// Gets the cosine of the angle from a quaternion's polar form.
+    /// 
+    /// Check [the angle_cos function](crate::angle_cos) in the root for more info.
+    #[inline] fn angle_cos(self) -> Num { quat::angle_cos(self) }
     /// Gets the dot product of two quaternions.
     /// 
     /// Check [the dot function](crate::dot) in the root for more info.
@@ -358,6 +366,20 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the is_near function](crate::is_near) in the root for more info.
     #[inline] fn is_near(self, other: impl Quaternion<Num>) -> bool { quat::is_near(self, other) }
+    /// Checks if the distance inbetween two quaternions is less then error.
+    /// 
+    /// Check [the is_near_by function](crate::is_near_by) in the root for more info.
+    #[inline] fn is_near_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool { quat::is_near_by(self, other, error) }
+    /// Checks if the ratio inbetween the absolute values of each quaternion
+    /// are near [Num::ONE](Axis::ONE) by a margin of [Num::ERROR](Axis::ERROR).
+    /// 
+    /// Check [the is_close function](crate::is_close) in the root for more info.
+    #[inline] fn is_close(self, other: impl Quaternion<Num>) -> bool { quat::is_close(self, other) }
+    /// Checks if the ratio inbetween the absolute values of each quaternion
+    /// are near [Num::ONE](Axis::ONE) by a margin of `error`.
+    /// 
+    /// Check [the is_close_by function](crate::is_close_by) in the root for more info.
+    #[inline] fn is_close_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool { quat::is_close_by(self, other, error) }
     /// Gets the distance inbetween the coordonates of two quaternions.
     /// 
     /// Check [the dist function](crate::dist) in the root for more info.
@@ -446,6 +468,15 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the to_rotation function](crate::to_rotation) in the root for more info.
     #[inline] fn to_rotation<R: RotationConstructor<Num>>(self) -> R { quat::to_rotation(self) }
+    /// Gets the polar form of a quaternion.
+    /// 
+    /// Check [the to_polar_form function](crate::to_polar_form) in the root for more info.
+    #[inline] fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
+    where 
+        Abs: ScalarConstructor<Num>,
+        Angle: ScalarConstructor<Num>,
+        UnitVec: VectorConstructor<Num>,
+    { quat::to_polar_form(self) }
     /// Constructs a quaternion representation from a vector.
     /// 
     /// Check [the from_vector function](crate::from_vector) in the root for more info.
@@ -462,6 +493,15 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the from_rotation function](crate::from_rotation) in the root for more info.
     #[inline] fn from_rotation<R: Rotation<Num>>(rotation: R) -> Self { quat::from_rotation(rotation) }
+    /// Constructs a unit quaternion representation from a rotation.
+    /// 
+    /// Check [the from_polar_form function](crate::from_polar_form) in the root for more info.
+    #[inline] fn from_polar_form<Abs, Angle, UnitVec>(abs: Abs, angle: Angle, unit_vec: UnitVec) -> crate::core::option::Option<Self>
+    where 
+        Abs: Scalar<Num>,
+        Angle: Scalar<Num>,
+        UnitVec: Vector<Num>,
+    { quat::from_polar_form(abs, angle, unit_vec) }
 }
 
 // Quat impls
@@ -910,11 +950,11 @@ where
     Y: ScalarConstructor<Num>,
     Z: ScalarConstructor<Num>,
 {
-    #[inline] fn new_vector(i: Num, j: Num, k: Num) -> (X, Y, Z) {
+    #[inline] fn new_vector(x: Num, y: Num, z: Num) -> (X, Y, Z) {
         (
-            ScalarConstructor::new_scalar(i),
-            ScalarConstructor::new_scalar(j),
-            ScalarConstructor::new_scalar(k),
+            ScalarConstructor::new_scalar(x),
+            ScalarConstructor::new_scalar(y),
+            ScalarConstructor::new_scalar(z),
         )
     }
 }
@@ -944,11 +984,11 @@ impl<Num: Axis, S> VectorConstructor<Num> for [S; 3]
 where
     S: ScalarConstructor<Num>,
 {
-    #[inline] fn new_vector(i: Num, j: Num, k: Num) -> [S; 3] {
+    #[inline] fn new_vector(x: Num, y: Num, z: Num) -> [S; 3] {
         [
-            ScalarConstructor::new_scalar(i),
-            ScalarConstructor::new_scalar(j),
-            ScalarConstructor::new_scalar(k),
+            ScalarConstructor::new_scalar(x),
+            ScalarConstructor::new_scalar(y),
+            ScalarConstructor::new_scalar(z),
         ]
     }
 }

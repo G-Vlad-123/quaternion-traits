@@ -497,6 +497,61 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the distance between two quaternions is less then `error`.
+/// 
+/// If [`error.scalar()`](Scalar::scalar) evaluates to a non_
+/// 
+/// ```
+/// use quaternion_traits::{is_near, Axis};
+/// 
+/// let a: [f32; 4] = [0.0; 4];
+/// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
+/// 
+/// assert!( is_near::<f32>(&a, &b) );
+/// ```
+pub fn is_near_by<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool
+where
+    Num: Axis,
+{
+    abs_squared::<Num, Num>(&sub::<Num, [Num; 4]>(left, right)) < error.scalar() * error.scalar()
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the ratio inbetween the absolute values of two quaternions
+/// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
+/// AND that the distance inbetween the angle
+/// 
+/// Note: `is_close` and `is_near` will not always give the same results.
+pub fn is_close<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
+where
+    Num: Axis
+{
+    ( ( abs_squared::<Num, Num>(&left) / abs_squared::<Num, Num>(&right) ).sqrt() - Num::ONE ).abs()
+    < Num::ERROR
+    &&
+    (angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < Num::ERROR
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the ratio inbetween the absolute values of two quaternions
+/// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
+/// AND that the ratio inbetween the angle
+/// 
+/// Note: `is_close` and `is_near` will not always give the same results.
+pub fn is_close_by<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool
+where
+    Num: Axis
+{
+    ( ( abs_squared::<Num, Num>(&left) / abs_squared::<Num, Num>(&right) ).sqrt() - Num::ONE ).abs()
+    < error.scalar()
+    &&
+    (angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < error.scalar()
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the distance inbetween the coordenates of two quaternions.
 /// 
 /// Equivalent to getting the absolute value of 
@@ -622,6 +677,28 @@ where
       + quaternion.j() * quaternion.j()
       + quaternion.k() * quaternion.k()
     )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the angle of a quaternion's polar form.
+pub fn angle<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar(Num::acos(quaternion.r() / abs::<Num, Num>(quaternion)))
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the cosine of the angle of a quaternion's polar form.
+pub fn angle_cos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar(quaternion.r() / abs::<Num, Num>(quaternion))
 }
 
 // use `is_near` instead
@@ -1334,6 +1411,47 @@ where
     )
 }
 
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates a quaternion using the given polar form.
+/// 
+/// Returns [`None`](Option::None) if the absolute value of `unit_vec`
+/// is not near [`Num::ONE`](Axis::ONE).
+pub fn from_polar_form<Num, Out>(abs: impl Scalar<Num>, angle: impl Scalar<Num>, unit_vec: impl Vector<Num>) -> Option<Out>
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    if (unit_vec.x() * unit_vec.x() + unit_vec.y() * unit_vec.y() + unit_vec.z() * unit_vec.z() - Num::ONE).abs() >= Num::ERROR * Num::ERROR {
+        return Option::None;
+    }
+    let (sin, cos) = angle.scalar().sin_cos();
+    Option::Some( Out::new_quat(
+        abs.scalar() * cos,
+        abs.scalar() * sin * unit_vec.x(),
+        abs.scalar() * sin * unit_vec.y(),
+        abs.scalar() * sin * unit_vec.z(),
+    ) )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates a quaternion using the given polar form.
+/// 
+/// # Safety
+/// Make sure the absolute value of `unit_vec` is near [Num::ONE](Axis::ONE).
+pub unsafe fn from_polar_form_unchecked<Num, Out>(abs: impl Scalar<Num>, angle: impl Scalar<Num>, unit_vec: impl Vector<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let (sin, cos) = angle.scalar().sin_cos();
+    Out::new_quat(
+        abs.scalar() * cos,
+        abs.scalar() * sin * unit_vec.x(),
+        abs.scalar() * sin * unit_vec.y(),
+        abs.scalar() * sin * unit_vec.z(),
+    )
+}
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a complex number representation from a quaternion.
@@ -1458,22 +1576,123 @@ where
     RotationConstructor::new_rotation(roll, pitch, yaw)
 }
 
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Gets the polar form of a quaternion.
+/// 
+/// The values are given in this order (`abs`, `angle`, `unit_vec`).
+/// Where:
+///     - `abs` = `abs(q)`
+///     - `angle` = `angle(q)`
+///     - `unit_vec` = `norm(vector_part(q))`
+/// 
+/// The equasion used: `q == abs * exp(angle * unit_vec)`
+pub fn to_polar_form<Num, Abs, Angle, UnitVec>(quaternion: impl Quaternion<Num>) -> (Abs, Angle, UnitVec)
+where 
+    Num: Axis,
+    Abs: ScalarConstructor<Num>,
+    Angle: ScalarConstructor<Num>,
+    UnitVec: VectorConstructor<Num>,
+{
+    let abs = abs(&quaternion);
+    let vec_inv_abs = Num::ONE / Num::sqrt(
+          quaternion.i() * quaternion.i()
+        + quaternion.j() * quaternion.j()
+        + quaternion.k() * quaternion.k()
+    );
+    (
+        Abs::new_scalar(abs),
+        Angle::new_scalar(Num::acos(quaternion.r() / abs)),
+        UnitVec::new_vector(
+            quaternion.i() * vec_inv_abs,
+            quaternion.j() * vec_inv_abs,
+            quaternion.k() * vec_inv_abs,
+        )
+    )
+}
+
+// Thanks to quaternion crate for formula.
 /// Gives the vector rotated by the given quaternion
-pub fn rotate_vector<Num, Out>(_vector: impl Vector<Num>, _quaternion: impl Quaternion<Num>) -> Out
+pub fn rotate_vector<Num, Out>(vector: impl Vector<Num>, quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: VectorConstructor<Num>,
 {
-    crate::core::todo!()
+    let two = Num::ONE + Num::ONE;
+    let cross: [Num; 3] = [
+        two * (vector.y() * quaternion.k() - vector.z() * quaternion.j()),
+        two * (vector.z() * quaternion.i() - vector.x() * quaternion.k()),
+        two * (vector.x() * quaternion.j() - vector.y() * quaternion.i()),
+    ];
+    Out::new_vector(
+        vector.x() + cross[0] * quaternion.r() + quaternion.j() * cross[2] - quaternion.k() * cross[1],
+        vector.y() + cross[1] * quaternion.r() + quaternion.k() * cross[0] - quaternion.i() * cross[2],
+        vector.z() + cross[2] * quaternion.r() + quaternion.i() * cross[1] - quaternion.j() * cross[0],
+    )
 }
 
+// Thanks to quaternion crate for formula.
 /// Constructs a quaternion representing the rotation inbetween two vectors.
-pub fn rotation_from_to<Num, Out>(_from: impl Vector<Num>, _to: impl Vector<Num>) -> Out
+pub fn rotation_from_to<Num, Out>(from: impl Vector<Num>, to: impl Vector<Num>) -> Out
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    crate::core::todo!()
+    let mut len: Num;
+
+    let from: [Num; 3] = {
+        len = Num::ONE / ( from.x() * from.x() + from.y() * from.y() + from.z() * from.z() ).sqrt();
+        [
+            from.x() * len,
+            from.y() * len,
+            from.z() * len,
+        ]
+    };
+
+    let to: [Num; 3] = {
+        len = Num::ONE / ( to.x() * to.x() + to.y() * to.y() + to.z() * to.z() ).sqrt();
+        [
+            to.x() * len,
+            to.y() * len,
+            to.z() * len,
+        ]
+    };
+
+    let dot: Num = from.x() * to.x() + from.y() * to.y() + from.z() * to.z();
+
+    // from and to are parallel
+    if dot >= Num::ONE {
+        return identity();
+    }
+
+    // from and to are anti-parallel
+    if dot < Num::ERROR - Num::ONE {
+        let mut axis: [Num; 3] = if from[2] != Num::ZERO && from[1] != Num::ZERO {
+            [
+                Num::ZERO,
+                -from[2],
+                from[1],
+            ]
+        } else {
+            [
+                Num::ZERO,
+                Num::ZERO,
+                -from[0],
+            ]
+        };
+        len = Num::ONE / (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
+        axis = [axis[0] * len, axis[1] * len, axis[2] * len];
+        unsafe {
+            return axis_angle_unchecked(axis, Num::TAU / (Num::ONE + Num::ONE));
+        }
+    }
+
+    let quat: [Num; 4] = [
+        Num::ONE + dot,
+        from[1] * to[2] - from[2] * to[1],
+        from[2] * to[0] - from[0] * to[2],
+        from[0] * to[1] - from[1] * to[0],
+    ];
+    scale(&quat, Num::ONE / abs(quat))
 }
 
 /// Constructs a quaternion from a given axis unit vector and a given angle.
