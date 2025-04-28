@@ -104,6 +104,9 @@ pub use traits::{
 
     Rotation,
     RotationConstructor,
+
+    Matrix,
+    MatrixConstructor,
 };
 
 mod quat;

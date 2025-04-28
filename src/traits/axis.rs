@@ -79,6 +79,7 @@ pub trait Axis: Sized
     /// Calculates the sine and cosine of `self` at once.
     fn sin_cos(self) -> (Self, Self);
     /// Calculates the sine of `self`.
+    #[inline]
     fn sin(self) -> Self { self.sin_cos().0 }
     /// Calculates the arcsine of `self`.
     fn asin(self) -> Self;
@@ -88,6 +89,7 @@ pub trait Axis: Sized
         (exp - Self::ONE / exp) / (Self::ONE + Self::ONE)
     }
     /// Calculates the cosine of `self`.
+    #[inline]
     fn cos(self) -> Self { self.sin_cos().0 }
     /// Calculates the arccosine of `self`.
     fn acos(self) -> Self;
@@ -109,6 +111,12 @@ pub trait Axis: Sized
     fn abs(self) -> Self {
         if self < Self::ZERO { -self }
         else {self}
+    }
+    /// Calculates the absolute value of `self`.
+    #[inline]
+    fn max( self, other: Self ) -> Self {
+        if self > other { self }
+        else { other }
     }
 }
 

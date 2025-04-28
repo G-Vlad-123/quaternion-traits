@@ -2,6 +2,7 @@
 pub use axis::Axis;
 use crate::quat;
 use crate::core::marker::Sized;
+use crate::core::option::Option;
 
 /**
 The general representation of any quaternion type.
@@ -79,6 +80,48 @@ pub trait Rotation<Num: Axis> {
 }
 
 /**
+The general representation of any NxN rotation matrix.
+
+Only `Matrix<_, 2>`, `Matrix<_, 3>` and `Matrix<_, 4>` have impls and are used.
+
+Note: The [`get_unchecked`](Matrix::get_unchecked) method is used as if it's a cheap operation.
+*/
+pub trait Matrix<T, const N: usize> {
+    /// Gets the value represented at (row, col)
+    /// 
+    /// # Important
+    /// This value should not panic for values of
+    /// `row` and `col` that are both smaller then N.
+    fn get_unchecked( &self, row: usize, col: usize ) -> T;
+
+    #[inline]
+    /// Checks if `row` and `col` are out of bounds before getting the value at (row, col).
+    /// 
+    /// # Important
+    /// By default this returns [`None`](Option::None)
+    /// only if `row` and `col` are both smaller then N.
+    fn get( &self, row: usize, col: usize ) -> Option<T> {
+        if row < N && col < N {
+            Option::Some(self.get_unchecked(row, col))
+        } else {
+            Option::None
+        }
+    }
+
+    /// Turns this matrix reprezentation into a NxN array.
+    fn to_array( &self ) -> [[T; N]; N] {
+        use crate::core::mem::MaybeUninit;
+        let mut matrix: [[T; N]; N] = unsafe { MaybeUninit::uninit().assume_init() };
+        for row in 0..N {
+            for col in 0..N {
+                matrix[row][col] = self.get_unchecked(row, col);
+            }
+        }
+        matrix
+    }
+}
+
+/**
 A constructor for quaternions.
  */
 pub trait QuaternionConstructor<Num: Axis>: Sized {
@@ -151,10 +194,10 @@ pub trait ScalarConstructor<Num: Axis>: Sized {
 } 
 
 /**
-A constructor for scalar values.
+A constructor for values that represent euler angles.
  */
 pub trait RotationConstructor<Num: Axis>: Sized {
-    /// Constructs a new scalar value.
+    /// Constructs a new rotation.
     fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> Self;
 
     #[inline]
@@ -162,6 +205,21 @@ pub trait RotationConstructor<Num: Axis>: Sized {
     /// Will have same values.
     fn from_rotation(rotation: impl Rotation<Num>) -> Self {
         RotationConstructor::new_rotation(rotation.roll(), rotation.pitch(), rotation.yaw())
+    }
+}
+
+/**
+A constructor for values that represent a NxN matrix.
+ */
+pub trait MatrixConstructor<Num, const N: usize>: Sized {
+    /// Constructs a new matrix.
+    fn new_matrix(matrix: [[Num; N]; N]) -> Self;
+
+    #[inline]
+    /// Constructs a new rotation from another one.
+    /// Will have same values.
+    fn from_matrix(matrix: impl Matrix<Num, N>) -> Self {
+        MatrixConstructor::new_matrix(matrix.to_array())
     }
 }
 
@@ -382,8 +440,10 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     #[inline] fn is_close_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool { quat::is_close_by(self, other, error) }
     /// Gets the distance inbetween the coordonates of two quaternions.
     /// 
-    /// Check [the dist function](crate::dist) in the root for more info.
-    #[inline] fn dist(self, other: impl Quaternion<Num>) -> Num { quat::dist(self, other) }
+    /// Check [the dist_euclid function](crate::dist_euclid) in the root for more info.
+    #[inline] fn dist_euclid(self, other: impl Quaternion<Num>) -> Num { quat::dist_euclid(self, other) }
+    /// Calculates the cosine distance between two quaternions.
+    #[inline] fn dist_cosine(self, other: impl Quaternion<Num>) -> Num { quat::dist_cosine(self, other) }
     /// Gets the square root of a quaternion.
     /// 
     /// Check [the sqrt function](crate::sqrt) in the root for more info.
@@ -477,6 +537,12 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
         Angle: ScalarConstructor<Num>,
         UnitVec: VectorConstructor<Num>,
     { quat::to_polar_form(self) }
+    /// Turns a quaternion representation into a 2x2 complex matrix.
+    #[inline] fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M { quat::to_matrix_2(self) }
+    /// Turns a quaternion representation into a 3x3 matrix (DCM).
+    #[inline] fn to_matrix_3<M: MatrixConstructor<Num, 3>>(self) -> M { quat::to_matrix_3(self) }
+    /// Turns a quaternion representation into a 4x4 matrix.
+    #[inline] fn to_matrix_4<M: MatrixConstructor<Num, 4>>(self) -> M { quat::to_matrix_4(self) }
     /// Constructs a quaternion representation from a vector.
     /// 
     /// Check [the from_vector function](crate::from_vector) in the root for more info.
@@ -496,12 +562,20 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_polar_form function](crate::from_polar_form) in the root for more info.
-    #[inline] fn from_polar_form<Abs, Angle, UnitVec>(abs: Abs, angle: Angle, unit_vec: UnitVec) -> crate::core::option::Option<Self>
+    #[inline] fn from_polar_form<Abs, Angle, UnitVec>(abs: Abs, angle: Angle, unit_vec: UnitVec) -> Option<Self>
     where 
         Abs: Scalar<Num>,
         Angle: Scalar<Num>,
         UnitVec: Vector<Num>,
     { quat::from_polar_form(abs, angle, unit_vec) }
+    /// Constructs a unit quaternion representation from a rotation.
+    /// 
+    /// Check [the from_matrix_3 function](crate::from_matrix_3) in the root for more info.
+    #[inline] fn from_matrix_3<M: Matrix<Num, 3>>(matrix: M) -> Self { quat::from_matrix_3(matrix) }
+    /// Constructs a unit quaternion representation from a rotation.
+    /// 
+    /// Check [the from_matrix_4 function](crate::from_matrix_4) in the root for more info.
+    #[inline] fn from_matrix_4<M: Matrix<Num, 4>>(matrix: M) -> Self { quat::from_matrix_4(matrix) }
 }
 
 // Quat impls
@@ -1079,6 +1153,35 @@ where T: Rotation<Num>
     fn roll(&self) -> Num { (*self).roll() }
     fn pitch(&self) -> Num { (*self).pitch() }
     fn yaw(&self) -> Num { (*self).yaw() }
+}
+
+// Matrix impls
+
+// TODO Try to optimize these transfomations + make then be as good to inline as they can get
+
+impl<T: crate::core::clone::Clone, const N: usize> Matrix<T, N> for [[T; N]; N]
+{
+    #[inline]
+    fn get_unchecked( &self, row: usize, col: usize ) -> T {
+        self[row][col].clone()
+    }
+}
+
+impl<T: crate::core::clone::Clone, const N: usize> MatrixConstructor<T, N> for [[T; N]; N]
+{
+    #[inline]
+    fn new_matrix(matrix: [[T; N]; N]) -> Self { matrix }
+}
+
+mod matrix;
+
+impl<T, M, const N: usize> Matrix<T, N> for &M
+where M: Matrix<T, N>
+{
+    #[inline]
+    fn get_unchecked( &self, row: usize, col: usize ) -> T {
+        (*self).get_unchecked(row, col)
+    }
 }
 
 // feature impls

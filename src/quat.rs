@@ -2,11 +2,24 @@
 use crate::core::option::Option;
 use crate::{
     Axis,
-    Quaternion, QuaternionConstructor,
-    Vector, VectorConstructor,
-    Complex, ComplexConstructor,
-    Scalar, ScalarConstructor,
-    Rotation, RotationConstructor,
+
+    Quaternion,
+    QuaternionConstructor,
+
+    Vector,
+    VectorConstructor,
+
+    Complex,
+    ComplexConstructor,
+
+    Scalar,
+    ScalarConstructor,
+
+    Rotation,
+    RotationConstructor,
+
+    Matrix,
+    MatrixConstructor,
 };
 
 #[inline]
@@ -518,6 +531,8 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the ratio inbetween the abs of two quaternions is small enough
+/// 
 /// Checks if the ratio inbetween the absolute values of two quaternions
 /// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
 /// AND that the distance inbetween the angle
@@ -535,6 +550,8 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if the ratio inbetween the abs of two quaternions is small enough
+/// 
 /// Checks if the ratio inbetween the absolute values of two quaternions
 /// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
 /// AND that the ratio inbetween the angle
@@ -550,27 +567,64 @@ where
     (angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < error.scalar()
 }
 
-#[inline]
-#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the distance inbetween the coordenates of two quaternions.
 /// 
 /// Equivalent to getting the absolute value of 
 /// 
 /// ```
-/// use quaternion_traits::dist;
+/// use quaternion_traits::dist_euclid;
 /// 
 /// let a: [f32; 4] = [5.0, 0.0, 1.0, 3.0];
 /// let b: [f32; 4] = [2.0, 0.0, 5.0, 3.0];
 /// 
-/// assert_eq!( dist::<f32, f32>(&a, &b), 5.0 );
-/// assert_eq!( dist::<f32, f32>(&a, &a), 0.0 );
+/// assert_eq!( dist_euclid::<f32, f32>(&a, &b), 5.0 );
+/// assert_eq!( dist_euclid::<f32, f32>(&a, &a), 0.0 );
 /// ```
-pub fn dist<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn dist_euclid<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
 where
     Num: Axis,
     Out: ScalarConstructor<Num>,
 {
     abs(&sub::<Num, [Num; 4]>(from, to))
+}
+
+/// Calculates the cosine distance between two quaternions.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn dist_cosine<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar(Num::ONE - angle_between_cos(from, to))
+}
+
+/// Calculates the angle between two quaternions.
+/// 
+/// This does NOT use the [`angle`] function, and the two give diferent results.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn angle_between<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar( ( dot::<Num, Num>(&from, &to) / (abs_squared::<Num, Num>(from) * abs_squared(to)).sqrt() ).acos() )
+}
+
+/// Calculates the cosine of the angle between two quaternions.
+/// 
+/// This does NOT use the [`angle`] function, and the two give diferent results.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn angle_between_cos<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar(dot::<Num, Num>(&from, &to) / (abs_squared::<Num, Num>(from) * abs_squared(to)).sqrt())
 }
 
 #[inline]
@@ -640,7 +694,7 @@ where
 /// The it multiplies by [`Num::ERROR`](Axis::ERROR) to the first power.
 /// 
 /// Note: The operations above are the rough order in which they are done.
-pub fn small_abs<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+pub fn abs_small<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: ScalarConstructor<Num>,
@@ -1021,6 +1075,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     // refrence: https://math.stackexchange.com/questions/1499095/how-to-calculate-sin-cos-tan-of-a-quaternion
+    // If you find a paper on this please add it here (or modify the code + add it here if it uses a diferent equasion)
     let abs_vec = Num::sqrt(quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k());
     let vec_scalar = - quaternion.r().sin() * abs_vec.sinh() / abs_vec;
     Out::new_quat(
@@ -1452,6 +1507,103 @@ where
     )
 }
 
+/// Cosntructs a quaternion from a 2x2 matrix.
+pub fn _from_matrix_2<Num, Elem, Out>(_matrix: impl Matrix<Elem, 2>) -> Out
+where 
+    Num: Axis,
+    Elem: Complex<Num>,
+    Out: QuaternionConstructor<Num>,
+{
+    crate::core::todo!()
+}
+
+/// Cosntructs a quaternion from a 3x3 matrix (DCM).
+/// 
+/// Note: There are quite a few ways to turn a 3x3 matrix into
+/// a quaternion, this one uses 4 formulas and choses one based on
+/// the inputs, for the most general use case.
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn from_matrix_3<Num, Elem, Out>(matrix: impl Matrix<Elem, 3>) -> Out
+where 
+    Num: Axis,
+    Elem: Scalar<Num>,
+    Out: QuaternionConstructor<Num>,
+{
+    // Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+
+    let two: Num = Num::ONE + Num::ONE;
+    let r: Num =   matrix.get_unchecked(0, 0).scalar() + matrix.get_unchecked(1, 1).scalar() + matrix.get_unchecked(2, 2).scalar();
+    let i: Num =   matrix.get_unchecked(0, 0).scalar() - matrix.get_unchecked(1, 1).scalar() - matrix.get_unchecked(2, 2).scalar();
+    let j: Num = - matrix.get_unchecked(0, 0).scalar() + matrix.get_unchecked(1, 1).scalar() - matrix.get_unchecked(2, 2).scalar();
+    let k: Num = - matrix.get_unchecked(0, 0).scalar() - matrix.get_unchecked(1, 1).scalar() + matrix.get_unchecked(2, 2).scalar();
+    let mut largest: Num = r;
+    if i > largest { largest = i }
+    if j > largest { largest = j }
+    if k > largest { largest = k }
+
+    if largest == r {
+        largest = (largest + Num::ONE).sqrt();
+        return Out::new_quat(
+            largest / two,
+            (matrix.get_unchecked(1, 2).scalar() - matrix.get_unchecked(2, 1).scalar()) / (largest * two),
+            (matrix.get_unchecked(2, 0).scalar() - matrix.get_unchecked(0, 2).scalar()) / (largest * two),
+            (matrix.get_unchecked(0, 1).scalar() - matrix.get_unchecked(1, 0).scalar()) / (largest * two),
+        )
+    }
+
+    if largest == i {
+        largest = (largest + Num::ONE).sqrt();
+        return Out::new_quat(
+            (matrix.get_unchecked(1, 2).scalar() - matrix.get_unchecked(2, 1).scalar()) / (largest * two),
+            largest / two,
+            (matrix.get_unchecked(0, 1).scalar() - matrix.get_unchecked(1, 0).scalar()) / (largest * two),
+            (matrix.get_unchecked(2, 0).scalar() - matrix.get_unchecked(0, 2).scalar()) / (largest * two),
+        )
+    }
+
+    if largest == j {
+        largest = (largest + Num::ONE).sqrt();
+        return Out::new_quat(
+            (matrix.get_unchecked(2, 0).scalar() - matrix.get_unchecked(0, 2).scalar()) / (largest * two),
+            (matrix.get_unchecked(0, 1).scalar() - matrix.get_unchecked(1, 0).scalar()) / (largest * two),
+            largest / two,
+            (matrix.get_unchecked(1, 2).scalar() - matrix.get_unchecked(2, 1).scalar()) / (largest * two),
+        )
+    }
+
+    // largest == k 
+    largest = (largest + Num::ONE).sqrt();
+    return Out::new_quat(
+        (matrix.get_unchecked(0, 1).scalar() - matrix.get_unchecked(1, 0).scalar()) / (largest * two),
+        (matrix.get_unchecked(2, 0).scalar() - matrix.get_unchecked(0, 2).scalar()) / (largest * two),
+        (matrix.get_unchecked(1, 2).scalar() - matrix.get_unchecked(2, 1).scalar()) / (largest * two),
+        largest / two,
+    )
+    
+}
+
+/// Cosntructs a quaternion from a 4x4 matrix.
+/// 
+/// Note: There are many ways to turn a 4x4 matrix into
+/// a quaternion, this one just does the same thing as
+/// [`from_matrix_3`] but with the first 3 rows and columbs
+/// of this matrix instead.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn from_matrix_4<Num, Elem, Out>(matrix: impl Matrix<Elem, 4>) -> Out
+where 
+    Num: Axis,
+    Elem: Scalar<Num>,
+    Out: QuaternionConstructor<Num>,
+{
+    // Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+    from_matrix_3([
+        [matrix.get_unchecked(0, 0).scalar(), matrix.get_unchecked(0, 1).scalar(), matrix.get_unchecked(0, 2).scalar()],
+        [matrix.get_unchecked(1, 0).scalar(), matrix.get_unchecked(1, 1).scalar(), matrix.get_unchecked(1, 2).scalar()],
+        [matrix.get_unchecked(2, 0).scalar(), matrix.get_unchecked(2, 1).scalar(), matrix.get_unchecked(2, 2).scalar()],
+    ])
+}
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a complex number representation from a quaternion.
@@ -1574,6 +1726,97 @@ where
         Num::ONE - two * ( quat.j() * quat.j() + quat.k() * quat.k() )
     );
     RotationConstructor::new_rotation(roll, pitch, yaw)
+}
+
+/// Turns this quaternion into a 2x2 Matrix
+/// 
+/// Note: This uses the first representation from the
+/// [wiki](https://en.wikipedia.org/wiki/Quaternion#Representation_as_complex_2_%C3%97_2_matrices)
+/// on quaternions.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn to_matrix_2<Num, Matrix, Complex>(quaternion: impl Quaternion<Num>) -> Matrix
+where 
+    Num: Axis,
+    Complex: ComplexConstructor<Num>,
+    Matrix: MatrixConstructor<Complex, 2>,
+{
+    Matrix::new_matrix(
+        [
+            [
+                Complex::new_complex(quaternion.r(), quaternion.i()),
+                Complex::new_complex(quaternion.j(), quaternion.k()),
+            ],
+            [
+                Complex::new_complex(-quaternion.j(), quaternion.k()),
+                Complex::new_complex(quaternion.r(), -quaternion.i()),
+            ],
+        ]
+    )
+}
+
+/// Turns this quaternion into a 3x3 Matrix. (DCM)
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn to_matrix_3<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: MatrixConstructor<Num, 3>,
+{
+    let q = quaternion;
+    let two = Num::ONE + Num::ONE;
+    Out::new_matrix([
+        [
+            q.r()*q.r() + q.i()*q.i() - q.j()*q.j() - q.k()*q.k(),
+            two * ( q.i()*q.j() + q.r()*q.k() ),
+            two * ( q.i()*q.j() - q.r()*q.k() ),
+        ],
+        [
+            two * ( q.i()*q.j() - q.r()*q.k() ),
+            q.r()*q.r() - q.i()*q.i() + q.j()*q.j() - q.k()*q.k(),
+            two * ( q.j()*q.k() + q.r()*q.i() ),
+        ],
+        [
+            two * ( q.i()*q.k() + q.r()*q.j() ),
+            two * ( q.j()*q.k() - q.r()*q.i() ),
+            q.r()*q.r() - q.i()*q.i() - q.j()*q.j() + q.k()*q.k(),
+        ],
+    ])
+}
+
+/// Turns this quaternion into a 4x4 Matrix.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn to_matrix_4<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: MatrixConstructor<Num, 4>,
+{
+    Out::new_matrix([
+        [
+             quaternion.r(),
+            -quaternion.i(),
+            -quaternion.j(),
+            -quaternion.k(),
+        ],
+        [
+             quaternion.i(),
+             quaternion.r(),
+            -quaternion.k(),
+             quaternion.j(),
+        ],
+        [
+             quaternion.j(),
+             quaternion.k(), 
+             quaternion.r(),
+            -quaternion.i(),
+        ],
+        [
+             quaternion.k(),
+            -quaternion.j(),
+             quaternion.i(),
+             quaternion.r(),
+        ],
+    ])
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
