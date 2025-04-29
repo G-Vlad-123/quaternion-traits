@@ -571,11 +571,11 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_matrix_3 function](crate::from_matrix_3) in the root for more info.
-    #[inline] fn from_matrix_3<M: Matrix<Num, 3>>(matrix: M) -> Self { quat::from_matrix_3(matrix) }
+    #[inline] fn from_matrix_3<M: Matrix<Elem, 3>, Elem: Scalar<Num>>(matrix: M) -> Self { quat::from_matrix_3(matrix) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_matrix_4 function](crate::from_matrix_4) in the root for more info.
-    #[inline] fn from_matrix_4<M: Matrix<Num, 4>>(matrix: M) -> Self { quat::from_matrix_4(matrix) }
+    #[inline] fn from_matrix_4<M: Matrix<Elem, 4>, Elem: Scalar<Num>>(matrix: M) -> Self { quat::from_matrix_4::<Num, Elem, Self>(matrix) }
 }
 
 // Quat impls
