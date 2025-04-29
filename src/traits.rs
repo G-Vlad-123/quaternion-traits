@@ -125,26 +125,78 @@ pub trait Matrix<T, const N: usize> {
 A constructor for quaternions.
  */
 pub trait QuaternionConstructor<Num: Axis>: Sized {
-    /// Constructs a new quaternion
+    /// Constructs a new quaternion.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let q: [f32; 4] = QuaternionConstructor::<f32>::new_quat(1.0, 2.0, 3.0, 4.0);
+    /// assert_eq!( q, [1.0, 2.0, 3.0, 4.0] );
+    /// 
+    /// let p = <[f32; 4]>::new_quat(0.0, 0.0, 0.0, 0.0);
+    /// assert_eq!( p, [0.0, 0.0, 0.0, 0.0] );
+    /// ```
     fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self;
 
-    #[inline]
     /// Constructs a new quaternion from another one.
     /// Will have same values.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let from: [u32; 4] = [1, 2, 3, 4];
+    /// 
+    /// let to: [f32; 4] = QuaternionConstructor::<f32>::from_quat(from);
+    /// 
+    /// assert_eq!( to, [1.0, 2.0, 3.0, 4.0] );
+    /// ```
+    #[inline]
     fn from_quat(quat: impl Quaternion<Num>) -> Self {
         QuaternionConstructor::new_quat(quat.r(), quat.i(), quat.j(), quat.k())
     }
 
-    #[inline]
     /// Constructs the origin quaternion. (additive identity)
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let quat: [f32; 4] = QuaternionConstructor::<f32>::origin();
+    /// 
+    /// assert_eq!( quat, [0.0, 0.0, 0.0, 0.0] );
+    /// ```
+    #[inline]
     fn origin() -> Self { quat::origin() }
 
+    /// Constructs the real positive unit quaternion. (multiplicative identity)
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let quat: [f32; 4] = QuaternionConstructor::<f32>::identity();
+    /// 
+    /// assert_eq!( quat, [1.0, 0.0, 0.0, 0.0] );
+    /// ```
     #[inline]
-    /// Constructs the multiplicative identity for quaternions.
     fn identity() -> Self { quat::identity() }
 
-    #[inline]
     /// Constructs a quaternion with all [`Num::NAN`s](Axis::NAN).
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let quat: [f32; 4] = QuaternionConstructor::<f32>::nan();
+    /// 
+    /// assert!( quat[0].is_nan() );
+    /// assert!( quat[1].is_nan() );
+    /// assert!( quat[2].is_nan() );
+    /// assert!( quat[3].is_nan() );
+    /// ```
+    #[inline]
     fn nan() -> Self { quat::nan() }
 } 
 
@@ -292,42 +344,6 @@ in the future.
 \* With examples that match their respective function.
  */
 pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<Num> + Sized {
-    /// Constructs the origin quaternion. (Additive identity)
-    /// 
-    /// # Example
-    /// ```
-    /// use quaternion_traits::QuaternionMethods;
-    /// 
-    /// let quat: [f32; 4] = QuaternionMethods::<f32>::origin();
-    /// 
-    /// assert_eq!( quat, [0.0, 0.0, 0.0, 0.0] );
-    /// ```
-    #[inline] fn origin() -> Self { quat::origin() }
-    /// Constructs the positive real unit quaternion. (Multiplicative identity)
-    /// 
-    /// # Example
-    /// ```
-    /// use quaternion_traits::QuaternionMethods;
-    /// 
-    /// let quat: [f32; 4] = QuaternionMethods::<f32>::identity();
-    /// 
-    /// assert_eq!( quat, [1.0, 0.0, 0.0, 0.0] );
-    /// ```
-    #[inline] fn identity() -> Self { quat::identity() }
-    /// Constructs a quaternion that has all axies set to [`Num::NAN`s](Axis::NAN).
-    /// 
-    /// # Example
-    /// ```
-    /// use quaternion_traits::QuaternionMethods;
-    /// 
-    /// let quat: [f32; 4] = QuaternionMethods::<f32>::nan();
-    /// 
-    /// assert!( quat[0].is_nan() );
-    /// assert!( quat[1].is_nan() );
-    /// assert!( quat[2].is_nan() );
-    /// assert!( quat[3].is_nan() );
-    /// ```
-    #[inline] fn nan() -> Self { quat::nan() }
     /// Adds two quaternions togheder.
     /// 
     /// Check [the add function](crate::add) in the root for more info.
