@@ -570,6 +570,10 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     { quat::from_polar_form(abs, angle, unit_vec) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
+    /// Check [the from_matrix_2 function](crate::from_matrix_2) in the root for more info.
+    #[inline] fn from_matrix_2<M: Matrix<Elem, 2>, Elem: Complex<Num>>(matrix: M) -> Option<Self> { quat::from_matrix_2(matrix) }
+    /// Constructs a unit quaternion representation from a rotation.
+    /// 
     /// Check [the from_matrix_3 function](crate::from_matrix_3) in the root for more info.
     #[inline] fn from_matrix_3<M: Matrix<Elem, 3>, Elem: Scalar<Num>>(matrix: M) -> Self { quat::from_matrix_3(matrix) }
     /// Constructs a unit quaternion representation from a rotation.

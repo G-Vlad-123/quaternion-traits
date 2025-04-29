@@ -1507,14 +1507,58 @@ where
     )
 }
 
-/// Cosntructs a quaternion from a 2x2 matrix.
-pub fn _from_matrix_2<Num, Elem, Out>(_matrix: impl Matrix<Elem, 2>) -> Out
+/// Cosntructs a quaternion from a 2x2 complex matrix.
+/// 
+/// This acts like the inverse of the [`to_matrix_2`] function,
+/// therefor it checks if it's formula works.
+/// 
+/// If you want to skip this check you can just take in order all
+/// the elements of the top row and give them their respective place
+/// in the quaternion.
+/// 
+///     # "
+///     M = [a + bi, c + di]
+///         [  ..  ,   ..  ]
+/// 
+///         =>
+/// 
+///     q = a + bi + cj + dk
+///     # ";
+/// 
+pub fn from_matrix_2<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Option<Out>
 where 
     Num: Axis,
     Elem: Complex<Num>,
     Out: QuaternionConstructor<Num>,
 {
-    crate::core::todo!()
+    if matrix.get_unchecked(0, 0).real() == matrix.get_unchecked(1, 1).real()
+    && matrix.get_unchecked(0, 0).imaginary() == -matrix.get_unchecked(1, 1).imaginary()
+    && matrix.get_unchecked(1, 0).real() == matrix.get_unchecked(0, 1).real()
+    && matrix.get_unchecked(1, 0).imaginary() == -matrix.get_unchecked(0, 1).imaginary()
+    {
+        return Option::None;
+    }
+    Option::Some( Out::new_quat(
+        matrix.get_unchecked(0, 0).real(),
+        matrix.get_unchecked(0, 0).imaginary(),
+        matrix.get_unchecked(0, 1).real(),
+        matrix.get_unchecked(0, 1).imaginary(),
+    ) )
+}
+
+/// Cosntructs a quaternion from a 2x2 complex matrix.
+pub fn from_matrix_2_unchecked<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Out
+where 
+    Num: Axis,
+    Elem: Complex<Num>,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        matrix.get_unchecked(0, 0).real(),
+        matrix.get_unchecked(0, 0).imaginary(),
+        matrix.get_unchecked(0, 1).real(),
+        matrix.get_unchecked(0, 1).imaginary(),
+    )
 }
 
 /// Cosntructs a quaternion from a 3x3 matrix (DCM).
