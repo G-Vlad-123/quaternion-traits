@@ -1,7 +1,9 @@
 
 #[cfg(feature = "num-complex")]
 mod num_complex_impl {
-    impl<Num: crate::Axis + crate::num_traits::Float> crate::Complex<Num> for crate::num_complex::Complex<Num> {
+    use crate::num_complex::Complex;
+
+    impl<Num: crate::Axis + crate::num_traits::Float> crate::Complex<Num> for Complex<Num> {
         #[inline] fn real(&self) -> Num {
             self.re
         }
