@@ -34,7 +34,9 @@ This crate also currently has these pure maths functions for quaternions (exclud
 [`exp`](quat::exp), [`ln`](quat::ln), [`sqrt`](quat::sqrt), [`sin`](quat::sin),
 [`sinh`](quat::sinh), [`sec`](quat::sec), [`cos`](quat::cos), [`cosh`](quat::cosh),
 [`csc`](quat::csc), [`sin_cos`](quat::sin_cos), [`tan`](quat::tan), [`tanh`](quat::tanh),
-[`cot`](quat::cot), [`coth`](quat::coth).
+[`cot`](quat::cot), [`coth`](quat::coth), [`asin`](quat::asin), [`asinh`](quat::asinh),
+[`asec`](quat::asec), [`acos`](quat::acos), [`acosh`](quat::acosh), [`acsc`](quat::acsc),
+[`atan`](quat::atan), [`atanh`](quat::atanh), [`acot`](quat::acot), [`acoth`](quat::acoth).
 
 This crate provides currently an unstable form of these functions:
 - [`pow`](quat::pow_q) (the equasion used seams to not be fully agreed on though so it's at risk of change if

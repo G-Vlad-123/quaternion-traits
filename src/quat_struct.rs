@@ -243,17 +243,17 @@ impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> fo
     }
 }
 
-/// Constructs a `Quat` for any `Num` that implements axis and of `T = (Num, [Num; 3]`).
+/// Constructs a [`Quat`] for any `Num` that implements axis and of `T = (Num, [Num; 3]`).
 pub const fn q<Num: Axis>(r: Num, i: Num, j: Num, k: Num) -> Quat<Num> {
     Quat::new((r, [i, j, k]))
 }
 
-/// Constructs a `Quat` for `Num = f32` that implements axis and of `T = (f32, [f32; 3])`.
+/// Constructs a [`Quat`] with `Num = f32` and `T = (f32, [f32; 3])`.
 pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num) -> Quat<f32> {
     Quat::new((r.into(), [i.into(), j.into(), k.into()]))
 }
 
-/// Constructs a `Quat` for `Num = f64` that implements axis and of `T = (f64, [f64; 3])`.
+/// Constructs a [`Quat`] with `Num = f64` and `T = (f64, [f64; 3])`.
 pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat<f64> {
     Quat::new((r.into(), [i.into(), j.into(), k.into()]))
 }

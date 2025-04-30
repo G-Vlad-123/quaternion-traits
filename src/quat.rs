@@ -1,7 +1,7 @@
 /*!
 Functions for dealing with generic quaternions.
 
-This crate provides a lot of functions (`81`) including
+This crate provides a lot of functions (`100`) including
 both convetnional ones ([`add`], [`mul`]), helper ones ([`mul_reversed`],
 [`product`]), game/graphichs ones ([`to_matrix_3`], [`from_rotation`]) and
 pure math ones ([`cos`], [`ln`]).
