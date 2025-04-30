@@ -184,12 +184,12 @@ fn sqrt_accuracy() {
     let mut mul_result: [f32; 4];
     let mut sqrt_result: [f32; 4];
     for quat in F32_Quats::new() {
-        if quat == origin::<f32, [f32; 4]>() { continue }
-        mul_result = mul::<f32, [f32; 4]>(&quat, &quat);
-        sqrt_result = sqrt::<f32, [f32; 4]>(&mul_result);
+        if quat == quat::origin::<f32, [f32; 4]>() { continue }
+        mul_result = quat::mul::<f32, [f32; 4]>(&quat, &quat);
+        sqrt_result = quat::sqrt::<f32, [f32; 4]>(&mul_result);
         let error: f32 = {
-            let original_dist = abs::<f32, f32>(&quat);
-            let checking_dist = abs::<f32, f32>(&sqrt_result);
+            let original_dist = quat::abs::<f32, f32>(&quat);
+            let checking_dist = quat::abs::<f32, f32>(&sqrt_result);
             f32::abs(original_dist/checking_dist - 1.0)
         };
         assert!(
@@ -207,7 +207,7 @@ fn timing_pow_f_vs_sqrt() {
     let pow_f_average = timer! {
         run {
             for quat in f32_quats() {
-                let _ = pow_f::<f32, [f32; 4]>(quat, 0.5);
+                let _ = quat::pow_f::<f32, [f32; 4]>(quat, 0.5);
             }
         },
         repeat 5,
@@ -218,7 +218,7 @@ fn timing_pow_f_vs_sqrt() {
     let sqrt_average = timer! {
         run {
             for quat in f32_quats() {
-                let _ = sqrt::<f32, [f32; 4]>(quat);
+                let _ = quat::sqrt::<f32, [f32; 4]>(quat);
             }
         },
         repeat 5,
