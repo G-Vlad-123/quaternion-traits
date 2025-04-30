@@ -102,6 +102,46 @@ where
     Out::from_quat([Num::NAN; 4])
 }
 
+#[inline(always)]
+/// Returns the unit quaternion on the real axis.
+pub fn unit_r<Num, Out>() -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    identity()
+}
+
+#[inline]
+/// Returns the unit quaternion on the first imaginary axis.
+pub fn unit_i<Num, Out>() -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::from_quat([Num::ZERO, Num::ONE, Num::ZERO, Num::ZERO])
+}
+
+#[inline]
+/// Returns the unit quaternion on the second imaginary axis.
+pub fn unit_j<Num, Out>() -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::from_quat([Num::ZERO, Num::ZERO, Num::ONE, Num::ZERO])
+}
+
+#[inline]
+/// Returns the unit quaternion on the third imaginary axis.
+pub fn unit_k<Num, Out>() -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::from_quat([Num::ZERO, Num::ZERO, Num::ZERO, Num::ONE])
+}
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if two types represent the same quaternion.
@@ -706,7 +746,7 @@ where
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the absolute value of a quaternion close to the origin.
 /// 
-/// Calculates the sqared absolute value of the quaternion multiplied by [`Num::ERROR`](Axis::ERROR) to the -2 power.
+/// Calculates the squared absolute value of the quaternion multiplied by [`Num::ERROR`](Axis::ERROR) to the -2 power.
 /// Then it takes the square root.
 /// The it multiplies by [`Num::ERROR`](Axis::ERROR) to the first power.
 /// 
@@ -904,7 +944,7 @@ where
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-/// Calculates the sqaure root of a quaternion.
+/// Calculates the square root of a quaternion.
 /// 
 /// This uses a diferent algorthm from [`pow_f`].
 pub fn sqrt<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
@@ -930,6 +970,23 @@ where
         unit[1] * unreal_part,
         unit[2] * unreal_part,
         unit[3] * unreal_part,
+    )
+}
+
+/// Calculares the square of a quaternion.
+/// 
+/// Equivalent to `mul(q, q)`
+/// #[inline]
+pub fn square<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r() * quaternion.r() - quaternion.i() * quaternion.i() - quaternion.j() * quaternion.j() - quaternion.k() * quaternion.k(),
+        quaternion.r() * quaternion.i() + quaternion.i() * quaternion.r() + quaternion.j() * quaternion.k() - quaternion.k() * quaternion.j(),
+        quaternion.r() * quaternion.j() - quaternion.i() * quaternion.k() + quaternion.j() * quaternion.r() + quaternion.k() * quaternion.i(),
+        quaternion.r() * quaternion.k() + quaternion.i() * quaternion.j() - quaternion.j() * quaternion.i() + quaternion.k() * quaternion.r(),
     )
 }
 
@@ -1091,6 +1148,16 @@ where
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the secant of a quaternion.
+pub fn sech<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    inv(&cosh::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the  cosinus of a quaternion.
 pub fn cos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where
@@ -1128,6 +1195,16 @@ where
     Out: QuaternionConstructor<Num>,
 {
     inv(&sin::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Calculates the secant of a quaternion.
+pub fn csch<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    inv(&sinh::<Num, [Num; 4]>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1211,7 +1288,194 @@ where
     )
 }
 
-// Note: You can add the hyperbolic and inverse functions too probably using the linked refrence
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arcsinus of a quaternion.
+pub fn asin<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    mul(
+        (-Num::ONE, ()),
+        ln::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
+            mul::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+            sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
+                identity::<Num, [Num; 4]>(),
+                square::<Num, [Num; 4]>(&quaternion)
+            )),
+        )),
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arccosinus of a quaternion.
+pub fn acos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    mul(
+        (-Num::ONE, ()),
+        ln::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
+            &quaternion,
+            mul::<Num, [Num; 4]>(
+                unit_i::<Num, [Num; 4]>(),
+                sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
+                    identity::<Num, [Num; 4]>(),
+                    square::<Num, [Num; 4]>(&quaternion)
+                )),
+            ),
+        )),
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arctangent of a quaternion.
+pub fn atan<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    mul(
+        (-Num::ONE / (Num::ONE + Num::ONE), ()),
+        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
+            sub::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+            add::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+        )),
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arccotangent of a quaternion.
+pub fn acot<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    mul(
+        (-Num::ONE / (Num::ONE + Num::ONE), ()),
+        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
+            add::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+            sub::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+        )),
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arcsecant of a quaternion.
+pub fn asec<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    acos(inv::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the arccosecant of a quaternion.
+pub fn acsc<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    asin(inv::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic sinus of a quaternion.
+pub fn asinh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    ln(add::<Num, [Num; 4]>(
+        &quaternion,
+        sqrt::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
+            mul::<Num, [Num; 4]>(&quaternion, &quaternion),
+            identity::<Num, [Num; 4]>(),
+        )),
+    ))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic cosinus of a quaternion.
+pub fn acosh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    ln(add::<Num, [Num; 4]>(
+        &quaternion,
+        sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
+            square::<Num, [Num; 4]>(&quaternion),
+            identity::<Num, [Num; 4]>(),
+        )),
+    ))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic tangent of a quaternion.
+pub fn atanh<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    unscale(
+        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
+            add::<Num, [Num; 4]>(identity::<Num, [Num; 4]>(), &quaternion),
+            sub::<Num, [Num; 4]>(identity::<Num, [Num; 4]>(), &quaternion),
+        )), 
+        Num::ONE + Num::ONE,
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic cotangent of a quaternion.
+pub fn acoth<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    unscale(
+        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
+            add::<Num, [Num; 4]>(&quaternion, identity::<Num, [Num; 4]>()),
+            sub::<Num, [Num; 4]>(&quaternion, identity::<Num, [Num; 4]>()),
+        )), 
+        Num::ONE + Num::ONE,
+    )
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic cosecant of a quaternion.
+pub fn acsch<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    asinh(inv::<Num, [Num; 4]>(quaternion))
+}
+
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Calculates the inverse hyperbolic secant of a quaternion.
+pub fn asech<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    acosh(inv::<Num, [Num; 4]>(quaternion))
+}
 
 use crate::core::iter::Iterator;
 
