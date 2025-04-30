@@ -1,3 +1,20 @@
+/*!
+Functions for dealing with generic quaternions.
+
+This crate provides a lot of functions (`81`) including
+both convetnional ones ([`add`], [`mul`]), helper ones ([`mul_reversed`],
+[`product`]), game/graphichs ones ([`to_matrix_3`], [`from_rotation`]) and
+pure math ones ([`cos`], [`ln`]).
+
+# Note
+If you use this crate for it's traits and already have another quaternion
+crate (or you use a crate that provides quaternions already) unless necesarry
+it's recommended you use the functions/methods of the alrady used crate, as
+this crate is general use while other crates might provide more focused implementations
+that may provide more optimized functions.
+
+This crate is here to fill any gaps or provide functionality that you don't already have.
+ */
 
 use crate::core::option::Option;
 use crate::{
@@ -28,7 +45,7 @@ use crate::{
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::origin;
+/// use quaternion_traits::quat::origin;
 /// 
 /// let quat: [f32; 4] = origin::<f32, [f32; 4]>();
 /// 
@@ -48,7 +65,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::identity;
+/// use quaternion_traits::quat::identity;
 /// 
 /// let quat: [f32; 4] = identity::<f32, [f32; 4]>();
 /// 
@@ -68,7 +85,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::nan;
+/// use quaternion_traits::quat::nan;
 /// 
 /// let quat: [f32; 4] = nan::<f32, [f32; 4]>();
 /// 
@@ -91,7 +108,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::eq;
+/// use quaternion_traits::quat::eq;
 /// 
 /// assert!( eq::<f32>(&[1.0, 2.0, 3.0, 4.0], &(1.0, 2.0, 3.0, 4.0)) );
 /// ```
@@ -111,7 +128,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::add;
+/// use quaternion_traits::quat::add;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [4.0, 3.0, 2.0, -4.0];
@@ -138,7 +155,7 @@ where
 /// 
 /// # Example
 /// ```rust
-/// use quaternion_traits::sub;
+/// use quaternion_traits::quat::sub;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [4.0, 3.0, 2.0, -4.0];
@@ -204,7 +221,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{mul, mul_reversed};
+/// use quaternion_traits::quat::{mul, mul_reversed};
 /// 
 /// let a: [f32; 4] = // quaternion
 /// # [1.0, 2.0, 0.0, 3.0];
@@ -227,7 +244,7 @@ where
 /// another one's inverse.
 /// 
 /// ```
-/// use quaternion_traits::{mul, div, inv};
+/// use quaternion_traits::quat::{mul, div, inv};
 /// 
 /// let a: [f32; 4] = // quaternion
 /// # [1.0, 2.0, 0.0, 3.0];
@@ -268,7 +285,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::neg;
+/// use quaternion_traits::quat::neg;
 /// 
 /// let quat = [1.0, 2.0, 3.0, 4.0];
 /// let neg_quat = [-1.0, -2.0, -3.0, -4.0];
@@ -294,7 +311,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::conj;
+/// use quaternion_traits::quat::conj;
 /// 
 /// let quat = [1.0, 2.0, 3.0, 4.0];
 /// let conj_quat = [1.0, -2.0, -3.0, -4.0];
@@ -320,7 +337,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::is_scalar;
+/// use quaternion_traits::quat::is_scalar;
 /// 
 /// let yes_scalar = [3.14, 0.0, 0.0, 0.0];
 /// let no_scalar = [1.2, 3.4, 5.6, 7.8];
@@ -346,7 +363,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::is_complex;
+/// use quaternion_traits::quat::is_complex;
 /// 
 /// let yes_complex = [0.0, 1.0, 0.0, 0.0];
 /// let no_complex = [1.2, 3.4, 5.6, 7.8];
@@ -370,7 +387,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::is_vector;
+/// use quaternion_traits::quat::is_vector;
 /// 
 /// let yes_vector = [0.0, 1.0, 2.0, 3.0];
 /// let no_vector = [1.2, 3.4, 5.6, 7.8];
@@ -393,7 +410,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::is_on_axis_plane;
+/// use quaternion_traits::quat::is_on_axis_plane;
 /// 
 /// let yes_planar = [0.0, 3.14, 0.0, 2.71];
 /// let no_planar = [1.0, 2.0, 3.0, 0.0];
@@ -419,7 +436,7 @@ where
 // /// 
 // /// # Example
 // /// ```
-// /// use quaternion_traits::is_on_same_plane;
+// /// use quaternion_traits::quat::is_on_same_plane;
 // /// 
 // /// ass
 // /// ```
@@ -441,7 +458,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::scale;
+/// use quaternion_traits::quat::scale;
 /// 
 /// let quat: [f32; 4] = [0.0, 1.0, 2.0, 3.0];
 /// let scaled: [f32; 4] = scale::<f32, [f32; 4]>(&quat, &2);
@@ -469,7 +486,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::unscale;
+/// use quaternion_traits::quat::unscale;
 /// 
 /// let quat: [f32; 4] = [0.0, 1.0, 2.0, 3.0];
 /// let unscaled: [f32; 4] = unscale::<f32, [f32; 4]>(&quat, &2);
@@ -494,7 +511,7 @@ where
 /// Checks if the distance between two quaternions is less then [`Num::ERROR`](Axis::ERROR).
 /// 
 /// ```
-/// use quaternion_traits::{is_near, Axis};
+/// use quaternion_traits::quat::{is_near, Axis};
 /// 
 /// let a: [f32; 4] = [0.0; 4];
 /// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
@@ -515,7 +532,7 @@ where
 /// If [`error.scalar()`](Scalar::scalar) evaluates to a non_
 /// 
 /// ```
-/// use quaternion_traits::{is_near, Axis};
+/// use quaternion_traits::quat::{is_near, Axis};
 /// 
 /// let a: [f32; 4] = [0.0; 4];
 /// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
@@ -572,7 +589,7 @@ where
 /// Equivalent to getting the absolute value of 
 /// 
 /// ```
-/// use quaternion_traits::dist_euclid;
+/// use quaternion_traits::quat::dist_euclid;
 /// 
 /// let a: [f32; 4] = [5.0, 0.0, 1.0, 3.0];
 /// let b: [f32; 4] = [2.0, 0.0, 5.0, 3.0];
@@ -638,7 +655,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::norm;
+/// use quaternion_traits::quat::norm;
 /// 
 /// let quat: [f32; 4] = [0.0, 3.25, 0.0, 0.0];
 /// let normal: [f32; 4] = norm::<f32, [f32; 4]>(&quat);
@@ -666,7 +683,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::abs;
+/// use quaternion_traits::quat::abs;
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// 
@@ -714,7 +731,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::abs_squared;
+/// use quaternion_traits::quat::abs_squared;
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// 
@@ -736,6 +753,9 @@ where
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the angle of a quaternion's polar form.
+/// 
+/// Note: This isn't named arg because it does not represent the
+/// argument of the quaternion. 
 pub fn angle<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -747,6 +767,9 @@ where
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the cosine of the angle of a quaternion's polar form.
+/// 
+/// Note: This isn't named arg_cos because it does not use the
+/// argument of the quaternion.
 pub fn angle_cos<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -763,7 +786,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{inv, mul, identity, is_near};
+/// use quaternion_traits::quat::{inv, mul, identity, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 3.0, 9.0, 3.0];
 /// let inv_quat: [f32; 4] = inv::<f32, [f32; 4]>(&quat);
@@ -796,7 +819,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{ln, exp, is_near};
+/// use quaternion_traits::quat::{ln, exp, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(&quat);
@@ -827,7 +850,7 @@ where
 /// e ≈ 2.71828...
 /// 
 /// ```
-/// use quaternion_traits::{exp, ln, is_near};
+/// use quaternion_traits::quat::{exp, ln, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 3.14, 0.0, 0.0];
 /// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(&quat);
@@ -864,7 +887,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{log, pow_i};
+/// use quaternion_traits::quat::{log, pow_i};
 /// 
 /// let base: [f32; 4] = [0.0, 2.0, 1.0, 0.0];
 /// let quat: [f32; 4] = pow_i::<f32, [f32; 4]>(&base, 3);
@@ -967,7 +990,7 @@ where
     let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
     scale(
-        &crate::exp::<Num, [Num; 4]>(
+        &crate::quat::exp::<Num, [Num; 4]>(
             &scale::<Num, [Num; 4]>(
                 &vector_part::<Num, [Num; 4]>(base),
                 exp.scalar() * angle
@@ -1007,7 +1030,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::dot;
+/// use quaternion_traits::quat::dot;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [5.0, 2.0, 1.0, 2.0];
@@ -1199,7 +1222,7 @@ use crate::core::iter::Iterator;
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{sum, add};
+/// use quaternion_traits::quat::{sum, add};
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [3.0, -2.0, 1.0, -4.0];
@@ -1230,7 +1253,7 @@ const PRODUCT_MARGIN: usize = 0xFFFFFFF;
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::{product, mul};
+/// use quaternion_traits::quat::{product, mul};
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [3.0, -2.0, 1.0, -4.0];
@@ -1276,7 +1299,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::vector_part;
+/// use quaternion_traits::quat::vector_part;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// 
@@ -1304,7 +1327,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::complex_part;
+/// use quaternion_traits::quat::complex_part;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// 
@@ -1332,7 +1355,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::scalar_part;
+/// use quaternion_traits::quat::scalar_part;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// 
@@ -1360,7 +1383,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::from_vector;
+/// use quaternion_traits::quat::from_vector;
 /// 
 /// let vector: [f32; 3] = [3.14, 2.71, 1.23];
 /// let quat: [f32; 4] = from_vector::<f32, [f32; 4]>(&vector);
@@ -1386,7 +1409,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::from_complex;
+/// use quaternion_traits::quat::from_complex;
 /// 
 /// let complex: [f32; 2] = [3.14, 2.71];
 /// let quat: [f32; 4] = from_complex::<f32, [f32; 4]>(&complex);
@@ -1412,7 +1435,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::from_scalar;
+/// use quaternion_traits::quat::from_scalar;
 /// 
 /// let scalar: f32 = 3.14;
 /// let quat: [f32; 4] = from_scalar::<f32, [f32; 4]>(&scalar);
@@ -1439,7 +1462,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::from_rotation;
+/// use quaternion_traits::quat::from_rotation;
 /// use core::f32::consts::PI;
 /// 
 /// let rotation: [f32; 3] = [PI, 0.0, 0.0];
@@ -1654,7 +1677,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::to_vector;
+/// use quaternion_traits::quat::to_vector;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// let vector: [f32; 3] = to_vector::<f32, [f32; 3]>(&quat);
@@ -1679,7 +1702,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::to_complex;
+/// use quaternion_traits::quat::to_complex;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// let complex: [f32; 2] = to_complex::<f32, [f32; 2]>(&quat);
@@ -1703,7 +1726,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::to_scalar;
+/// use quaternion_traits::quat::to_scalar;
 /// 
 /// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
 /// let scalar = to_scalar::<f32, f32>(&quat);
@@ -1725,7 +1748,7 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::to_rotation;
+/// use quaternion_traits::quat::to_rotation;
 /// use core::f32::consts::PI;
 /// 
 /// let quat: [f32; 4] = [0.0, 1.0, 0.0, 0.0];
