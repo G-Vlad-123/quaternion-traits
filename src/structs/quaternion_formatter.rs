@@ -52,6 +52,14 @@ pub struct QuaternionFormat {
     /// `add_plus_signfor_first` = `true`:
     /// `[3, 0, -3, 0]` -> `"+3 - 3j"
     pub add_plus_sign_for_first: bool,
+    /// Disables skipping for axies that are 0.
+    /// 
+    /// `show_0x_for_zero_values` = `false`:
+    /// `[0, 1, 0, -2]` -> `"i - 2k"`
+    /// 
+    /// `show_0x_for_zero_values` = `true`:
+    /// `[0, 1, 0, -2]` -> `"0 + i + 0j - 2k"`
+    pub show_0x_for_zero_values: bool,
 }
 
 impl QuaternionFormat {
@@ -62,6 +70,7 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: false,
         add_r_ro_real_axis: false,
         add_plus_sign_for_first: false,
+        show_0x_for_zero_values: false,
     };
 
     /// Adds spacing inbetween all the numbers.
@@ -72,6 +81,7 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: false,
         add_r_ro_real_axis: false,
         add_plus_sign_for_first: false,
+        show_0x_for_zero_values: false,
     };
 
     /// Removes all spacing inbetween numbers.
@@ -82,6 +92,7 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: false,
         add_r_ro_real_axis: false,
         add_plus_sign_for_first: false,
+        show_0x_for_zero_values: false,
     };
 
     /// Shows 1s for units on the imaginary axies.
@@ -92,6 +103,7 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: true,
         add_r_ro_real_axis: false,
         add_plus_sign_for_first: false,
+        show_0x_for_zero_values: false,
     };
 
     /// Adds the `'r'` char to the end of the real part.
@@ -102,6 +114,7 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: false,
         add_r_ro_real_axis: true,
         add_plus_sign_for_first: false,
+        show_0x_for_zero_values: false,
     };
 
     /// Adds the `'+'` char to the start of the first number when positive.
@@ -112,6 +125,18 @@ impl QuaternionFormat {
         show_1x_for_unit_values_of_x: false,
         add_r_ro_real_axis: false,
         add_plus_sign_for_first: true,
+        show_0x_for_zero_values: false,
+    };
+
+    /// Shows 0s for axieses instead of skipping them.
+    /// Has only `show_0x_for_zero_values` set to true.
+    pub const SHOW_0S: Self = QuaternionFormat {
+        add_spacing_for_first_sign: false,
+        remove_spacing_for_nonfirst_signs: false,
+        show_1x_for_unit_values_of_x: false,
+        add_r_ro_real_axis: false,
+        add_plus_sign_for_first: false,
+        show_0x_for_zero_values: true,
     };
 
     #[inline]
@@ -134,9 +159,13 @@ impl QuaternionFormat {
                 self.add_r_ro_real_axis
              || addon.add_r_ro_real_axis,
              
-            add_plus_sign_for_first:
-                self.add_plus_sign_for_first
-             || addon.add_plus_sign_for_first,
+             add_plus_sign_for_first:
+                 self.add_plus_sign_for_first
+              || addon.add_plus_sign_for_first,
+             
+            show_0x_for_zero_values:
+                self.show_0x_for_zero_values
+             || addon.show_0x_for_zero_values,
         }
     }
 
@@ -163,6 +192,10 @@ impl QuaternionFormat {
             add_plus_sign_for_first:
                 self.add_plus_sign_for_first
              && !remove.add_plus_sign_for_first,
+             
+            show_0x_for_zero_values:
+                self.show_0x_for_zero_values
+             && !remove.show_0x_for_zero_values,
         }
     }
 }
@@ -192,6 +225,10 @@ impl BitAnd for QuaternionFormat {
             add_plus_sign_for_first:
                 self.add_plus_sign_for_first
              && other.add_plus_sign_for_first,
+
+            show_0x_for_zero_values:
+                self.show_0x_for_zero_values
+             && other.show_0x_for_zero_values,
         }
     }
 }
@@ -221,6 +258,10 @@ impl BitOr for QuaternionFormat {
             add_plus_sign_for_first:
                 self.add_plus_sign_for_first
              || other.add_plus_sign_for_first,
+
+            show_0x_for_zero_values:
+                self.show_0x_for_zero_values
+             || other.show_0x_for_zero_values,
         }
     }
 }
@@ -250,6 +291,10 @@ impl BitXor for QuaternionFormat {
             add_plus_sign_for_first:
                 self.add_plus_sign_for_first
               ^ other.add_plus_sign_for_first,
+
+            show_0x_for_zero_values:
+                self.show_0x_for_zero_values
+              ^ other.show_0x_for_zero_values,
         }
     }
 }
@@ -280,6 +325,7 @@ impl BitAndAssign for QuaternionFormat {
         self.show_1x_for_unit_values_of_x &= other.show_1x_for_unit_values_of_x;
         self.add_r_ro_real_axis &= other.add_r_ro_real_axis;
         self.add_plus_sign_for_first &= other.add_plus_sign_for_first;
+        self.show_0x_for_zero_values &= other.show_0x_for_zero_values;
     }
 }
 
@@ -291,6 +337,7 @@ impl BitOrAssign for QuaternionFormat {
         self.show_1x_for_unit_values_of_x |= other.show_1x_for_unit_values_of_x;
         self.add_r_ro_real_axis |= other.add_r_ro_real_axis;
         self.add_plus_sign_for_first |= other.add_plus_sign_for_first;
+        self.show_0x_for_zero_values |= other.show_0x_for_zero_values;
     }
 }
 
@@ -302,6 +349,7 @@ impl BitXorAssign for QuaternionFormat {
         self.show_1x_for_unit_values_of_x ^= other.show_1x_for_unit_values_of_x;
         self.add_r_ro_real_axis ^= other.add_r_ro_real_axis;
         self.add_plus_sign_for_first ^= other.add_plus_sign_for_first;
+        self.show_0x_for_zero_values ^= other.show_0x_for_zero_values;
     }
 }
 
@@ -315,7 +363,8 @@ impl Not for QuaternionFormat {
             remove_spacing_for_nonfirst_signs: !self.remove_spacing_for_nonfirst_signs,
             show_1x_for_unit_values_of_x:      !self.show_1x_for_unit_values_of_x,
             add_r_ro_real_axis:                !self.add_r_ro_real_axis,
-            add_plus_sign_for_first:           !self.add_plus_sign_for_first
+            add_plus_sign_for_first:           !self.add_plus_sign_for_first,
+            show_0x_for_zero_values:           !self.show_0x_for_zero_values,
         }
     }
 }

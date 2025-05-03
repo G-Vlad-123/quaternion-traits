@@ -70,6 +70,9 @@ and all the required traits to the [Std](struct::Std) struct.
 #![warn(ambiguous_associated_items)]
 #![warn(while_true)]
 
+#![allow(confusable_idents)]
+#![allow(mixed_script_confusables)]
+
 #[cfg(feature = "std")]
 extern crate std;
 
