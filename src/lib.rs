@@ -117,18 +117,6 @@ use traits::{
 
 pub mod quat;
 
-mod quat_struct;
-#[cfg(feature = "std")]
-mod std_impl;
-
-pub mod structs {
-    /*!
-    This module provides structs for ease of use and/or changing functionality.
-    */
-    pub use crate::quat_struct::*;
-
-    #[cfg(feature = "std")]
-    pub use crate::std_impl::*;
-}
+pub mod structs;
 
 

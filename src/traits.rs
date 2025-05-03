@@ -105,6 +105,9 @@ pub trait Matrix<T, const N: usize> {
     /// # Important
     /// By default this returns [`None`](Option::None)
     /// only if `row` and `col` are both smaller then N.
+    /// 
+    /// This is because it assumes that [`get_unchecked`](Matrix::get_unchecked) panics
+    /// if and only if `row` or `col` is greater then or equal to N.
     fn get( &self, row: usize, col: usize ) -> Option<T> {
         if row < N && col < N {
             Option::Some(self.get_unchecked(row, col))
@@ -128,6 +131,8 @@ pub trait Matrix<T, const N: usize> {
 
 /**
 A constructor for quaternions.
+
+Generally used for return types.
  */
 pub trait QuaternionConstructor<Num: Axis>: Sized {
     /// Constructs a new quaternion.
@@ -203,18 +208,92 @@ pub trait QuaternionConstructor<Num: Axis>: Sized {
     /// ```
     #[inline]
     fn nan() -> Self { quat::nan() }
+
+    /// Constructs the unit quaternion on the real axis.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let unit_r: [f32; 4] = QuaternionConstructor::<f32>::unit_r();
+    /// 
+    /// assert_eq!( unit_r, [1.0, 0.0, 0.0, 0.0] );
+    /// ```
+    #[inline]
+    fn unit_r() -> Self { quat::unit_r() }
+
+    /// Constructs the unit quaternion on the first imaginary axis.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let unit_i: [f32; 4] = QuaternionConstructor::<f32>::unit_i();
+    /// 
+    /// assert_eq!( unit_i, [0.0, 1.0, 0.0, 0.0] );
+    /// ```
+    #[inline]
+    fn unit_i() -> Self { quat::unit_i() }
+
+    /// Constructs the unit quaternion on the second imaginary axis.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let unit_j: [f32; 4] = QuaternionConstructor::<f32>::unit_j();
+    /// 
+    /// assert_eq!( unit_j, [0.0, 0.0, 1.0, 0.0] );
+    /// ```
+    #[inline]
+    fn unit_j() -> Self { quat::unit_j() }
+
+    /// Constructs the unit quaternion on the third imaginary axis.
+    ///
+    /// # Example
+    /// ```
+    /// use quaternion_traits::QuaternionConstructor;
+    /// 
+    /// let unit_k: [f32; 4] = QuaternionConstructor::<f32>::unit_k();
+    /// 
+    /// assert_eq!( unit_k, [0.0, 0.0, 0.0, 1.0] );
+    /// ```
+    #[inline]
+    fn unit_k() -> Self { quat::unit_k() }
 } 
 
 /**
 A constructor for vectors.
+
+Generally used for return types.
  */
 pub trait VectorConstructor<Num: Axis>: Sized {
     /// Constructs a new vector.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::VectorConstructor;
+    /// 
+    /// let vec: [f32; 3] = VectorConstructor::new_vector(1.0, 2.0, 3.0);
+    /// 
+    /// assert_eq!( vec, [1.0, 2.0, 3.0] );
+    /// ```
     fn new_vector(x: Num, y: Num, z: Num) -> Self;
 
     #[inline]
     /// Constructs a new vector from another one.
     /// Will have same values.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::VectorConstructor;
+    /// 
+    /// let from: [f32; 3] = [1.0, 2.0, 3.0];
+    /// 
+    /// let to: (f32, u32, i32) = VectorConstructor::<f32>::from_vector(from);
+    /// 
+    /// assert_eq!( to, (1.0_f32, 2_u32, 3_i32) );
+    /// ```
     fn from_vector(vector: impl Vector<Num>) -> Self {
         VectorConstructor::new_vector(vector.x(), vector.y(), vector.z())
     }
@@ -222,14 +301,36 @@ pub trait VectorConstructor<Num: Axis>: Sized {
 
 /**
 A constructor for complex numbers.
+
+Generally used for return types.
  */
 pub trait ComplexConstructor<Num: Axis>: Sized {
     /// Constructs a new complex number.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::ComplexConstructor;
+    /// 
+    /// let complex: (f32, f32) = ComplexConstructor::new_complex(1.0, 2.0);
+    /// 
+    /// assert_eq!( complex, (1.0, 2.0) );
+    /// ```
     fn new_complex(r: Num, i: Num) -> Self;
 
     #[inline]
     /// Constructs a new complex number from another one.
     /// Will have same values.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::ComplexConstructor;
+    /// 
+    /// let from: (f32, f32) = (1.0, 2.0);
+    /// 
+    /// let to: (i8, u16) = ComplexConstructor::<f32>::from_complex(from);
+    /// 
+    /// assert_eq!( to, (1_i8, 2_u16) );
+    /// ```
     fn from_complex(complex: impl Complex<Num>) -> Self {
         ComplexConstructor::new_complex(complex.real(), complex.imaginary())
     }
@@ -237,14 +338,37 @@ pub trait ComplexConstructor<Num: Axis>: Sized {
 
 /**
 A constructor for scalar values.
+
+Generally used for return types.
  */
 pub trait ScalarConstructor<Num: Axis>: Sized {
     /// Constructs a new scalar value.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::ScalarConstructor;
+    /// 
+    /// let number: f32 = ScalarConstructor::new_scalar(1.0);
+    /// 
+    /// assert_eq!( number, 1.0 );
+    /// ```
     fn new_scalar(axis: Num) -> Self;
 
     #[inline]
     /// Constructs a new scalar value from another one.
-    /// Will have same values.
+    /// 
+    /// Should represent the same scalar value.
+    /// 
+    /// # Example
+    /// ```
+    /// use quaternion_traits::traits::ScalarConstructor;
+    /// 
+    /// let from: f32 = 2763.0;
+    /// 
+    /// let to: u32 = ScalarConstructor::<f32>::from_scalar(from);
+    /// 
+    /// assert_eq!( to, 2763_u32 );
+    /// ```
     fn from_scalar(scalar: impl Scalar<Num>) -> Self {
         ScalarConstructor::new_scalar(scalar.scalar())
     }
@@ -252,6 +376,8 @@ pub trait ScalarConstructor<Num: Axis>: Sized {
 
 /**
 A constructor for values that represent euler angles.
+
+Generally used for return types.
  */
 pub trait RotationConstructor<Num: Axis>: Sized {
     /// Constructs a new rotation.
@@ -267,6 +393,8 @@ pub trait RotationConstructor<Num: Axis>: Sized {
 
 /**
 A constructor for values that represent a NxN matrix.
+
+Generally used for return types.
  */
 pub trait MatrixConstructor<Num, const N: usize>: Sized {
     /// Constructs a new matrix.

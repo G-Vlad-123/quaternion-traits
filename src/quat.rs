@@ -1,7 +1,7 @@
 /*!
 Functions for dealing with generic quaternions.
 
-This crate provides a lot of functions (`100`) including
+This crate provides a lot of functions (`102`) including
 both convetnional ones ([`add`], [`mul`]), helper ones ([`mul_reversed`],
 [`product`]), game/graphichs ones ([`to_matrix_3`], [`from_rotation`]) and
 pure math ones ([`cos`], [`ln`]).
@@ -13,7 +13,7 @@ it's recommended you use the functions/methods of the alrady used crate, as
 this crate is general use while other crates might provide more focused implementations
 that may provide more optimized functions.
 
-This crate is here to fill any gaps or provide functionality that you don't already have.
+This module is here to fill any gaps or provide functionality that you don't already have.
  */
 
 use crate::core::option::Option;
@@ -38,6 +38,8 @@ use crate::{
     Matrix,
     MatrixConstructor,
 };
+
+type Q<N> = (N, [N; 3]);
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -140,6 +142,56 @@ where
     Out: QuaternionConstructor<Num>,
 {
     Out::from_quat([Num::ZERO, Num::ZERO, Num::ZERO, Num::ONE])
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a new general quaternion representation.
+/// 
+/// ```
+/// use quaternion_traits::quat::new_quat;
+/// 
+/// let q: [f32; 4] = new_quat(1.0, 2.0, 3.0, 4.0);
+/// assert_eq!( q, [1.0, 2.0, 3.0, 4.0] );
+/// 
+/// let p = new_quat::<f64, (u8, [u8; 3])>(1.0, 2.0, 3.0, 4.0);
+/// assert_eq!( p, (1, [2, 3, 4]) ); 
+/// ```
+pub fn new_quat<Num, Out>(r: Num, i: Num, j: Num, k: Num) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(r, i, j, k)
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a quaternion representation from another one.
+/// 
+/// ```
+/// use quaternion_traits::quat::from_quat;
+/// 
+/// let from: [u8; 4] = [1, 2, 3, 4];
+/// 
+/// let float = from_quat::<f32, [f32; 4]>(from);
+/// assert_eq!( float, [1.0, 2.0, 3.0, 4.0] );
+/// 
+/// let int =   from_quat::<f64, (i64, i32, i16, i8)>(from);
+/// assert_eq!( int, (1, 2, 3, 4) );
+/// 
+/// let unit =  from_quat::<f32, ()>(from);
+/// assert_eq!( unit, () );
+/// 
+/// let tup =   from_quat::<f64, (u8, [u8; 3])>(from);
+/// assert_eq!( tup, (1, [2, 3, 4]) );
+/// ```
+pub fn from_quat<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::from_quat(quaternion)
 }
 
 #[inline]
@@ -301,7 +353,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    mul::<Num, Out>(left, &inv::<Num, [Num; 4]>(right))
+    mul::<Num, Out>(left, &inv::<Num, Q<Num>>(right))
 }
 
 /// Divides a quaternion by another one in reversed order.
@@ -316,7 +368,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    mul::<Num, Out>(&inv::<Num, [Num; 4]>(left), &right)
+    mul::<Num, Out>(&inv::<Num, Q<Num>>(left), &right)
 }
 
 #[inline]
@@ -538,11 +590,12 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
+    let scalar: Num = Num::ONE / scalar.scalar();
     Out::new_quat(
-        quaternion.r() / scalar.scalar(),
-        quaternion.i() / scalar.scalar(),
-        quaternion.j() / scalar.scalar(),
-        quaternion.k() / scalar.scalar(),
+        quaternion.r() * scalar,
+        quaternion.i() * scalar,
+        quaternion.j() * scalar,
+        quaternion.k() * scalar,
     )
 }
 
@@ -551,10 +604,10 @@ where
 /// Checks if the distance between two quaternions is less then [`Num::ERROR`](Axis::ERROR).
 /// 
 /// ```
-/// use quaternion_traits::quat::{is_near, Axis};
+/// use quaternion_traits::quat::is_near;
 /// 
 /// let a: [f32; 4] = [0.0; 4];
-/// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
+/// let b: [f32; 4] = [0.00001, 0.0, 0.0, 0.0];
 /// 
 /// assert!( is_near::<f32>(&a, &b) );
 /// ```
@@ -562,7 +615,7 @@ pub fn is_near<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> 
 where
     Num: Axis,
 {
-    abs_squared::<Num, Num>(&sub::<Num, [Num; 4]>(left, right)) < Num::ERROR * Num::ERROR
+    abs_squared::<Num, Num>(&sub::<Num, Q<Num>>(left, right)) < Num::ERROR * Num::ERROR
 }
 
 #[inline]
@@ -572,18 +625,18 @@ where
 /// If [`error.scalar()`](Scalar::scalar) evaluates to a non_
 /// 
 /// ```
-/// use quaternion_traits::quat::{is_near, Axis};
+/// use quaternion_traits::quat::is_near_by;
 /// 
 /// let a: [f32; 4] = [0.0; 4];
-/// let b: [f32; 4] = [<f32 as Axis>::ERROR / 2.0, 0.0, 0.0, 0.0];
+/// let b: [f32; 4] = [0.5, 0.0, 0.0, 0.0];
 /// 
-/// assert!( is_near::<f32>(&a, &b) );
+/// assert!( is_near_by::<f32>(a, b, 1) );
 /// ```
 pub fn is_near_by<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool
 where
     Num: Axis,
 {
-    abs_squared::<Num, Num>(&sub::<Num, [Num; 4]>(left, right)) < error.scalar() * error.scalar()
+    abs_squared::<Num, Num>(&sub::<Num, Q<Num>>(left, right)) < error.scalar() * error.scalar()
 }
 
 #[inline]
@@ -644,7 +697,7 @@ where
     Num: Axis,
     Out: ScalarConstructor<Num>,
 {
-    abs(&sub::<Num, [Num; 4]>(from, to))
+    abs(&sub::<Num, Q<Num>>(from, to))
 }
 
 /// Calculates the cosine distance between two quaternions.
@@ -751,6 +804,49 @@ where
 /// The it multiplies by [`Num::ERROR`](Axis::ERROR) to the first power.
 /// 
 /// Note: The operations above are the rough order in which they are done.
+/// 
+/// # Example
+/// Floating point aproximation causes an error :(
+/// ```should_panic
+/// use quaternion_traits::quat::abs;
+/// 
+/// let smol: [f32; 4] = [
+///     1e-21,
+///     3e-21,
+///     9e-21,
+///     3e-21,
+/// ];
+/// 
+/// assert_eq!( abs::<f32, f32>(smol), 1e-20 );
+/// ```
+/// 
+/// It works!
+/// ```
+/// use quaternion_traits::quat::abs_small;
+/// 
+/// let smol: [f32; 4] = [
+///     1e-21,
+///     3e-21,
+///     9e-21,
+///     3e-21,
+/// ];
+/// 
+/// assert_eq!( abs_small::<f32, f32>(smol), 1e-20 );
+/// ```
+/// 
+/// The aproximation catches us again :(
+/// ```should_panic
+/// use quaternion_traits::quat::abs_small;
+/// 
+/// let smol: [f32; 4] = [
+///     1e-31,
+///     3e-31,
+///     9e-31,
+///     3e-31,
+/// ];
+/// 
+/// assert_eq!( abs_small::<f32, f32>(smol), 1e-30 );
+/// ```
 pub fn abs_small<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -874,9 +970,9 @@ where
 {
     let absolute: Num = abs(&quaternion);
     add(
-        &scale::<Num, [Num; 4]>(
-            &norm::<Num, [Num; 4]>(
-                &vector_part::<Num, [Num; 4]>(&quaternion),
+        &scale::<Num, Q<Num>>(
+            &norm::<Num, Q<Num>>(
+                &vector_part::<Num, Q<Num>>(&quaternion),
             ),
             (quaternion.r() / absolute).acos()
         ), 
@@ -906,15 +1002,15 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let vec: [Num; 4] = vector_part(&quaternion);
+    let vec: Q<Num> = vector_part(&quaternion);
     let (sin, cos) = abs::<Num, Num>(&vec).sin_cos();
     scale::<Num, Out>(
-        &add::<Num, [Num; 4]>(
-            &scale::<Num, [Num; 4]>(
-                &norm::<Num, [Num; 4]>(&vec),
+        add::<Num, Q<Num>>(
+            scale::<Num, Q<Num>>(
+                norm::<Num, Q<Num>>(&vec),
                 sin
             ),
-            &(cos, ())
+            (cos, ())
         ),
         quaternion.r().exp(),
     )
@@ -940,7 +1036,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    div::<Num, Out>(&ln::<Num, [Num; 4]>(num), &ln::<Num, [Num; 4]>(base))
+    div::<Num, Out>(&ln::<Num, Q<Num>>(num), &ln::<Num, Q<Num>>(base))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -962,14 +1058,14 @@ where
         }
     }
     let r: Num = quaternion.r();
-    let unit = norm::<Num, [Num; 4]>(&vector_part::<Num, [Num; 4]>(&quaternion));
+    let unit = norm::<Num, Q<Num>>(vector_part::<Num, Q<Num>>(&quaternion)).1;
     let abs: Num = abs::<Num, Num>(&quaternion);
     let unreal_part: Num = Num::sqrt( (abs - r) / (Num::ONE + Num::ONE) );
     Out::new_quat (
         Num::sqrt( (abs + r) / (Num::ONE + Num::ONE) ),
+        unit[0] * unreal_part,
         unit[1] * unreal_part,
         unit[2] * unreal_part,
-        unit[3] * unreal_part,
     )
 }
 
@@ -1004,9 +1100,9 @@ where
         if exp > 0 { return origin(); }
         return nan()
     }
-    if eq(&base, &identity::<Num, [Num; 4]>()) { return identity() }
+    if eq(&base, &identity::<Num, Q<Num>>()) { return identity() }
     if exp == 0 { return identity(); }
-    let mut out: [Num; 4] = identity::<Num, [Num; 4]>();
+    let mut out: Q<Num> = identity::<Num, Q<Num>>();
     let is_inverse = exp < 0;
     if is_inverse { exp = -exp }
     for _ in 0..exp {
@@ -1026,9 +1122,9 @@ where
     Out: QuaternionConstructor<Num>,
 {
     if eq(&base, &()) { return origin(); }
-    if eq(&base, &identity::<Num, [Num; 4]>()) { return identity() }
+    if eq(&base, &identity::<Num, Q<Num>>()) { return identity() }
     if exp == 0 { return identity(); }
-    let mut out = identity::<Num, [Num; 4]>();
+    let mut out = identity::<Num, Q<Num>>();
     for _ in 0..exp {
         out = mul(&out, &base);
     }
@@ -1047,9 +1143,9 @@ where
     let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
     scale(
-        &crate::quat::exp::<Num, [Num; 4]>(
-            &scale::<Num, [Num; 4]>(
-                &vector_part::<Num, [Num; 4]>(base),
+        &crate::quat::exp::<Num, Q<Num>>(
+            &scale::<Num, Q<Num>>(
+                &vector_part::<Num, Q<Num>>(base),
                 exp.scalar() * angle
             )
         ),
@@ -1077,7 +1173,7 @@ where
         return nan();
     }
     // refrence: https://web.archive.org/web/20170705123142/http://www.lce.hut.fi/~ssarkka/pub/quat.pdf
-    crate::quat::exp(&mul::<Num, [Num; 4]>(&ln::<Num, [Num; 4]>(base), &exp))
+    crate::quat::exp(&mul::<Num, Q<Num>>(&ln::<Num, Q<Num>>(base), &exp))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1133,8 +1229,8 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let exp = exp::<Num, [Num; 4]>(quaternion);
-    unscale(&sub::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
+    let exp = exp::<Num, Q<Num>>(quaternion);
+    unscale(&sub::<Num, Q<Num>>(&exp, &inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1144,7 +1240,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    inv(&cos::<Num, [Num; 4]>(quaternion))
+    inv(&cos::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1154,7 +1250,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    inv(&cosh::<Num, [Num; 4]>(quaternion))
+    inv(&cosh::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1183,8 +1279,8 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let exp = exp::<Num, [Num; 4]>(quaternion);
-    unscale(&add::<Num, [Num; 4]>(&exp, &inv::<Num, [Num; 4]>(&exp)), Num::ONE + Num::ONE)
+    let exp = exp::<Num, Q<Num>>(quaternion);
+    unscale(&add::<Num, Q<Num>>(&exp, &inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1194,7 +1290,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    inv(&sin::<Num, [Num; 4]>(quaternion))
+    inv(&sin::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1204,7 +1300,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    inv(&sinh::<Num, [Num; 4]>(quaternion))
+    inv(&sinh::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1243,7 +1339,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = sin_cos::<Num, [Num; 4]>(quaternion);
+    let (sin, cos) = sin_cos::<Num, Q<Num>>(quaternion);
     div(&sin, &cos)
 }
 
@@ -1254,11 +1350,11 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let exp = exp::<Num, [Num; 4]>(quaternion);
-    let inv = inv::<Num, [Num; 4]>(&exp);
+    let exp = exp::<Num, Q<Num>>(quaternion);
+    let inv = inv::<Num, Q<Num>>(&exp);
     div(
-        &sub::<Num, [Num; 4]>(&exp, &inv),
-        &add::<Num, [Num; 4]>(&exp, &inv),
+        &sub::<Num, Q<Num>>(&exp, &inv),
+        &add::<Num, Q<Num>>(&exp, &inv),
     )
 }
 
@@ -1269,7 +1365,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = sin_cos::<Num, [Num; 4]>(quaternion);
+    let (sin, cos) = sin_cos::<Num, Q<Num>>(quaternion);
     div(&cos, &sin)
 }
 
@@ -1280,11 +1376,11 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let exp = exp::<Num, [Num; 4]>(quaternion);
-    let inv = inv::<Num, [Num; 4]>(&exp);
+    let exp = exp::<Num, Q<Num>>(quaternion);
+    let inv = inv::<Num, Q<Num>>(&exp);
     div(
-        &add::<Num, [Num; 4]>(&exp, &inv),
-        &sub::<Num, [Num; 4]>(&exp, &inv),
+        &add::<Num, Q<Num>>(&exp, &inv),
+        &sub::<Num, Q<Num>>(&exp, &inv),
     )
 }
 
@@ -1298,11 +1394,11 @@ where
 {
     mul(
         (-Num::ONE, ()),
-        ln::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
-            mul::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
-            sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
-                identity::<Num, [Num; 4]>(),
-                square::<Num, [Num; 4]>(&quaternion)
+        ln::<Num, Q<Num>>(add::<Num, Q<Num>>(
+            mul::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
+            sqrt::<Num, Q<Num>>(sub::<Num, Q<Num>>(
+                identity::<Num, Q<Num>>(),
+                square::<Num, Q<Num>>(&quaternion)
             )),
         )),
     )
@@ -1318,13 +1414,13 @@ where
 {
     mul(
         (-Num::ONE, ()),
-        ln::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
+        ln::<Num, Q<Num>>(add::<Num, Q<Num>>(
             &quaternion,
-            mul::<Num, [Num; 4]>(
-                unit_i::<Num, [Num; 4]>(),
-                sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
-                    identity::<Num, [Num; 4]>(),
-                    square::<Num, [Num; 4]>(&quaternion)
+            mul::<Num, Q<Num>>(
+                unit_i::<Num, Q<Num>>(),
+                sqrt::<Num, Q<Num>>(sub::<Num, Q<Num>>(
+                    identity::<Num, Q<Num>>(),
+                    square::<Num, Q<Num>>(&quaternion)
                 )),
             ),
         )),
@@ -1341,9 +1437,9 @@ where
 {
     mul(
         (-Num::ONE / (Num::ONE + Num::ONE), ()),
-        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
-            sub::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
-            add::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+        ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
+            sub::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
+            add::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
         )),
     )
 }
@@ -1358,9 +1454,9 @@ where
 {
     mul(
         (-Num::ONE / (Num::ONE + Num::ONE), ()),
-        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
-            add::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
-            sub::<Num, [Num; 4]>(unit_i::<Num, [Num; 4]>(), &quaternion),
+        ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
+            add::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
+            sub::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
         )),
     )
 }
@@ -1373,7 +1469,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    acos(inv::<Num, [Num; 4]>(quaternion))
+    acos(inv::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1384,7 +1480,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    asin(inv::<Num, [Num; 4]>(quaternion))
+    asin(inv::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1395,11 +1491,11 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    ln(add::<Num, [Num; 4]>(
+    ln(add::<Num, Q<Num>>(
         &quaternion,
-        sqrt::<Num, [Num; 4]>(add::<Num, [Num; 4]>(
-            mul::<Num, [Num; 4]>(&quaternion, &quaternion),
-            identity::<Num, [Num; 4]>(),
+        sqrt::<Num, Q<Num>>(add::<Num, Q<Num>>(
+            mul::<Num, Q<Num>>(&quaternion, &quaternion),
+            identity::<Num, Q<Num>>(),
         )),
     ))
 }
@@ -1412,11 +1508,11 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    ln(add::<Num, [Num; 4]>(
+    ln(add::<Num, Q<Num>>(
         &quaternion,
-        sqrt::<Num, [Num; 4]>(sub::<Num, [Num; 4]>(
-            square::<Num, [Num; 4]>(&quaternion),
-            identity::<Num, [Num; 4]>(),
+        sqrt::<Num, Q<Num>>(sub::<Num, Q<Num>>(
+            square::<Num, Q<Num>>(&quaternion),
+            identity::<Num, Q<Num>>(),
         )),
     ))
 }
@@ -1430,9 +1526,9 @@ where
     Out: QuaternionConstructor<Num>,
 {
     unscale(
-        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
-            add::<Num, [Num; 4]>(identity::<Num, [Num; 4]>(), &quaternion),
-            sub::<Num, [Num; 4]>(identity::<Num, [Num; 4]>(), &quaternion),
+        ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
+            add::<Num, Q<Num>>(identity::<Num, Q<Num>>(), &quaternion),
+            sub::<Num, Q<Num>>(identity::<Num, Q<Num>>(), &quaternion),
         )), 
         Num::ONE + Num::ONE,
     )
@@ -1447,9 +1543,9 @@ where
     Out: QuaternionConstructor<Num>,
 {
     unscale(
-        ln::<Num, [Num; 4]>(div::<Num, [Num; 4]>(
-            add::<Num, [Num; 4]>(&quaternion, identity::<Num, [Num; 4]>()),
-            sub::<Num, [Num; 4]>(&quaternion, identity::<Num, [Num; 4]>()),
+        ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
+            add::<Num, Q<Num>>(&quaternion, identity::<Num, Q<Num>>()),
+            sub::<Num, Q<Num>>(&quaternion, identity::<Num, Q<Num>>()),
         )), 
         Num::ONE + Num::ONE,
     )
@@ -1463,7 +1559,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    asinh(inv::<Num, [Num; 4]>(quaternion))
+    asinh(inv::<Num, Q<Num>>(quaternion))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -1474,7 +1570,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    acosh(inv::<Num, [Num; 4]>(quaternion))
+    acosh(inv::<Num, Q<Num>>(quaternion))
 }
 
 use crate::core::iter::Iterator;
@@ -1509,7 +1605,7 @@ where
     Out::from_quat(sum)
 }
 
-const PRODUCT_MARGIN: usize = 0xFFFFFFF;
+// const PRODUCT_MARGIN: usize = 0xFFFFFFF;
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies all the quaternions in an iterator.
 /// 
@@ -1535,25 +1631,25 @@ where
 {
     let mut iter = iter.into_iter();
     let mut sum = match iter.next() {
-        Option::Some(ok) => <[Num; 4]>::from_quat(ok),
+        Option::Some(ok) => <Q<Num>>::from_quat(ok),
         Option::None => return identity(),
     };
-    if Iterator::size_hint(&iter).0 > PRODUCT_MARGIN
-    || match Iterator::size_hint(&iter).1 {
-        Option::Some(some) => some > PRODUCT_MARGIN << 1,
-        Option::None => true,
-    } {
+    // if Iterator::size_hint(&iter).0 > PRODUCT_MARGIN
+    // || match Iterator::size_hint(&iter).1 {
+    //     Option::Some(some) => some > PRODUCT_MARGIN << 1,
+    //     Option::None => true,
+    // } {
         for quaternion in iter {
             sum = mul(&sum, &quaternion);
             if eq(&sum, &()) {
                 return Out::from_quat(());
             }
         }
-    } else {
-        for quaternion in iter {
-            sum = mul(&sum, &quaternion);
-        }
-    }
+    // } else {
+    //     for quaternion in iter {
+    //         sum = mul(&sum, &quaternion);
+    //     }
+    // }
     Out::from_quat(sum)
 }
 
@@ -2025,7 +2121,7 @@ where
     Num: Axis,
     Out: RotationConstructor<Num>
 {
-    let quat: [Num; 4] = norm(quaternion);
+    let quat: Q<Num> = norm(quaternion);
 
     let two = Num::ONE + Num::ONE;
     // here I misspelled 'pitch' but it's funny so I kept it
@@ -2260,19 +2356,21 @@ where
         }
     }
 
-    let quat: [Num; 4] = [
+    let quat: Q<Num> = (
         Num::ONE + dot,
-        from[1] * to[2] - from[2] * to[1],
-        from[2] * to[0] - from[0] * to[2],
-        from[0] * to[1] - from[1] * to[0],
-    ];
+        [
+            from[1] * to[2] - from[2] * to[1],
+            from[2] * to[0] - from[0] * to[2],
+            from[0] * to[1] - from[1] * to[0],
+        ],
+    );
     scale(&quat, Num::ONE / abs(quat))
 }
 
 /// Constructs a quaternion from a given axis unit vector and a given angle.
 /// 
-/// Returns [`None`](Option::None) if the vector is not a unit vector
-pub fn axis_angle<Num, Out>(axis: impl Vector<Num>, angle: Num) -> crate::core::option::Option<Out>
+/// Returns [`None`](Option::None) if axis is not a unit vector.
+pub fn axis_angle<Num, Out>(axis: impl Vector<Num>, angle: impl Scalar<Num>) -> crate::core::option::Option<Out>
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
@@ -2290,13 +2388,13 @@ where
 /// Constructs a quaternion from a given axis unit vector and a given angle.
 /// 
 /// # Safety
-/// The vector must be a unit vector
-pub unsafe fn axis_angle_unchecked<Num, Out>(axis: impl Vector<Num>, angle: Num) -> Out
+/// Axis must be a unit vector.
+pub unsafe fn axis_angle_unchecked<Num, Out>(axis: impl Vector<Num>, angle: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let half_angle = angle / (Num::ONE + Num::ONE);
+    let half_angle = angle.scalar() / (Num::ONE + Num::ONE);
     let half_angle_sin = half_angle.sin();
     Out::new_quat(
         half_angle.cos(),
@@ -2306,80 +2404,188 @@ where
     )
 }
 
-use crate::core::write;
 use crate::core::result::Result;
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Writes a quaternion representation to a formatter/string.
-pub fn display<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>, target: &mut impl crate::core::fmt::Write) -> crate::core::fmt::Result {
-    if eq(&quaternion, &()) {
-        return write!(target, "{}", Num::ZERO);
+/// 
+/// This function gives each number in order.
+/// With it's axis represented by the character that comes after it.
+/// The real axis does not have a character.
+/// `[1, 2, 3, 4]` -> `"1 + 2i + 3j + 4k"`
+/// 
+/// Negatives change the sign of the number shown inbetween.
+/// `[1, -2, 3, -4]` -> `"1 - 2i + 3j - 4k"`
+/// 
+/// Except for the first number.
+/// `[-1, 2, -3, 4]` -> `"-1 + 2i - 3j + 4k"`
+/// 
+/// If it's [`Num::ZERO`](Axis::ZERO)
+/// it's skipped.
+/// `[0, 1, 0, 2]` -> `"1i + 3k"`
+/// 
+/// This affects how negatives are shown.
+/// `[0, -1, 2, -3]` -> `"-1i + 2j - 3k"`
+/// 
+/// If the quaternion shown [`Num::ZERO`](Axis::ZERO) is shown.
+/// `[0, 0, 0, 0]` -> `"0"`
+/// 
+/// # Examples
+/// ```
+/// use quaternion_traits::quat::display;
+/// use quaternion_traits::structs::QuaternionFormat as QF;
+/// 
+/// let quat: [i8; 4] = [2, 0, -3, 1];
+/// 
+/// let mut string = String::new();
+/// 
+/// display::<f32>(&mut string, quat, QF::DEFAULT);
+/// 
+/// assert_eq!(string.as_str(), "2 - 3j + k");
+/// ```
+/// 
+/// ```
+/// use quaternion_traits::quat::display;
+/// use quaternion_traits::structs::QuaternionFormat as QF;
+/// use quaternion_traits::quat::add;
+/// 
+/// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let b: [f32; 4] = [3.0, -3.0, -3.0, 10.0];
+/// let c: [f32; 4] = add::<f32, [f32; 4]>(a, b);
+/// 
+/// let mut out: String = String::new();
+/// 
+/// display::<f32>(&mut out, a, QF::DEFAULT);
+/// out.push_str(" + ");
+/// display::<f32>(&mut out, b, QF::DEFAULT);
+/// out.push_str(" = ");
+/// display::<f32>(&mut out, c, QF::DEFAULT);
+/// 
+/// assert_eq!(
+///     out.as_str(),
+///     "1 + 2i + 3j + 4k + 3 - 3i - 3j + 10k = 4 - i + 14k"
+/// )
+/// ```
+/// 
+/// # Note
+/// This function assumes that axis is displayed as the primitive number types (i32, f64, etc)
+pub fn display<Num: Axis + crate::core::fmt::Display>(
+    target: &mut impl crate::core::fmt::Write,
+    quaternion: impl Quaternion<Num>,
+    format: crate::structs::QuaternionFormat,
+) -> crate::core::fmt::Result {
+    use crate::core::write;
+    
+    #[inline]
+    fn write_first<Num: Axis + crate::core::fmt::Display, const AXIS: char>(target: &mut impl crate::core::fmt::Write, num: Num, format: crate::structs::QuaternionFormat) -> crate::core::fmt::Result {
+        if (num != Num::ONE && num != -Num::ONE) || format.show_1x_for_unit_values_of_x {
+            #[cfg(feature = "std")]
+            crate::std::println!("?? {num}");
+            if num < Num::ZERO {
+                if format.add_spacing_for_first_sign {
+                    write!(target, "- {}{AXIS}", -num)
+                } else {
+                    write!(target, "{}{AXIS}", num)
+                }
+            } else {
+                match (format.add_plus_sign_for_first, format.add_spacing_for_first_sign) {
+                    (false, _) => write!(target, "{}{AXIS}", num),
+                    (true, false) => write!(target, "+{}{AXIS}", num),
+                    (true, true) => write!(target, "+ {}{AXIS}", num),
+                }
+            }
+        } else if num == Num::ONE {
+            match (format.add_plus_sign_for_first, format.add_spacing_for_first_sign) {
+                (false, _) => write!(target, "{AXIS}"),
+                (true, false) => write!(target, "+{AXIS}"),
+                (true, true) => write!(target, "+ {AXIS}"),
+            }
+        } else {
+            if format.add_spacing_for_first_sign {
+                write!(target, "- {AXIS}")
+            } else {
+                write!(target, "-{AXIS}")
+            }
+        }
     }
 
+    #[inline]
+    fn write_number<Num: Axis + crate::core::fmt::Display, const AXIS: char>(target: &mut impl crate::core::fmt::Write, num: Num, format: crate::structs::QuaternionFormat) -> crate::core::fmt::Result {
+        if num > Num::ZERO {
+            if num != Num::ONE || format.show_1x_for_unit_values_of_x {
+                if format.remove_spacing_for_nonfirst_signs {
+                    write!(target, "+{}{AXIS}", num)
+                } else {
+                    write!(target, " + {}{AXIS}", num)
+                }
+            } else {
+                if format.remove_spacing_for_nonfirst_signs {
+                    write!(target, "+{AXIS}")
+                } else {
+                    write!(target, " + {AXIS}")
+                }
+            }
+        } else if num < Num::ZERO {
+            if num != -Num::ONE || format.show_1x_for_unit_values_of_x {
+                if format.remove_spacing_for_nonfirst_signs {
+                    write!(target, "{}{AXIS}", -num)
+                } else {
+                    write!(target, " - {}{AXIS}", -num)
+                }
+            } else {
+                if format.remove_spacing_for_nonfirst_signs {
+                    write!(target, "-{AXIS}")
+                } else {
+                    write!(target, " - {AXIS}")
+                }
+            }
+        } else { Result::Ok(()) }
+    }
 
     if quaternion.r() != Num::ZERO {
-        write!(target, "{}", quaternion.r())?;
+        if format.add_r_ro_real_axis {
+            write_first::<Num, 'r'>(target, quaternion.r(), format)?;
+        } else if format.add_spacing_for_first_sign {
+            if quaternion.r() > Num::ZERO {
+                write!(target, "{}", quaternion.r())?;
+            } else {
+                write!(target, "- {}", -quaternion.r())?;
+            }
+        } else {
+            write!(target, "{}", quaternion.r())?;
+        }
 
-        if quaternion.i() > Num::ZERO {
-            write!(target, " + {}i", quaternion.i())?;
-        } else if quaternion.i() < Num::ZERO {
-            write!(target, " - {}i", -quaternion.i())?;
-        } else { write!(target, "")?; }
-
-        if quaternion.j() > Num::ZERO {
-            write!(target, " + {}j", quaternion.j())?;
-        } else if quaternion.j() < Num::ZERO {
-            write!(target, " - {}j", -quaternion.j())?;
-        } else { write!(target, "")?; }
-
-        if quaternion.k() > Num::ZERO {
-            write!(target, " + {}k", quaternion.k())?;
-        } else if quaternion.k() < Num::ZERO {
-            write!(target, " - {}k", -quaternion.k())?;
-        } else { write!(target, "")?; }
+        write_number::<Num, 'i'>(target, quaternion.i(), format)?;
+        write_number::<Num, 'j'>(target, quaternion.j(), format)?;
+        write_number::<Num, 'k'>(target, quaternion.k(), format)?;
 
         return Result::Ok(());
     }
 
 
     if quaternion.i() != Num::ZERO {
-        write!(target, "{}i", quaternion.i())?;
+        write_first::<Num, 'i'>(target, quaternion.i(), format)?;
 
-        if quaternion.j() > Num::ZERO {
-            write!(target, " + {}j", quaternion.j())?;
-        } else if quaternion.j() < Num::ZERO {
-            write!(target, " - {}j", -quaternion.j())?;
-        } else { write!(target, "")?; }
-
-        if quaternion.k() > Num::ZERO {
-            write!(target, " + {}k", quaternion.k())?;
-        } else if quaternion.k() < Num::ZERO {
-            write!(target, " - {}k", -quaternion.k())?;
-        } else { write!(target, "")?; }
+        write_number::<Num, 'j'>(target, quaternion.j(), format)?;
+        write_number::<Num, 'k'>(target, quaternion.k(), format)?;
         
         return Result::Ok(());
     }
 
 
     if quaternion.j() != Num::ZERO {
-        write!(target, "{}j", quaternion.j())?;
+        write_first::<Num, 'j'>(target, quaternion.i(), format)?;
 
-        if quaternion.k() > Num::ZERO {
-            write!(target, " + {}k", quaternion.k())?;
-        } else if quaternion.k() < Num::ZERO {
-            write!(target, " - {}k", -quaternion.k())?;
-        } else { write!(target, "")?; }
+        write_number::<Num, 'k'>(target, quaternion.k(), format)?;
 
         return Result::Ok(());
     }
 
     if quaternion.k() != Num::ZERO {
-        write!(target, "{}k", quaternion.k())?;
-    } else {
-        write!(target, "{}", Num::ZERO)?;
+        return write_first::<Num, 'k'>(target, quaternion.i(), format);
     }
 
-    Result::Ok(())
+    write!(target, "{}", Num::ZERO)
 }
 
 #[cfg(feature = "alloc")]
@@ -2388,8 +2594,8 @@ use crate::alloc::string::String;
 #[cfg(feature = "alloc")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Turns a quaternion representation into a [String].
-pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>) -> Result<String, crate::core::fmt::Error> {
+pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>, format: crate::structs::QuaternionFormat) -> Result<String, crate::core::fmt::Error> {
     let mut string = String::new();
-    display(quaternion, &mut string)?;
+    display(&mut string, quaternion, format)?;
     Result::Ok(string)
 }
