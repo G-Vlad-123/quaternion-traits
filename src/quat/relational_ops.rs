@@ -144,6 +144,7 @@ where
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if the distance between two quaternions is less then [`Num::ERROR`](Axis::ERROR).
 /// 
+/// # Example
 /// ```
 /// use quaternion_traits::quat::is_near;
 /// 
@@ -165,6 +166,7 @@ where
 /// 
 /// If [`error.scalar()`](Scalar::scalar) evaluates to a non_
 /// 
+/// # Example
 /// ```
 /// use quaternion_traits::quat::is_near_by;
 /// 
@@ -188,15 +190,50 @@ where
 /// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
 /// AND that the distance inbetween the angle
 /// 
-/// Note: `is_close` and `is_near` will not always give the same results.
+/// If eather quaternion is the origin, then [`is_near`] is used because
+/// otherwise the algorithm used always give out false, even if they are equal.
+/// 
+/// [`is_close`] and [`is_near`] will not always give the same results.
+/// 
+/// # Example
+/// 
+/// They are close but not near.
+/// ```
+/// use quaternion_traits::quat::is_close;
+/// use quaternion_traits::quat::is_near;
+/// 
+/// let a: [f32; 4] = [1.0, 0.0, 0.0, 0.0];
+/// let b: [f32; 4] = [1.0, 0.0001, -0.0001, 0.0001];
+/// 
+/// assert!( is_close::<f32>(a, b) );
+/// assert!( !is_near::<f32>(a, b) );
+/// ```
+/// 
+/// They are near but not close.
+/// ```
+/// use quaternion_traits::quat::is_close;
+/// use quaternion_traits::quat::is_near;
+/// 
+/// let a: [f32; 4] = [1e+32, 0.0, 0.0, 0.0];
+/// let b: [f32; 4] = [1e+32, 1e-16, -1e-16, 1e-16];
+/// 
+/// assert!( !is_close::<f32>(a, b) );
+/// assert!( is_near::<f32>(a, b) );
+/// ```
 pub fn is_close<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
 where
     Num: Axis
 {
+    if eq(&left, ()) {
+        return is_near(right, ());
+    }
+    if eq(&right, ()) {
+        return is_near(left, ());
+    }
     ( ( abs_squared::<Num, Num>(&left) / abs_squared::<Num, Num>(&right) ).sqrt() - Num::ONE ).abs()
     < Num::ERROR
     &&
-    (angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < Num::ERROR
+    ((angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < Num::ERROR)
 }
 
 #[inline]
@@ -207,11 +244,27 @@ where
 /// is strictly inbetween `Num::ONE - Num::ERROR` and `Num::ONE + Num::ERROR`
 /// AND that the ratio inbetween the angle
 /// 
-/// Note: `is_close` and `is_near` will not always give the same results.
+/// [`is_close_by`] and [`is_near_by`] will not always give the same results.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::is_close_by;
+/// 
+/// let a: [f32; 4] = [1.0, 0.0, 0.0, 0.0];
+/// let b: [f32; 4] = [1.5, 0.5, 0.0, 0.0];
+/// 
+/// assert!( is_close_by::<f32>(a, b, 1) );
+/// ```
 pub fn is_close_by<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool
 where
     Num: Axis
 {
+    if eq(&left, ()) {
+        return is_near_by(right, (), error);
+    }
+    if eq(&right, ()) {
+        return is_near_by(left, (), error);
+    }
     ( ( abs_squared::<Num, Num>(&left) / abs_squared::<Num, Num>(&right) ).sqrt() - Num::ONE ).abs()
     < error.scalar()
     &&

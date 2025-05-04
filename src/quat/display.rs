@@ -1,5 +1,6 @@
 
 use crate::{Axis, Quaternion};
+use crate::structs::QuaternionFormat;
 use crate::core::result::Result;
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -30,6 +31,7 @@ use crate::core::result::Result;
 /// `[0, 0, 0, 0]` -> `"0"`
 /// 
 /// # Examples
+/// Display a random quaternion.
 /// ```
 /// use quaternion_traits::quat::display;
 /// use quaternion_traits::structs::QuaternionFormat as QF;
@@ -43,6 +45,7 @@ use crate::core::result::Result;
 /// assert_eq!(string.as_str(), "2 - 3j + k");
 /// ```
 /// 
+/// Display origin.
 /// ```
 /// use quaternion_traits::quat::display;
 /// use quaternion_traits::structs::QuaternionFormat as QF;
@@ -54,6 +57,7 @@ use crate::core::result::Result;
 /// assert_eq!(string.as_str(), "0");
 /// ```
 /// 
+/// Display multiple quaternions.
 /// ```
 /// use quaternion_traits::quat::display;
 /// use quaternion_traits::structs::QuaternionFormat as QF;
@@ -82,34 +86,34 @@ use crate::core::result::Result;
 pub fn display<Num: Axis + crate::core::fmt::Display>(
     target: &mut impl crate::core::fmt::Write,
     quaternion: impl Quaternion<Num>,
-    format: crate::structs::QuaternionFormat, // TODO add functionality to show 0s
+    format: QuaternionFormat,
 ) -> crate::core::fmt::Result {
     use crate::core::write;
 
     #[inline]
     fn write_first<Num: Axis + crate::core::fmt::Display, const AXIS: char>(target: &mut impl crate::core::fmt::Write, num: Num, format: crate::structs::QuaternionFormat) -> crate::core::fmt::Result {
-        if (num != Num::ONE && num != -Num::ONE) || format.show_1x_for_unit_values_of_x {
+        if (num != Num::ONE && num != -Num::ONE) || format.show_1s {
             if num < Num::ZERO {
-                if format.add_spacing_for_first_sign {
+                if format.add_spacing_for_first {
                     write!(target, "- {}{AXIS}", -num)
                 } else {
                     write!(target, "{}{AXIS}", num)
                 }
             } else {
-                match (format.add_plus_sign_for_first, format.add_spacing_for_first_sign) {
+                match (format.explicit_plus_sign, format.add_spacing_for_first) {
                     (false, _) => write!(target, "{}{AXIS}", num),
                     (true, false) => write!(target, "+{}{AXIS}", num),
                     (true, true) => write!(target, "+ {}{AXIS}", num),
                 }
             }
         } else if num == Num::ONE {
-            match (format.add_plus_sign_for_first, format.add_spacing_for_first_sign) {
+            match (format.explicit_plus_sign, format.add_spacing_for_first) {
                 (false, _) => write!(target, "{AXIS}"),
                 (true, false) => write!(target, "+{AXIS}"),
                 (true, true) => write!(target, "+ {AXIS}"),
             }
         } else {
-            if format.add_spacing_for_first_sign {
+            if format.add_spacing_for_first {
                 write!(target, "- {AXIS}")
             } else {
                 write!(target, "-{AXIS}")
@@ -120,35 +124,35 @@ pub fn display<Num: Axis + crate::core::fmt::Display>(
     #[inline]
     fn write_number<Num: Axis + crate::core::fmt::Display, const AXIS: char>(target: &mut impl crate::core::fmt::Write, num: Num, format: crate::structs::QuaternionFormat) -> crate::core::fmt::Result {
         if num > Num::ZERO {
-            if num != Num::ONE || format.show_1x_for_unit_values_of_x {
-                if format.remove_spacing_for_nonfirst_signs {
+            if num != Num::ONE || format.show_1s {
+                if format.remove_spacing {
                     write!(target, "+{}{AXIS}", num)
                 } else {
                     write!(target, " + {}{AXIS}", num)
                 }
             } else {
-                if format.remove_spacing_for_nonfirst_signs {
+                if format.remove_spacing {
                     write!(target, "+{AXIS}")
                 } else {
                     write!(target, " + {AXIS}")
                 }
             }
         } else if num < Num::ZERO {
-            if num != -Num::ONE || format.show_1x_for_unit_values_of_x {
-                if format.remove_spacing_for_nonfirst_signs {
+            if num != -Num::ONE || format.show_1s {
+                if format.remove_spacing {
                     write!(target, "{}{AXIS}", -num)
                 } else {
                     write!(target, " - {}{AXIS}", -num)
                 }
             } else {
-                if format.remove_spacing_for_nonfirst_signs {
+                if format.remove_spacing {
                     write!(target, "-{AXIS}")
                 } else {
                     write!(target, " - {AXIS}")
                 }
             }
-        } else if format.show_0x_for_zero_values {
-            if format.remove_spacing_for_nonfirst_signs {
+        } else if format.show_0s {
+            if format.remove_spacing {
                 write!(target, "+0{AXIS}")
             } else {
                 write!(target, " + 0{AXIS}")
@@ -156,37 +160,21 @@ pub fn display<Num: Axis + crate::core::fmt::Display>(
         } else { Result::Ok(()) }
     }
 
-    if format.show_0x_for_zero_values {
-        if format.add_r_ro_real_axis {
+    if quaternion.r() != Num::ZERO || format.show_0s {
+        if format.explicit_real_axis {
             write_first::<Num, 'r'>(target, quaternion.r(), format)?;
-        } else if format.add_spacing_for_first_sign {
-            if quaternion.r() >= Num::ZERO {
-                write!(target, "{}", quaternion.r())?;
-            } else {
+        } else if quaternion.r() < Num::ZERO {
+            if format.add_spacing_for_first {
                 write!(target, "- {}", -quaternion.r())?;
+            } else {
+                write!(target, "{}", quaternion.r())?;
             }
         } else {
-            write!(target, "{}", quaternion.r())?;
-        }
-
-        write_number::<Num, 'i'>(target, quaternion.i(), format)?;
-        write_number::<Num, 'j'>(target, quaternion.j(), format)?;
-        write_number::<Num, 'k'>(target, quaternion.k(), format)?;
-
-        return Result::Ok(());
-    }
-
-    if quaternion.r() != Num::ZERO {
-        if format.add_r_ro_real_axis {
-            write_first::<Num, 'r'>(target, quaternion.r(), format)?;
-        } else if format.add_spacing_for_first_sign {
-            if quaternion.r() > Num::ZERO {
-                write!(target, "{}", quaternion.r())?;
-            } else {
-                write!(target, "- {}", -quaternion.r())?;
-            }
-        } else {
-            write!(target, "{}", quaternion.r())?;
+            match (format.explicit_plus_sign, format.add_spacing_for_first) {
+                (false, _) => write!(target, "{}", quaternion.r()),
+                (true, false) => write!(target, "+{}", quaternion.r()),
+                (true, true) => write!(target, "+ {}", quaternion.r()),
+            }?;
         }
 
         write_number::<Num, 'i'>(target, quaternion.i(), format)?;
@@ -222,14 +210,61 @@ pub fn display<Num: Axis + crate::core::fmt::Display>(
     write!(target, "{}", Num::ZERO)
 }
 
+/// Alias for `display(target, quaternion, QuaternionFormat::DEFAULT)`
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn default_display<Num: Axis + crate::core::fmt::Display>(
+    target: &mut impl crate::core::fmt::Write,
+    quaternion: impl Quaternion<Num>,
+) -> crate::core::fmt::Result {
+    display(target, quaternion, QuaternionFormat::DEFAULT)
+}
+
 #[cfg(feature = "alloc")]
 use crate::alloc::string::String;
 
 #[cfg(feature = "alloc")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-/// Turns a quaternion representation into a [String].
-pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>, format: crate::structs::QuaternionFormat) -> Result<String, crate::core::fmt::Error> {
+/// Turns a quaternion representation into a [`String`].
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::to_string;
+/// use quaternion_traits::structs::QuaternionFormat as QF;
+/// 
+/// let quat: [f32; 4] = [0.0, 1.0, -2.0, 0.0];
+/// 
+/// let string: String = to_string::<f32>(quat, QF::DEFAULT).unwrap();
+/// 
+/// assert_eq!(
+///     string,
+///     String::from("i - 2j")
+/// );
+/// ```
+pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>, format: QuaternionFormat) -> Result<String, crate::core::fmt::Error> {
     let mut string = String::new();
     display(&mut string, quaternion, format)?;
     Result::Ok(string)
+}
+
+#[inline]
+#[cfg(feature = "alloc")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Alias for `to_string(_, QuaternionFormat::DEFAULT)`.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::to_default_string;
+/// 
+/// let quat: [f32; 4] = [0.0, 1.0, -2.0, 0.0];
+/// 
+/// let string: String = to_default_string::<f32>(quat).unwrap();
+/// 
+/// assert_eq!(
+///     string,
+///     String::from("i - 2j")
+/// );
+/// ```
+pub fn to_default_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>) -> Result<String, crate::core::fmt::Error> {
+    to_string::<Num>(quaternion, QuaternionFormat::DEFAULT)
 }

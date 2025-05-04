@@ -1,8 +1,6 @@
 
 use super::*;
 
-#[inline]
-#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Adds two quaternions.
 /// 
 /// # Example
@@ -11,10 +9,12 @@ use super::*;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [4.0, 3.0, 2.0, -4.0];
-/// let c: [f32; 4] = add::<f32, [f32; 4]>(&a, &b);
+/// let result: [f32; 4] = add::<f32, _>(a, b);
 /// 
-/// assert_eq!( c, [5.0, 5.0, 5.0, 0.0] );
+/// assert_eq!( result, [5.0, 5.0, 5.0, 0.0] );
 /// ```
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn add<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -28,19 +28,97 @@ where
     )
 }
 
+/// Adds a scalar value to a quaternion
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::add_scalar;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = add_scalar::<f32, _>(quat, 3.25);
+/// 
+/// assert_eq!( result, [4.25, 2.0, 3.0, 4.0] );
+/// ```
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn add_scalar<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r() + scalar.scalar(), 
+        quaternion.i(), 
+        quaternion.j(), 
+        quaternion.k(),
+    )
+}
+
+/// Adds a scalar value to a quaternion
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::add_complex;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = add_complex::<f32, _>(quat, (3.5, 2.5));
+/// 
+/// assert_eq!( result, [4.5, 4.5, 3.0, 4.0] );
+/// ```
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn add_complex<Num, Out>(quaternion: impl Quaternion<Num>, complex: impl Complex<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r() + complex.real(), 
+        quaternion.i() + complex.imaginary(), 
+        quaternion.j(), 
+        quaternion.k(),
+    )
+}
+
+/// Adds a scalar value to a quaternion
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::add_vector;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = add_vector::<f32, _>(quat, (3.0, 2.0, 1.0));
+/// 
+/// assert_eq!( result, [1.0, 5.0, 5.0, 5.0] );
+/// ```
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn add_vector<Num, Out>(quaternion: impl Quaternion<Num>, vector: impl Vector<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r(),
+        quaternion.i() + vector.x(),
+        quaternion.j() + vector.y(),
+        quaternion.k() + vector.z(),
+    )
+}
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Subtracts a quaternion from another one.
 /// 
 /// # Example
-/// ```rust
+/// ```
 /// use quaternion_traits::quat::sub;
 /// 
 /// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
 /// let b: [f32; 4] = [4.0, 3.0, 2.0, -4.0];
-/// let c: [f32; 4] = sub::<f32, [f32; 4]>(&a, &b);
+/// let result: [f32; 4] = sub::<f32, _>(a, b);
 /// 
-/// assert_eq!( c, [-3.0, -1.0, 1.0, 8.0] );
+/// assert_eq!( result, [-3.0, -1.0, 1.0, 8.0] );
 /// ```
 pub fn sub<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
@@ -52,6 +130,84 @@ where
         left.i() - right.i(), 
         left.j() - right.j(), 
         left.k() - right.k(),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Subtracts a scalar value from a quaternion.
+/// 
+/// # Example
+/// ```rust
+/// use quaternion_traits::quat::sub_scalar;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = sub_scalar::<f32, _>(quat, 2.0);
+/// 
+/// assert_eq!( result, [-1.0, 2.0, 3.0, 4.0] );
+/// ```
+pub fn sub_scalar<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r() - scalar.scalar(), 
+        quaternion.i(), 
+        quaternion.j(), 
+        quaternion.k(),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Subtracts a complex number from a quaternion.
+/// 
+/// # Example
+/// ```rust
+/// use quaternion_traits::quat::sub_complex;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = sub_complex::<f32, _>(quat, (2.0, -2.0));
+/// 
+/// assert_eq!( result, [-1.0, 4.0, 3.0, 4.0] );
+/// ```
+pub fn sub_complex<Num, Out>(quaternion: impl Quaternion<Num>, complex: impl Complex<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r() - complex.real(), 
+        quaternion.i() - complex.imaginary(), 
+        quaternion.j(), 
+        quaternion.k(),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Subtracts a vector from a quaternion.
+/// 
+/// # Example
+/// ```rust
+/// use quaternion_traits::quat::sub_vector;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let result: [f32; 4] = sub_vector::<f32, _>(quat, (1.5, 2.5, 3.5));
+/// 
+/// assert_eq!( result, [1.0, 0.5, 0.5, 0.5] );
+/// ```
+pub fn sub_vector<Num, Out>(quaternion: impl Quaternion<Num>, vector: impl Vector<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        quaternion.r(), 
+        quaternion.i() - vector.x(), 
+        quaternion.j() - vector.y(), 
+        quaternion.k() - vector.z(),
     )
 }
 
@@ -277,8 +433,8 @@ where
 /// let a: [f32; 4] = [5.0, 0.0, 1.0, 3.0];
 /// let b: [f32; 4] = [2.0, 0.0, 5.0, 3.0];
 /// 
-/// assert_eq!( dist_euclid::<f32, f32>(&a, &b), 5.0 );
-/// assert_eq!( dist_euclid::<f32, f32>(&a, &a), 0.0 );
+/// assert_eq!( dist_euclid::<f32, f32>(a, b), 5.0 );
+/// assert_eq!( dist_euclid::<f32, f32>(a, a), 0.0 );
 /// ```
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -504,9 +660,6 @@ where
     Out::new_scalar(quaternion.r() / abs::<Num, Num>(quaternion))
 }
 
-// use `is_near` instead
-// --- vvvvvvvvv -------
-
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the inverse quaternion of a quaternion.
 /// 
@@ -518,8 +671,8 @@ where
 /// let inv_quat: [f32; 4] = inv::<f32, [f32; 4]>(&quat);
 /// 
 /// assert!( is_near::<f32>(
-///     &mul::<f32, [f32; 4]>(&quat, &inv_quat),
-///     &identity::<f32, [f32; 4]>()
+///     mul::<f32, [f32; 4]>(quat, inv_quat),
+///     identity::<f32, [f32; 4]>()
 /// ) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
@@ -548,9 +701,9 @@ where
 /// use quaternion_traits::quat::{ln, exp, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
-/// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(&quat);
+/// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(quat);
 /// 
-/// assert!( is_near::<f32>(&exp::<f32, [f32; 4]>(&ln_quat), &quat) );
+/// assert!( is_near::<f32>(exp::<f32, [f32; 4]>(ln_quat), quat) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
 pub fn ln<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
@@ -582,9 +735,9 @@ where
 /// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(&quat);
 /// 
 /// println!("{:?}", exp_quat);
-/// println!("{:?}", ln::<f32, [f32; 4]>(&exp_quat));
+/// println!("{:?}", ln::<f32, [f32; 4]>(exp_quat));
 /// println!("{:?}", quat);
-/// assert!( is_near::<f32>(&ln::<f32, [f32; 4]>(&exp_quat), &quat) );
+/// assert!( is_near::<f32>(ln::<f32, [f32; 4]>(exp_quat), quat) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
 pub fn exp<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
@@ -616,8 +769,8 @@ where
 /// use quaternion_traits::quat::{log, pow_i};
 /// 
 /// let base: [f32; 4] = [0.0, 2.0, 1.0, 0.0];
-/// let quat: [f32; 4] = pow_i::<f32, [f32; 4]>(&base, 3);
-/// let log_quat: [f32; 4] = log::<f32, [f32; 4]>(&base, &quat);
+/// let quat: [f32; 4] = pow_i::<f32, [f32; 4]>(base, 3);
+/// let log_quat: [f32; 4] = log::<f32, [f32; 4]>(base, quat);
 /// 
 /// assert_eq!( log_quat, [3.0, 0.0, 0.0, 0.0] );
 /// ```
@@ -633,6 +786,20 @@ where
 /// Calculates the square root of a quaternion.
 /// 
 /// This uses a diferent algorthm from [`pow_f`].
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::{sqrt, mul, is_near};
+/// 
+/// let quat: [f32; 4] = [1.2, 3.4, 5.6, 7.8];
+/// 
+/// let sqrt: [f32; 4] = sqrt::<f32, _>(quat);
+/// 
+/// assert!( is_near::<f32>(
+///     mul::<f32, [f32; 4]>(sqrt, sqrt),
+///     quat
+/// ) );
+/// ```
 pub fn sqrt<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -662,6 +829,18 @@ where
 /// Calculares the square of a quaternion.
 /// 
 /// Equivalent to `mul(q, q)`
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::{square, mul};
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// 
+/// assert_eq!(
+///     square::<f32, [f32; 4]>(quat),
+///     mul::<f32, [f32; 4]>(quat, quat)
+/// );
+/// ```
 #[inline]
 pub fn square<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
@@ -711,8 +890,8 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    if eq(&base, &()) { return origin(); }
-    if eq(&base, &identity::<Num, Q<Num>>()) { return identity() }
+    if eq(&base, ()) { return origin(); }
+    if eq(&base, identity::<Num, Q<Num>>()) { return identity() }
     if exp == 0 { return identity(); }
     let mut out = identity::<Num, Q<Num>>();
     for _ in 0..exp {
@@ -733,9 +912,9 @@ where
     let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
     scale(
-        &crate::quat::exp::<Num, Q<Num>>(
-            &scale::<Num, Q<Num>>(
-                &vector_part::<Num, Q<Num>>(base),
+        crate::quat::exp::<Num, Q<Num>>(
+            scale::<Num, Q<Num>>(
+                vector_part::<Num, Q<Num>>(base),
                 exp.scalar() * angle
             )
         ),

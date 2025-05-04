@@ -5,6 +5,7 @@ use super::*;
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a quaternion representation from another one.
 /// 
+/// # Example
 /// ```
 /// use quaternion_traits::quat::convert_quat;
 /// 
@@ -201,16 +202,45 @@ where
 ///     q = a + bi + cj + dk
 ///     # ";
 /// 
+/// # Example 
+/// ```
+/// use quaternion_traits::quat::from_matrix_2;
+/// 
+/// // valid conversion
+/// let valid_matrix = [
+///     [(1, 2), (3, 4)],
+///     [(-3,4), (1,-2)],
+/// ];
+/// 
+/// assert_eq!(
+///     //              vvv number used when doing the conversion
+///     //                    vvvvvvvv complex number contained by teh matrix
+///     //                                vvvvvv output quaternion type
+///     from_matrix_2::<f32, (i16, i16), [f32; 4]>(valid_matrix),
+///     Some( [1.0, 2.0, 3.0, 4.0] )
+/// );
+/// 
+/// // invalid conversion
+/// let invalid_matrix = [
+///     [(1, 2), (3, 4)],
+///     [(5, 6), (7, 8)],
+/// ];
+/// 
+/// assert_eq!(
+///     from_matrix_2::<f32, (i16, i16), [f32; 4]>(invalid_matrix),
+///     None
+/// );
+/// ```
 pub fn from_matrix_2<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Option<Out>
 where 
     Num: Axis,
     Elem: Complex<Num>,
     Out: QuaternionConstructor<Num>,
 {
-    if matrix.get_unchecked(0, 0).real() == matrix.get_unchecked(1, 1).real()
-    && matrix.get_unchecked(0, 0).imaginary() == -matrix.get_unchecked(1, 1).imaginary()
-    && matrix.get_unchecked(1, 0).real() == matrix.get_unchecked(0, 1).real()
-    && matrix.get_unchecked(1, 0).imaginary() == -matrix.get_unchecked(0, 1).imaginary()
+    if matrix.get_unchecked(0, 0).real() != matrix.get_unchecked(1, 1).real()
+    || matrix.get_unchecked(0, 0).imaginary() != -matrix.get_unchecked(1, 1).imaginary()
+    || matrix.get_unchecked(1, 0).real() != -matrix.get_unchecked(0, 1).real()
+    || matrix.get_unchecked(1, 0).imaginary() != matrix.get_unchecked(0, 1).imaginary()
     {
         return Option::None;
     }
@@ -223,6 +253,39 @@ where
 }
 
 /// Cosntructs a quaternion from a 2x2 complex matrix.
+/// 
+/// Does the same thing as [`from_matrix_2`] without checking if
+/// the matrix is a valid representation for a quaternion.
+/// 
+/// # Example 
+/// ```
+/// use quaternion_traits::quat::from_matrix_2_unchecked;
+/// 
+/// // valid conversion
+/// let valid_matrix = [
+///     [(1, 2), (3, 4)],
+///     [(-3,4), (1,-2)],
+/// ];
+/// 
+/// assert_eq!(
+///     //              vvv number used when doing the conversion
+///     //                    vvvvvv complex number contained by teh matrix
+///     //                              vvvvvv output quaternion type
+///     from_matrix_2_unchecked::<f32, (i16, i16), [f32; 4]>(valid_matrix),
+///     [1.0, 2.0, 3.0, 4.0]
+/// );
+/// 
+/// // invalid conversion
+/// let invalid_matrix = [
+///     [(1, 2), (3, 4)],
+///     [(5, 6), (7, 8)],
+/// ];
+/// 
+/// assert_eq!(
+///     from_matrix_2_unchecked::<f32, (i16, i16), [f32; 4]>(invalid_matrix),
+///     [1.0, 2.0, 3.0, 4.0]
+/// );
+/// ```
 pub fn from_matrix_2_unchecked<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Out
 where 
     Num: Axis,
@@ -453,9 +516,26 @@ where
 /// Note: This uses the first representation from the
 /// [wiki](https://en.wikipedia.org/wiki/Quaternion#Representation_as_complex_2_%C3%97_2_matrices)
 /// on quaternions.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::to_matrix_2;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// 
+/// let matrix: [[(i16, i16); 2]; 2] = to_matrix_2::<f32, _, _>(quat);
+/// 
+/// assert_eq!(
+///     matrix,
+///     [
+///         [(1, 2), (3, 4)],
+///         [(-3,4), (1,-2)],
+///     ]
+/// )
+/// ```
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-pub fn to_matrix_2<Num, Matrix, Complex>(quaternion: impl Quaternion<Num>) -> Matrix
+pub fn to_matrix_2<Num, Complex, Matrix>(quaternion: impl Quaternion<Num>) -> Matrix
 where 
     Num: Axis,
     Complex: ComplexConstructor<Num>,
@@ -477,64 +557,104 @@ where
 
 /// Turns this quaternion into a 3x3 Matrix. (DCM)
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-pub fn to_matrix_3<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+pub fn to_matrix_3<Num, Elem, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: MatrixConstructor<Num, 3>,
+    Elem: ScalarConstructor<Num>,
+    Out: MatrixConstructor<Elem, 3>,
 {
     let q = quaternion;
     let two = Num::ONE + Num::ONE;
     Out::new_matrix([
         [
-            q.r()*q.r() + q.i()*q.i() - q.j()*q.j() - q.k()*q.k(),
-            two * ( q.i()*q.j() + q.r()*q.k() ),
-            two * ( q.i()*q.j() - q.r()*q.k() ),
+            Elem::new_scalar(q.r()*q.r() + q.i()*q.i() - q.j()*q.j() - q.k()*q.k()),
+            Elem::new_scalar(two * ( q.i()*q.j() + q.r()*q.k() )),
+            Elem::new_scalar(two * ( q.i()*q.j() - q.r()*q.k() )),
         ],
         [
-            two * ( q.i()*q.j() - q.r()*q.k() ),
-            q.r()*q.r() - q.i()*q.i() + q.j()*q.j() - q.k()*q.k(),
-            two * ( q.j()*q.k() + q.r()*q.i() ),
+            Elem::new_scalar(two * ( q.i()*q.j() - q.r()*q.k() )),
+            Elem::new_scalar(q.r()*q.r() - q.i()*q.i() + q.j()*q.j() - q.k()*q.k()),
+            Elem::new_scalar(two * ( q.j()*q.k() + q.r()*q.i() )),
         ],
         [
-            two * ( q.i()*q.k() + q.r()*q.j() ),
-            two * ( q.j()*q.k() - q.r()*q.i() ),
-            q.r()*q.r() - q.i()*q.i() - q.j()*q.j() + q.k()*q.k(),
+            Elem::new_scalar(two * ( q.i()*q.k() + q.r()*q.j() )),
+            Elem::new_scalar(two * ( q.j()*q.k() - q.r()*q.i() )),
+            Elem::new_scalar(q.r()*q.r() - q.i()*q.i() - q.j()*q.j() + q.k()*q.k()),
         ],
     ])
 }
 
 /// Turns this quaternion into a 4x4 Matrix.
+/// 
+/// # Note
+/// This function is not the inverse of [`from_matrix_4`], since this
+/// outputs a separate 4x4 representation. There are many ways to
+/// represent a quaternion using a 4x4 matrix.
+/// 
+/// The following formula is used:
+/// 
+///     # "
+///     let q = w + xi + yj + zk
+///         M be the matrix repr of q given by this function
+/// 
+///         =>
+/// 
+///     M = ⎡ w -x -y -z ⎤
+///         ⎢ x  w -z  y ⎥
+///         ⎢ y  z  w -x ⎥
+///         ⎣ z -y  x  w ⎦
+///     # ";
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::to_matrix_4;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// 
+/// let matrix: [[i32; 4]; 4] = to_matrix_4::<f32, _, _>(quat);
+/// 
+/// assert_eq!(
+///     matrix,
+///     [
+///         [1, -2, -3, -4],
+///         [2,  1, -4,  3],
+///         [3,  4,  1, -2],
+///         [4, -3,  2,  1],
+///     ]
+/// )
+/// ```
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-pub fn to_matrix_4<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+pub fn to_matrix_4<Num, Elem, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
-    Out: MatrixConstructor<Num, 4>,
+    Elem: ScalarConstructor<Num>,
+    Out: MatrixConstructor<Elem, 4>,
 {
     Out::new_matrix([
         [
-             quaternion.r(),
-            -quaternion.i(),
-            -quaternion.j(),
-            -quaternion.k(),
+            Elem::new_scalar( quaternion.r()),
+            Elem::new_scalar(-quaternion.i()),
+            Elem::new_scalar(-quaternion.j()),
+            Elem::new_scalar(-quaternion.k()),
         ],
         [
-             quaternion.i(),
-             quaternion.r(),
-            -quaternion.k(),
-             quaternion.j(),
+            Elem::new_scalar( quaternion.i()),
+            Elem::new_scalar( quaternion.r()),
+            Elem::new_scalar(-quaternion.k()),
+            Elem::new_scalar( quaternion.j()),
         ],
         [
-             quaternion.j(),
-             quaternion.k(), 
-             quaternion.r(),
-            -quaternion.i(),
+            Elem::new_scalar( quaternion.j()),
+            Elem::new_scalar( quaternion.k()), 
+            Elem::new_scalar( quaternion.r()),
+            Elem::new_scalar(-quaternion.i()),
         ],
         [
-             quaternion.k(),
-            -quaternion.j(),
-             quaternion.i(),
-             quaternion.r(),
+            Elem::new_scalar( quaternion.k()),
+            Elem::new_scalar(-quaternion.j()),
+            Elem::new_scalar( quaternion.i()),
+            Elem::new_scalar( quaternion.r()),
         ],
     ])
 }
