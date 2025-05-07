@@ -270,3 +270,16 @@ where
     &&
     (angle::<Num, Num>(left) - angle::<Num, Num>(right)).abs() < error.scalar()
 }
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if a quaternion is a unit quaternion.
+/// 
+/// It checks if the quaternion's absolute value falls in the range
+/// (Num::ONE - Num::ERROR, Num::ONE + Num::ERROR)
+pub fn is_normalized<Num>(quaternion: impl Quaternion<Num>) -> bool
+where 
+    Num: Axis,
+{
+    (abs_squared::<Num, Num>(quaternion) - Num::ONE).abs() < Num::ERROR * Num::ERROR
+}

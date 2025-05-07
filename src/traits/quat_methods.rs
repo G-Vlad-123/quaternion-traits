@@ -87,10 +87,10 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the dot function](crate::quat::dot) in the root for more info.
     #[inline] fn dot(self, other: impl Quaternion<Num>) -> Num { quat::dot(self, other) }
-    /// Gets the normal of a quaternion.
+    /// Normalizes a quaternion.
     /// 
-    /// Check [the norm function](crate::quat::norm) in the root for more info.
-    #[inline] fn norm(self) -> Self { quat::norm(self) }
+    /// Check [the normalize function](crate::quat::normalize) in the root for more info.
+    #[inline] fn norm(self) -> Self { quat::normalize(self) }
     /// Gets the conjugate of a quaternion.
     /// 
     /// Check [the conj function](crate::quat::conj) in the root for more info.

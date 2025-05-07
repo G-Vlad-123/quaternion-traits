@@ -112,10 +112,16 @@ pub trait Axis: Sized
         if self < Self::ZERO { -self }
         else {self}
     }
-    /// Calculates the absolute value of `self`.
+    /// Gets the larget value between `self` and `other`.
     #[inline]
     fn max( self, other: Self ) -> Self {
         if self > other { self }
+        else { other }
+    }
+    /// Gets the smaller value between `self` and `other`.
+    #[inline]
+    fn min( self, other: Self ) -> Self {
+        if self < other { self }
         else { other }
     }
 }

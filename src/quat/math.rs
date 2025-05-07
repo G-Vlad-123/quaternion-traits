@@ -245,6 +245,62 @@ where
     )
 }
 
+/// Multiplies a quaternion with a complex number.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::mul;
+/// use quaternion_traits::quat::mul_complex;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let complex: (f32, f32) = (2.0, 2.0);
+/// 
+/// assert_eq!(
+///     mul_complex::<f32, [f32; 4]>(quat, complex),
+///     mul::<f32, [f32; 4]>(quat, (complex, (), ()))
+/// );
+/// ```
+pub fn mul_complex<Num, Out>(left: impl Quaternion<Num>, right: impl Complex<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        left.r() * right.real() - left.i() * right.imaginary(),
+        left.i() * right.real() + left.r() * right.imaginary(),
+        left.j() * right.real() + left.k() * right.imaginary(),
+        left.k() * right.real() - left.j() * right.imaginary(),
+    )
+}
+
+/// Multiplies a quaternion with a vector.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::mul;
+/// use quaternion_traits::quat::mul_vector;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let vector: [f32; 3] = [2.0, 3.0, 1.0];
+/// 
+/// assert_eq!(
+///     mul_vector::<f32, [f32; 4]>(quat, vector),
+///     mul::<f32, [f32; 4]>(quat, ((), vector))
+/// );
+/// ```
+pub fn mul_vector<Num, Out>(left: impl Quaternion<Num>, right: impl Vector<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+      -(left.i() * right.x() + left.j() * right.y() + left.k() * right.z()),
+        left.r() * right.x() + left.j() * right.z() - left.k() * right.y(),
+        left.r() * right.y() - left.i() * right.z() + left.k() * right.x(),
+        left.r() * right.z() + left.i() * right.y() - left.j() * right.x(),
+    )
+}
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies two quaternions in reversed order.
@@ -265,11 +321,73 @@ where
 /// 
 /// assert_eq!( mul::<f32, [f32; 4]>(&a, &b), mul_reversed::<f32, [f32; 4]>(&b, &a) );
 /// ```
-pub fn mul_reversed<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
+pub fn mul_reversed<Num, Out>(right: impl Quaternion<Num>, left: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
-{ mul(right, left) }
+{ mul(left, right) }
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Multiplies a complex number with a quaternion.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::{mul, mul_complex_reversed};
+/// 
+/// let quat: [f32; 4] = // quaternion
+/// # [1.0, 2.0, 0.0, 3.0];
+/// let complex: (f32, f32) = // complex number
+/// # (3.0, 1.0);
+/// 
+/// assert_eq!(
+///     mul::<f32, [f32; 4]>((complex, (), ()), quat),
+///     mul_complex_reversed::<f32, [f32; 4]>(quat, complex)
+/// );
+/// ```
+pub fn mul_complex_reversed<Num, Out>(right: impl Quaternion<Num>, left: impl Complex<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        left.real() * right.r() - left.imaginary() * right.i(),
+        left.real() * right.i() + left.imaginary() * right.r(),
+        left.real() * right.j() - left.imaginary() * right.k(),
+        left.real() * right.k() + left.imaginary() * right.j(),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Multiplies a vector with a quaternion.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::{mul, mul_vector_reversed};
+/// 
+/// let quat: [f32; 4] = // quaternion
+/// # [1.0, 2.0, 0.0, 3.0];
+/// let vector: [f32; 3] = // vector
+/// # [3.0, 1.0, 4.0];
+/// 
+/// assert_eq!(
+///     mul::<f32, [f32; 4]>(((), vector), quat),
+///     mul_vector_reversed::<f32, [f32; 4]>(quat, vector)
+/// );
+/// ```
+pub fn mul_vector_reversed<Num, Out>(right: impl Quaternion<Num>, left: impl Vector<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+       -left.x() * right.i() - left.y() * right.j() - left.z() * right.k(),
+        left.x() * right.r() + left.y() * right.k() - left.z() * right.j(),
+       -left.x() * right.k() + left.y() * right.r() + left.z() * right.i(),
+        left.x() * right.j() - left.y() * right.i() + left.z() * right.r(),
+    )
+}
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -279,16 +397,14 @@ where
 /// another one's inverse.
 /// 
 /// ```
-/// use quaternion_traits::quat::{mul, div, inv};
+/// use quaternion_traits::quat::{div, mul, inv};
 /// 
-/// let a: [f32; 4] = // quaternion
-/// # [1.0, 2.0, 0.0, 3.0];
-/// let b: [f32; 4] = // quaternion
-/// # [3.0, 1.0, 4.0, 0.0];
+/// let a: [f32; 4] = [1.0, 2.0, 0.0, 3.0];
+/// let b: [f32; 4] = [3.0, 1.0, 4.0, 0.0];
 /// 
 /// assert_eq!(
-///     mul::<f32, [f32; 4]>(&a, &inv::<f32, [f32; 4]>(&b)),
-///     div::<f32, [f32; 4]>(&a, &b)
+///     mul::<f32, [f32; 4]>(a, inv::<f32, [f32; 4]>(b)),
+///     div::<f32, [f32; 4]>(a, b)
 /// );
 /// ```
 pub fn div<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
@@ -296,7 +412,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    mul::<Num, Out>(left, &inv::<Num, Q<Num>>(right))
+    mul::<Num, Out>(left, inv::<Num, Q<Num>>(right))
 }
 
 /// Divides a quaternion by another one in reversed order.
@@ -311,7 +427,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    mul::<Num, Out>(&inv::<Num, Q<Num>>(left), &right)
+    mul::<Num, Out>(inv::<Num, Q<Num>>(left), &right)
 }
 
 #[inline]
@@ -377,7 +493,7 @@ where
 /// use quaternion_traits::quat::scale;
 /// 
 /// let quat: [f32; 4] = [0.0, 1.0, 2.0, 3.0];
-/// let scaled: [f32; 4] = scale::<f32, [f32; 4]>(&quat, &2);
+/// let scaled: [f32; 4] = scale::<f32, [f32; 4]>(quat, 2);
 /// 
 /// assert_eq!( scaled, [0.0, 2.0, 4.0, 6.0] );
 /// ```
@@ -405,7 +521,7 @@ where
 /// use quaternion_traits::quat::unscale;
 /// 
 /// let quat: [f32; 4] = [0.0, 1.0, 2.0, 3.0];
-/// let unscaled: [f32; 4] = unscale::<f32, [f32; 4]>(&quat, &2);
+/// let unscaled: [f32; 4] = unscale::<f32, [f32; 4]>(quat, 2);
 /// 
 /// assert_eq!( unscaled, [0.0, 0.5, 1.0, 1.5] );
 /// ```
@@ -420,6 +536,87 @@ where
         quaternion.i() * scalar,
         quaternion.j() * scalar,
         quaternion.k() * scalar,
+    )
+}
+
+/// Liniar interpolation for quaternions.
+/// 
+/// Uses the shortest path inbetween the two quaternions.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn lerp<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    add(
+        if dot::<Num, Num>(&from, &to) < Num::ZERO {
+            scale::<Num, Q<Num>>(add::<Num, Q<Num>>(to, &from), at)
+        } else {
+            scale::<Num, Q<Num>>(sub::<Num, Q<Num>>(to, &from), at)
+        },
+        from,
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Spherical liniar interpolation for unit quaternions.
+/// 
+/// Uses the shortest path inbetween the two unit
+/// quaternions, returning a unit quaternion.
+/// 
+/// If the two given quaternions are unit quaternions
+pub fn slerp<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Option<Out>
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    if (abs_squared::<Num, Num>(&from) - Num::ONE).abs() < Num::ERROR * Num::ERROR
+    && (abs_squared::<Num, Num>( &to ) - Num::ONE).abs() < Num::ERROR * Num::ERROR
+    { Option::Some(slerp_unckeched(from, to, at)) }
+    else { Option::None }
+}
+
+/// Spherical liniar interpolation for unit quaternions.
+/// 
+/// Uses the shortest path inbetween the two unit
+/// quaternions, returning a unit quaternion.
+/// 
+/// The two quaternions must be unit quaternions (have an absolite value of [`Num::ONE`](Axis::ONE)).
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn slerp_unckeched<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let mut dot = dot::<Num, Num>(&from, &to);
+
+    let to: Q<Num> = if dot < Num::ZERO {
+        dot = -dot;
+        neg(to)
+    } else {
+        convert_quat(to)
+    };
+
+    if dot > Num::ONE - Num::ERROR { // for ERROR = 0.0005 => Aprox. Err < 0.017%
+        return add(
+            scale::<Num, Q<Num>>(add::<Num, Q<Num>>(to, &from), at),
+            from
+        );
+    }
+
+    let angle = dot.acos();
+    let transition_angle = at.scalar() * angle;
+
+    let sin_1 = (angle - transition_angle).sin();
+    let sin_2 = transition_angle.sin();
+
+    let coeficient = Num::ONE / (Num::ONE - dot*dot).sqrt();
+
+    add(
+        scale::<Num, Q<Num>>(from, coeficient * sin_1),
+        scale::<Num, Q<Num>>(to, coeficient * sin_2),
     )
 }
 
@@ -485,28 +682,31 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-/// Gets the normal of a quaternion.
+/// Normalizes a quaternion.
 /// 
 /// The normal of a quaternion always has the same "direction"
 /// but with an absolute value of [`Num::ONE`](Axis::ONE).
 /// 
 /// If the quaternion is the origin it returns the origin.
 /// 
+/// If you know you have a non-zero quaternion then you
+/// can skip the if check by using `unscale(q, abs::<Num, Num>(q))` or `scale(q, Num::ONE / abs(q))`
+/// 
 /// # Example
 /// ```
-/// use quaternion_traits::quat::norm;
+/// use quaternion_traits::quat::normalize;
 /// 
 /// let quat: [f32; 4] = [0.0, 3.25, 0.0, 0.0];
-/// let normal: [f32; 4] = norm::<f32, [f32; 4]>(&quat);
+/// let normal: [f32; 4] = normalize::<f32, [f32; 4]>(&quat);
 /// 
 /// assert_eq!( normal, [0.0, 1.0, 0.0, 0.0] );
 /// ```
-pub fn norm<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
+pub fn normalize<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    if eq(&quaternion, &()) { return origin() }
+    if eq(&quaternion, ()) { return origin() }
     let length: Num = Num::ONE / abs(&quaternion);
     Out::new_quat(
         quaternion.r() * length,
@@ -714,7 +914,7 @@ where
     let absolute: Num = abs(&quaternion);
     add(
         scale::<Num, Q<Num>>(
-            norm::<Num, Q<Num>>(
+            normalize::<Num, Q<Num>>(
                 vector_part::<Num, Q<Num>>(&quaternion),
             ),
             (quaternion.r() / absolute).acos()
@@ -732,11 +932,8 @@ where
 /// use quaternion_traits::quat::{exp, ln, is_near};
 /// 
 /// let quat: [f32; 4] = [1.0, 3.14, 0.0, 0.0];
-/// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(&quat);
+/// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(quat);
 /// 
-/// println!("{:?}", exp_quat);
-/// println!("{:?}", ln::<f32, [f32; 4]>(exp_quat));
-/// println!("{:?}", quat);
 /// assert!( is_near::<f32>(ln::<f32, [f32; 4]>(exp_quat), quat) );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
@@ -750,7 +947,7 @@ where
     scale::<Num, Out>(
         add::<Num, Q<Num>>(
             scale::<Num, Q<Num>>(
-                norm::<Num, Q<Num>>(&vec),
+                normalize::<Num, Q<Num>>(&vec),
                 sin
             ),
             (cos, ())
@@ -815,7 +1012,7 @@ where
         }
     }
     let r: Num = quaternion.r();
-    let unit = norm::<Num, Q<Num>>(vector_part::<Num, Q<Num>>(&quaternion)).1;
+    let unit = normalize::<Num, Q<Num>>(vector_part::<Num, Q<Num>>(&quaternion)).1;
     let abs: Num = abs::<Num, Num>(&quaternion);
     let unreal_part: Num = Num::sqrt( (abs - r) / (Num::ONE + Num::ONE) );
     Out::new_quat (
@@ -1036,5 +1233,47 @@ where
       + left.i() * right.i()
       + left.j() * right.j()
       + left.k() * right.k()
+    )
+}
+
+/// Gives the hadamard product of two quaternions.
+/// 
+/// It uses the following formula:
+/// 
+///     # "
+///     let q1 = w1 + x1*i + y1*j + z1*k
+///         q2 = w2 + x2*i + y2*j + z2*k
+/// 
+///       =>
+/// 
+///     q1 ∘ q2 = w1 * w2
+///             + x1 * x2 * i
+///             + y1 * y2 * j
+///             + z1 * z2 * k
+///     # ";
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::hadamard;
+/// 
+/// let a: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let b: [f32; 4] = [5.0, 4.0, 3.0, 2.0];
+/// let result: [f32; 4] = hadamard::<f32, _>(a, b);
+/// 
+/// assert_eq!(
+///     result,
+///     [5.0, 8.0, 9.0, 8.0]
+/// )
+/// ```
+pub fn hadamard<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    Out::new_quat(
+        left.r() * right.r(),
+        left.i() * right.i(),
+        left.j() * right.j(),
+        left.k() * right.k(),
     )
 }
