@@ -15,7 +15,7 @@ use super::*;
 /// assert_eq!( float, [1.0, 2.0, 3.0, 4.0] );
 /// 
 /// let int =   convert_quat::<f64, (i64, i32, i16, i8)>(from);
-/// assert_eq!( int, (1, 2, 3, 4) );
+/// assert_eq!( int, (1_i64, 2_i32, 3_i16, 4_i8) );
 /// 
 /// let unit =  convert_quat::<f32, ()>(from);
 /// assert_eq!( unit, () );
@@ -116,13 +116,13 @@ where
 /// 
 /// # Example
 /// ```
-/// use quaternion_traits::quat::from_rotation;
-/// use core::f32::consts::PI;
+/// use quaternion_traits::quat::{from_rotation, is_near};
+/// # use core::f32::consts::PI;
 /// 
 /// let rotation: [f32; 3] = [PI, 0.0, 0.0];
-/// let quat: [f32; 4] = from_rotation::<f32, [f32; 4]>(&rotation);
+/// let quat: [f32; 4] = from_rotation::<f32, [f32; 4]>(rotation);
 /// 
-/// assert_eq!( quat, [-4.371139e-8, 1.0, 0.0, 0.0] );
+/// assert!( is_near::<f32>(quat, [0.0, 1.0, 0.0, 0.0]) );
 /// ```
 pub fn from_rotation<Num, Out>(rotation: impl Rotation<Num>) -> Out
 where 
@@ -477,7 +477,7 @@ where
     Num: Axis,
     Out: RotationConstructor<Num>
 {
-    let quat: Q<Num> = norm(quaternion);
+    let quat: Q<Num> = normalize(quaternion);
 
     let two = Num::ONE + Num::ONE;
     // here I misspelled 'pitch' but it's funny so I kept it
