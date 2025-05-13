@@ -283,3 +283,77 @@ where
 {
     (abs_squared::<Num, Num>(quaternion) - Num::ONE).abs() < Num::ERROR * Num::ERROR
 }
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if `eq(mul(q, p), mul(p, q))`
+/// 
+/// Faster then performing the multiplication twice.
+/// 
+/// This op performs:
+/// - `*`: `6`
+/// - `==`: `3`
+/// - `&&`: `2`
+/// - `.r`: `0`
+/// - `.i`: `4` (2 left, 2 right)
+/// - `.j`: `4` (2 left, 2 right)
+/// - `.k`: `4` (2 left, 2 right)
+/// 
+/// Normal multiplication check performs:
+/// - `*`: `32`
+/// - `==`: `0`
+/// - `&&`: `0`
+/// - `.r`: `18` (9 left, 9 right) (16 mul, 2 eq)
+/// - `.i`: `18` (9 left, 9 right) (16 mul, 2 eq)
+/// - `.j`: `18` (9 left, 9 right) (16 mul, 2 eq)
+/// - `.k`: `18` (9 left, 9 right) (16 mul, 2 eq)
+/// 
+/// If eather quat is equivalent to a real value
+/// then this function will always return `true`.
+/// 
+/// If both numbers are part of the same complex
+/// plane this function will always return `true`.
+/// 
+/// # Notes
+/// This function assumes valid quaternions are given.
+/// (if the real part is `inf` or `nan` this may give diferent results)
+/// 
+/// The scalar part of a quaternion will
+/// not affect communtativity!
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::{mul, eq};
+/// use quaternion_traits::quat::are_mul_commutative;
+/// 
+/// let quat: [f32; 4] = [2.0, 1.0, -3.0, 0.0];
+/// 
+/// let yes_commut: [f32; 4] = [3.14, -2.0, 6.0, 0.0]; // j == -3 * i && k == 0
+/// let no_commut: [f32; 4] = [0.0, 1.5, -3.0, 7.0]; // ^^^^^^ not that ^^^^^^
+/// 
+/// assert!(are_mul_commutative::<f32>(quat, yes_commut));
+/// assert!(
+///     eq::<f32>(
+///         mul::<f32, [f32; 4]>(quat, yes_commut),
+///         mul::<f32, [f32; 4]>(yes_commut, quat),
+///     )
+/// );
+/// 
+/// assert!(!are_mul_commutative::<f32>(quat, no_commut));
+/// assert!(
+///     !eq::<f32>(
+///         mul::<f32, [f32; 4]>(quat, no_commut),
+///         mul::<f32, [f32; 4]>(no_commut, quat),
+///     )
+/// );
+/// 
+/// ```
+pub fn are_mul_commutative<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
+where 
+    Num: Axis,
+{
+    // Got this result using my own math.
+        left.j() * right.k() == left.k() * right.j()
+     && left.i() * right.k() == left.k() * right.i()
+     && left.j() * right.i() == left.i() * right.j()
+}

@@ -232,6 +232,9 @@ where
 /// 
 /// Since quaternion multiplication is acctualy neather comutative nor anti-comutative,
 /// therefor `mul(q1, q2) == mul(q2, q1)` is NOT guaranteed for any q1 and q2.
+/// 
+/// Multipliing by a unit quaternion is equivalent to rotating
+/// by a specified angle in a specified direction.
 pub fn mul<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -567,14 +570,14 @@ where
 /// quaternions, returning a unit quaternion.
 /// 
 /// If the two given quaternions are unit quaternions
-pub fn slerp<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Option<Out>
+pub fn slerp_checked<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Option<Out>
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
     if (abs_squared::<Num, Num>(&from) - Num::ONE).abs() < Num::ERROR * Num::ERROR
     && (abs_squared::<Num, Num>( &to ) - Num::ONE).abs() < Num::ERROR * Num::ERROR
-    { Option::Some(slerp_unckeched(from, to, at)) }
+    { Option::Some(slerp_unchecked(from, to, at)) }
     else { Option::None }
 }
 
@@ -585,7 +588,7 @@ where
 /// 
 /// The two quaternions must be unit quaternions (have an absolite value of [`Num::ONE`](Axis::ONE)).
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-pub fn slerp_unckeched<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Out
+pub fn slerp_unchecked<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
     Out: QuaternionConstructor<Num>,
