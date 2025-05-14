@@ -144,6 +144,9 @@ where
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if the distance between two quaternions is less then [`Num::ERROR`](Axis::ERROR).
 /// 
+/// Note: This function does not use [`sqrt`](Axis::sqrt),
+/// instead it uses the square of [`Num::ERROR`](Axis::ERROR).
+/// 
 /// # Example
 /// ```
 /// use quaternion_traits::quat::is_near;
@@ -286,40 +289,40 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-/// Checks if `eq(mul(q, p), mul(p, q))`
+/// Checks if `eq(mul(q, p), mul(p, q))` returns `true`.
 /// 
 /// Faster then performing the multiplication twice.
 /// 
-/// This op performs:
-/// - `*`: `6`
-/// - `==`: `3`
-/// - `&&`: `2`
-/// - `.r`: `0`
-/// - `.i`: `4` (2 left, 2 right)
-/// - `.j`: `4` (2 left, 2 right)
-/// - `.k`: `4` (2 left, 2 right)
+/// | Op.\\Count | This function | Classic way |
+/// |:----------:|:-------------:|:-----------:|
+/// | `a * b`    | `6`           | `32`        |
+/// | `a && b `  | `2`           | `0`         |
+/// | `a == b `  | `3`           | `4`         |
+/// | `q.r()`    | `0`           | `18`        |
+/// | `q.i()`    | `4`           | `18`        |
+/// | `q.j()`    | `4`           | `18`        |
+/// | `q.k()`    | `4`           | `18`        |
 /// 
-/// Normal multiplication check performs:
-/// - `*`: `32`
-/// - `==`: `0`
-/// - `&&`: `0`
-/// - `.r`: `18` (9 left, 9 right) (16 mul, 2 eq)
-/// - `.i`: `18` (9 left, 9 right) (16 mul, 2 eq)
-/// - `.j`: `18` (9 left, 9 right) (16 mul, 2 eq)
-/// - `.k`: `18` (9 left, 9 right) (16 mul, 2 eq)
-/// 
-/// If eather quat is equivalent to a real value
-/// then this function will always return `true`.
-/// 
-/// If both numbers are part of the same complex
-/// plane this function will always return `true`.
+/// Where `a` and `b` are of type [`Num: Axis`](Axis) and `q` is a quaternion. 
 /// 
 /// # Notes
+/// 
 /// This function assumes valid quaternions are given.
-/// (if the real part is `inf` or `nan` this may give diferent results)
+/// (if the real part is `nan` this may give diferent results)
+/// 
+/// Special cases:
+/// - If eather quat is equivalent to a real value
+/// then this function will always return `true`.
+/// - If both numbers are part of the same complex
+/// plane this function will always return `true`.
+/// - If eather quaternion is the origin or the identity no matter what
+/// this function will return `true` (overwrites all)
 /// 
 /// The scalar part of a quaternion will
 /// not affect communtativity!
+/// 
+/// Each and every valid non-origin quaternion has only one quaternion
+/// that they are anticommutitive with, which being the origin quaternion.
 /// 
 /// # Example
 /// ```
@@ -346,8 +349,8 @@ where
 ///         mul::<f32, [f32; 4]>(no_commut, quat),
 ///     )
 /// );
-/// 
 /// ```
+/// 
 pub fn are_mul_commutative<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
@@ -356,4 +359,62 @@ where
         left.j() * right.k() == left.k() * right.j()
      && left.i() * right.k() == left.k() * right.i()
      && left.j() * right.i() == left.i() * right.j()
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Checks if `ia_near(mul(q, p), mul(p, q))` returns `true`.
+/// 
+/// Faster then performing the multiplication twice.
+/// 
+/// | Op.\\Count | This function | Classic way |
+/// |:----------:|:-------------:|:-----------:|
+/// | `let a`    | `4`           | `0`         |
+/// | `a * b`    | `10`          | `37`        |
+/// | `a + b`    | `5`           | `0`         |
+/// | `a - b`    | `3`           | `4`         |
+/// | `a < b `   | `1`           | `1`         |
+/// | `q.r()`    | `0`           | `36`        |
+/// | `q.i()`    | `4`           | `36`        |
+/// | `q.j()`    | `4`           | `36`        |
+/// | `q.k()`    | `4`           | `36`        |
+/// 
+/// Where `a` and `b` are of type [`Num: Axis`](Axis) and `q` is a quaternion. 
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::{mul, is_near};
+/// use quaternion_traits::quat::are_nearly_mul_commutative;
+/// 
+/// let quat: [f32; 4] = [2.0, 1.0, -3.0, 0.0];
+/// 
+/// let yes_commut: [f32; 4] = [3.14, -1.999999, 6.000001, -1e-8]; // j == -3 * i && k == 0
+/// let no_commut: [f32; 4] = [0.0, 1.5, -3.0, 7.0]; // ^^^^^^ not that ^^^^^^
+/// 
+/// assert!(are_nearly_mul_commutative::<f32>(quat, yes_commut));
+/// assert!(
+///     is_near::<f32>(
+///         mul::<f32, [f32; 4]>(quat, yes_commut),
+///         mul::<f32, [f32; 4]>(yes_commut, quat),
+///     )
+/// );
+/// 
+/// assert!(!are_nearly_mul_commutative::<f32>(quat, no_commut));
+/// assert!(
+///     !is_near::<f32>(
+///         mul::<f32, [f32; 4]>(quat, no_commut),
+///         mul::<f32, [f32; 4]>(no_commut, quat),
+///     )
+/// );
+/// ```
+pub fn are_nearly_mul_commutative<Num>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> bool
+where 
+    Num: Axis,
+{
+    // Got this result using my own math.
+    let x = left.j() * right.k() - left.k() * right.j();
+    let y = left.i() * right.k() - left.k() * right.i();
+    let z = left.j() * right.i() - left.i() * right.j();
+    let abs_squared = x * x + y * y + z * z;
+    abs_squared + abs_squared + abs_squared + abs_squared < Num::ERROR * Num::ERROR
 }
