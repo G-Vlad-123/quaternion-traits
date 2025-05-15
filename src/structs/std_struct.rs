@@ -20,7 +20,9 @@ ones to the [std](https://doc.rust-lang.org/std/index.html) ones.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Std<Num: Axis>(pub Num);
 
+/// A type alias for [`Std<f32>`](Std).
 pub type Std32 = Std<f32>;
+/// A type alias for [`Std<f64>`](Std).
 pub type Std64 = Std<f64>;
 
 #[allow(private_bounds)]

@@ -26,13 +26,37 @@ and [`QuaternionMethods`] traits.
 
 Reasoning: This struct exists just as a ease of use if you need
 a quaternion struct and do not want to make your own or get one from another crate.
+
+If the `std` feature is enabled the default is set to `Std<f32>`, otherwise it's set to `f32`
  */
 #[derive(Debug, Clone, Copy)]
+#[cfg(not(feature = "std"))]
 pub struct Quat<Num: Axis = f32, T = (Num, [Num; 3])> {
     /// The quaternion held by this struct.
     pub quat: T,
     _num: crate::core::marker::PhantomData<Num>,
 }
+#[cfg(feature = "std")]
+pub struct Quat<Num: Axis = crate::structs::Std<f32>, T = (Num, [Num; 3])> {
+    /// The quaternion held by this struct.
+    pub quat: T,
+    _num: crate::core::marker::PhantomData<Num>,
+}
+
+/// Type alias for [`Quat`] or [`Quat<f32>`].
+/// 
+/// If the `std` feature is enabled thn this uses [`Std<f32>`](crate::structs::Std) instead of [`f32`].
+#[cfg(not(feature = "std"))]
+pub type Quat32<T = (f32, [f32; 3])> = Quat<f32, T>;
+#[cfg(feature = "std")]
+pub type Quat32<T = (Std<f32>, [Std<f32>; 3])> = Quat<Std<f32>, T>;
+/// Type alias for [`Quat<f64>`].
+/// 
+/// If the `std` feature is enabled thn this uses [`Std<f64>`](crate::structs::Std) instead of [`f64`].
+#[cfg(not(feature = "std"))]
+pub type Quat64<T = (f64, [f64; 3])> = Quat<f64, T>;
+#[cfg(feature = "std")]
+pub type Quat64<T = (Std<f64>, [Std<f64>; 3])> = Quat<Std<f64>, T>;
 
 impl<Num: Axis, T> Quat<Num, T> {
     #[inline]
@@ -59,10 +83,10 @@ impl<Num: Axis, T> Quat<Num, T> {
 }
 
 impl<Num: Axis, T: Quaternion<Num>> Quaternion<Num> for Quat<Num, T> {
-    #[inline] fn r(&self) -> Num { self.quat.r() }
-    #[inline] fn i(&self) -> Num { self.quat.i() }
-    #[inline] fn j(&self) -> Num { self.quat.j() }
-    #[inline] fn k(&self) -> Num { self.quat.k() }
+    #[inline(always)] fn r(&self) -> Num { self.quat.r() }
+    #[inline(always)] fn i(&self) -> Num { self.quat.i() }
+    #[inline(always)] fn j(&self) -> Num { self.quat.j() }
+    #[inline(always)] fn k(&self) -> Num { self.quat.k() }
 }
 
 impl<Num: Axis, T: QuaternionConstructor<Num>> QuaternionConstructor<Num> for Quat<Num, T> {
@@ -80,8 +104,6 @@ impl<Num: Axis, T: QuaternionConsts<Num>> QuaternionConsts<Num> for Quat<Num, T>
     const UNIT_J: Self = Quat::new(T::UNIT_J);
     const UNIT_K: Self = Quat::new(T::UNIT_K);
 }
-
-impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for Quat<Num, T> { }
 
 impl<Num: Axis, T> crate::core::ops::Deref for Quat<Num, T> {
     type Target = T;
@@ -281,3 +303,5 @@ pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num)
 pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat<f64> {
     Quat::new((r.into(), [i.into(), j.into(), k.into()]))
 }
+
+impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for Quat<Num, T> { }
