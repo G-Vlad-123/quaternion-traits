@@ -472,27 +472,27 @@ pub use quat_methods::QuaternionMethods;
 // Quat impls
 
 impl<Num: Axis> Quaternion<Num> for () {
-    #[inline] fn r(&self) -> Num { Num::ZERO }
-    #[inline] fn i(&self) -> Num { Num::ZERO }
-    #[inline] fn j(&self) -> Num { Num::ZERO }
-    #[inline] fn k(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn r(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn i(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn j(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn k(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis> QuaternionConstructor<Num> for () {
-    #[inline] fn new_quat(_: Num, _: Num, _: Num, _: Num) { }
-    #[inline] fn from_quat(_: impl Quaternion<Num>) { }
+    #[inline(always)] fn new_quat(_: Num, _: Num, _: Num, _: Num) { }
+    #[inline(always)] fn from_quat(_: impl Quaternion<Num>) { }
 }
 
 impl<Num: Axis, T> Quaternion<Num> for [T; 0] {
-    #[inline] fn r(&self) -> Num { Num::ZERO }
-    #[inline] fn i(&self) -> Num { Num::ZERO }
-    #[inline] fn j(&self) -> Num { Num::ZERO }
-    #[inline] fn k(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn r(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn i(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn j(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn k(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> QuaternionConstructor<Num> for [T; 0] {
-    #[inline] fn new_quat(_: Num, _: Num, _: Num, _: Num) -> Self { [] }
-    #[inline] fn from_quat(_: impl Quaternion<Num>) -> Self { [] }
+    #[inline(always)] fn new_quat(_: Num, _: Num, _: Num, _: Num) -> Self { [] }
+    #[inline(always)] fn from_quat(_: impl Quaternion<Num>) -> Self { [] }
 }
 
 impl<Num: Axis, S, V> Quaternion<Num> for (S, V)
@@ -500,10 +500,10 @@ where
     S: Scalar<Num>,
     V: Vector<Num>,
 {
-    #[inline] fn r(&self) -> Num { self.0.scalar() }
-    #[inline] fn i(&self) -> Num { self.1.x()  }
-    #[inline] fn j(&self) -> Num { self.1.y() }
-    #[inline] fn k(&self) -> Num { self.1.z()  }
+    #[inline(always)] fn r(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn i(&self) -> Num { self.1.x()  }
+    #[inline(always)] fn j(&self) -> Num { self.1.y() }
+    #[inline(always)] fn k(&self) -> Num { self.1.z()  }
 }
 
 impl<Num: Axis, S, V> QuaternionConstructor<Num> for (S, V)
@@ -526,10 +526,10 @@ where
     J: Scalar<Num>,
     K: Scalar<Num>,
 {
-    #[inline] fn r(&self) -> Num { self.0.scalar() }
-    #[inline] fn i(&self) -> Num { self.1.scalar() }
-    #[inline] fn j(&self) -> Num { self.2.scalar() }
-    #[inline] fn k(&self) -> Num { self.3.scalar() }
+    #[inline(always)] fn r(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn i(&self) -> Num { self.1.scalar() }
+    #[inline(always)] fn j(&self) -> Num { self.2.scalar() }
+    #[inline(always)] fn k(&self) -> Num { self.3.scalar() }
 }
 
 impl<Num: Axis, R, I, J, K> QuaternionConstructor<Num> for (R, I, J, K)
@@ -552,10 +552,10 @@ where
 impl<Num: Axis, S> Quaternion<Num> for [S; 4]
 where S: Scalar<Num>
 {
-    #[inline] fn r(&self) -> Num { self[0].scalar() }
-    #[inline] fn i(&self) -> Num { self[1].scalar() }
-    #[inline] fn j(&self) -> Num { self[2].scalar() }
-    #[inline] fn k(&self) -> Num { self[3].scalar() }
+    #[inline(always)] fn r(&self) -> Num { self[0].scalar() }
+    #[inline(always)] fn i(&self) -> Num { self[1].scalar() }
+    #[inline(always)] fn j(&self) -> Num { self[2].scalar() }
+    #[inline(always)] fn k(&self) -> Num { self[3].scalar() }
 }
 
 impl<Num: Axis, S> QuaternionConstructor<Num> for [S; 4]
@@ -577,10 +577,10 @@ where
     J: Scalar<Num>,
     K: Scalar<Num>,
 {
-    #[inline] fn r(&self) -> Num { self.0.real() }
-    #[inline] fn i(&self) -> Num { self.0.imaginary() }
-    #[inline] fn j(&self) -> Num { self.1.scalar() }
-    #[inline] fn k(&self) -> Num { self.2.scalar() }
+    #[inline(always)] fn r(&self) -> Num { self.0.real() }
+    #[inline(always)] fn i(&self) -> Num { self.0.imaginary() }
+    #[inline(always)] fn j(&self) -> Num { self.1.scalar() }
+    #[inline(always)] fn k(&self) -> Num { self.2.scalar() }
 }
 
 impl<Num: Axis, C, J, K> QuaternionConstructor<Num> for (C, J, K)
@@ -601,10 +601,10 @@ where
 impl<Num: Axis, T> Quaternion<Num> for &T
 where T: Quaternion<Num>
 {
-    fn r(&self) -> Num { (*self).r() }
-    fn i(&self) -> Num { (*self).i() }
-    fn j(&self) -> Num { (*self).j() }
-    fn k(&self) -> Num { (*self).k() }
+    #[inline(always)] fn r(&self) -> Num { (*self).r() }
+    #[inline(always)] fn i(&self) -> Num { (*self).i() }
+    #[inline(always)] fn j(&self) -> Num { (*self).j() }
+    #[inline(always)] fn k(&self) -> Num { (*self).k() }
 }
 
 impl<Num: Axis> QuaternionMethods<Num> for () {}
@@ -667,7 +667,27 @@ impl<Num: Axis, S, V> QuaternionMethods<Num> for (S, V)
 where 
     S: Scalar<Num> + ScalarConstructor<Num>,
     V: Vector<Num> + VectorConstructor<Num>,
-{}
+{
+    #[inline]
+    fn vector_part(self) -> Self {
+        (S::new_scalar(Num::ZERO), self.1)
+    }
+
+    #[inline]
+    fn scalar_part(self) -> Self {
+        (self.0, V::new_vector(Num::ZERO, Num::ZERO, Num::ZERO))
+    }
+
+    #[inline]
+    fn from_vector<From: Vector<Num>>(vector: From) -> Self {
+        (S::new_scalar(Num::ZERO), V::from_vector(vector))
+    }
+
+    #[inline]
+    fn from_scalar<From: Scalar<Num>>(scalar: From) -> Self {
+        (S::from_scalar(scalar), V::new_vector(Num::ZERO, Num::ZERO, Num::ZERO))
+    }
+}
 impl<Num: Axis, S, V> QuaternionConsts<Num> for (S, V)
 where 
     S: ScalarConsts<Num>,
@@ -686,7 +706,17 @@ where
     C: Complex<Num> + ComplexConstructor<Num>,
     J: Scalar<Num> + ScalarConstructor<Num>,
     K: Scalar<Num> + ScalarConstructor<Num>,
-{}
+{
+    #[inline]
+    fn complex_part(self) -> Self {
+        (self.0, J::new_scalar(Num::ZERO), K::new_scalar(Num::ZERO))
+    }
+
+    #[inline]
+    fn from_complex<From: Complex<Num>>(complex: From) -> Self {
+        (C::from_complex(complex), J::new_scalar(Num::ZERO), K::new_scalar(Num::ZERO))
+    }
+}
 impl<Num: Axis, C, J, K> QuaternionConsts<Num> for (C, J, K)
 where 
     C: ComplexConsts<Num>,
@@ -704,11 +734,11 @@ where
 // Scalar impls
 
 impl<Num: Axis> Scalar<Num> for () {
-    #[inline] fn scalar(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn scalar(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> Scalar<Num> for [T; 0] {
-    #[inline] fn scalar(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn scalar(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> ScalarConsts<Num> for [T; 0] {
@@ -718,7 +748,7 @@ impl<Num: Axis, T> ScalarConsts<Num> for [T; 0] {
 }
 
 impl<Num: Axis> Scalar<Num> for Num {
-    #[inline] fn scalar(&self) -> Num { *self }
+    #[inline(always)] fn scalar(&self) -> Num { *self }
 }
 
 impl<Num: Axis> ScalarConsts<Num> for Num {
@@ -730,19 +760,19 @@ impl<Num: Axis> ScalarConsts<Num> for Num {
 impl<From: Axis, To: Axis> ScalarConstructor<From> for To
 where From: Scalar<To>
 {
-    #[inline] fn new_scalar( scalar: From ) -> To { scalar.scalar() }
+    #[inline(always)] fn new_scalar( scalar: From ) -> To { scalar.scalar() }
 }
 
 impl<Num: Axis, S> Scalar<Num> for (S, )
 where S: Scalar<Num>
 {
-    #[inline] fn scalar(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn scalar(&self) -> Num { self.0.scalar() }
 }
 
 impl<Num: Axis, S> ScalarConstructor<Num> for (S, )
 where S: ScalarConstructor<Num>
 {
-    #[inline] fn new_scalar( axis: Num ) -> (S, ) { (ScalarConstructor::new_scalar(axis), ) }
+    #[inline(always)] fn new_scalar( axis: Num ) -> (S, ) { (ScalarConstructor::new_scalar(axis), ) }
 }
 
 impl<Num: Axis, S> ScalarConsts<Num> for (S, )
@@ -756,13 +786,13 @@ where S: ScalarConsts<Num>
 impl<Num: Axis, S> Scalar<Num> for [S; 1]
 where S: Scalar<Num>
 {
-    #[inline] fn scalar(&self) -> Num { self[0].scalar() }
+    #[inline(always)] fn scalar(&self) -> Num { self[0].scalar() }
 }
 
 impl<Num: Axis, S> ScalarConstructor<Num> for [S; 1]
 where S: ScalarConstructor<Num>
 {
-    #[inline] fn new_scalar( axis: Num ) -> [S; 1] { [ScalarConstructor::new_scalar(axis)] }
+    #[inline(always)] fn new_scalar( axis: Num ) -> [S; 1] { [ScalarConstructor::new_scalar(axis)] }
 }
 
 impl<Num: Axis, S> ScalarConsts<Num> for [S; 1]
@@ -776,8 +806,8 @@ where S: ScalarConsts<Num>
 // Complex impls
 
 impl<Num: Axis> Complex<Num> for () {
-    #[inline] fn real(&self) -> Num { Num::ZERO }
-    #[inline] fn imaginary(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn real(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis> ComplexConsts<Num> for () {
@@ -788,8 +818,8 @@ impl<Num: Axis> ComplexConsts<Num> for () {
 }
 
 impl<Num: Axis, T> Complex<Num> for [T; 0] {
-    #[inline] fn real(&self) -> Num { Num::ZERO }
-    #[inline] fn imaginary(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn real(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> ComplexConsts<Num> for [T; 0] {
@@ -804,8 +834,8 @@ where
     R: Scalar<Num>,
     I: Scalar<Num>,
 {
-    #[inline] fn real(&self) -> Num { self.0.scalar() }
-    #[inline] fn imaginary(&self) -> Num { self.1.scalar() }
+    #[inline(always)] fn real(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn imaginary(&self) -> Num { self.1.scalar() }
 }
 
 impl<Num: Axis, R, I> ComplexConstructor<Num> for (R, I)
@@ -835,8 +865,8 @@ where
 impl<Num: Axis, S> Complex<Num> for [S; 2]
 where S: Scalar<Num>
 {
-    #[inline] fn real(&self) -> Num { self[0].scalar() }
-    #[inline] fn imaginary(&self) -> Num { self[1].scalar() }
+    #[inline(always)] fn real(&self) -> Num { self[0].scalar() }
+    #[inline(always)] fn imaginary(&self) -> Num { self[1].scalar() }
 }
 
 impl<Num: Axis, S> ComplexConstructor<Num> for [S; 2]
@@ -864,16 +894,16 @@ where
 impl<Num: Axis, T> Complex<Num> for &T
 where T: Complex<Num>
 {
-    fn real(&self) -> Num { (*self).real() }
-    fn imaginary(&self) -> Num { (*self).imaginary() }
+    #[inline(always)] fn real(&self) -> Num { (*self).real() }
+    #[inline(always)] fn imaginary(&self) -> Num { (*self).imaginary() }
 }
 
 // Vector impls
 
 impl<Num: Axis> Vector<Num> for () {
-    #[inline] fn x(&self) -> Num { Num::ZERO }
-    #[inline] fn y(&self) -> Num { Num::ZERO }
-    #[inline] fn z(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn x(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn y(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn z(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis> VectorConsts<Num> for () {
@@ -885,9 +915,9 @@ impl<Num: Axis> VectorConsts<Num> for () {
 }
 
 impl<Num: Axis, T> Vector<Num> for [T; 0] {
-    #[inline] fn x(&self) -> Num { Num::ZERO }
-    #[inline] fn y(&self) -> Num { Num::ZERO }
-    #[inline] fn z(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn x(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn y(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn z(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> VectorConsts<Num> for [T; 0] {
@@ -904,9 +934,9 @@ where
     Y: Scalar<Num>,
     Z: Scalar<Num>,
 {
-    #[inline] fn x(&self) -> Num { self.0.scalar() }
-    #[inline] fn y(&self) -> Num { self.1.scalar() }
-    #[inline] fn z(&self) -> Num { self.2.scalar() }
+    #[inline(always)] fn x(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn y(&self) -> Num { self.1.scalar() }
+    #[inline(always)] fn z(&self) -> Num { self.2.scalar() }
 }
 
 impl<Num: Axis, X, Y, Z> VectorConstructor<Num> for (X, Y, Z)
@@ -940,9 +970,9 @@ where
 impl<Num: Axis, S> Vector<Num> for [S; 3]
 where S: Scalar<Num>
 {
-    #[inline] fn x(&self) -> Num { self[0].scalar() }
-    #[inline] fn y(&self) -> Num { self[1].scalar() }
-    #[inline] fn z(&self) -> Num { self[2].scalar() }
+    #[inline(always)] fn x(&self) -> Num { self[0].scalar() }
+    #[inline(always)] fn y(&self) -> Num { self[1].scalar() }
+    #[inline(always)] fn z(&self) -> Num { self[2].scalar() }
 }
 
 impl<Num: Axis, S> VectorConstructor<Num> for [S; 3]
@@ -972,23 +1002,23 @@ where
 impl<Num: Axis, T> Vector<Num> for &T
 where T: Vector<Num>
 {
-    fn x(&self) -> Num { (*self).x() }
-    fn y(&self) -> Num { (*self).y() }
-    fn z(&self) -> Num { (*self).z() }
+    #[inline(always)] fn x(&self) -> Num { (*self).x() }
+    #[inline(always)] fn y(&self) -> Num { (*self).y() }
+    #[inline(always)] fn z(&self) -> Num { (*self).z() }
 }
 
 // Rotation impls
 
 impl<Num: Axis> Rotation<Num> for () {
-    #[inline] fn roll(&self) -> Num { Num::ZERO }
-    #[inline] fn pitch(&self) -> Num { Num::ZERO }
-    #[inline] fn yaw(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn roll(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn pitch(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn yaw(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, T> Rotation<Num> for [T; 0] {
-    #[inline] fn roll(&self) -> Num { Num::ZERO }
-    #[inline] fn pitch(&self) -> Num { Num::ZERO }
-    #[inline] fn yaw(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn roll(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn pitch(&self) -> Num { Num::ZERO }
+    #[inline(always)] fn yaw(&self) -> Num { Num::ZERO }
 }
 
 impl<Num: Axis, X, Y, Z> Rotation<Num> for (X, Y, Z)
@@ -997,9 +1027,9 @@ where
     Y: Scalar<Num>,
     Z: Scalar<Num>,
 {
-    #[inline] fn roll(&self) -> Num { self.0.scalar() }
-    #[inline] fn pitch(&self) -> Num { self.1.scalar() }
-    #[inline] fn yaw(&self) -> Num { self.2.scalar() }
+    #[inline(always)] fn roll(&self) -> Num { self.0.scalar() }
+    #[inline(always)] fn pitch(&self) -> Num { self.1.scalar() }
+    #[inline(always)] fn yaw(&self) -> Num { self.2.scalar() }
 }
 
 impl<Num: Axis, X, Y, Z> RotationConstructor<Num> for (X, Y, Z)
@@ -1020,9 +1050,9 @@ where
 impl<Num: Axis, S> Rotation<Num> for [S; 3]
 where S: Scalar<Num>
 {
-    #[inline] fn roll(&self) -> Num { self[0].scalar() }
-    #[inline] fn pitch(&self) -> Num { self[1].scalar() }
-    #[inline] fn yaw(&self) -> Num { self[2].scalar() }
+    #[inline(always)] fn roll(&self) -> Num { self[0].scalar() }
+    #[inline(always)] fn pitch(&self) -> Num { self[1].scalar() }
+    #[inline(always)] fn yaw(&self) -> Num { self[2].scalar() }
 }
 
 impl<Num: Axis, S> RotationConstructor<Num> for [S; 3]
@@ -1128,6 +1158,16 @@ macro_rules! ref_impls {
             fn pitch(&self) -> Num { (*(*self)).pitch() }
             fn yaw(&self) -> Num { (*(*self)).yaw() }
         }
+
+        impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
+        where T: Matrix<Elem, N> $($( + $trait )+)?
+        {
+            #[inline] fn get_unchecked( &self, row: usize, col: usize ) -> Elem { (*(*self)).get_unchecked(row, col) }
+
+            #[inline] fn get( &self, row: usize, col: usize ) -> Option<Elem> { (*(*self)).get(row, col) }
+
+            #[inline] fn to_array( &self ) -> [[Elem; N]; N] { (*(*self)).to_array() }
+        }
     };
     ( $ty:ty $(: $( $trait:ident ),+ )? ) => {
         #[cfg(feature = "alloc")]
@@ -1164,6 +1204,17 @@ macro_rules! ref_impls {
             fn roll(&self) -> Num { (*(*self)).roll() }
             fn pitch(&self) -> Num { (*(*self)).pitch() }
             fn yaw(&self) -> Num { (*(*self)).yaw() }
+        }
+
+        #[cfg(feature = "alloc")]
+        impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
+        where T: Matrix<Elem, N> $($( + $trait )+)?
+        {
+            #[inline] fn get_unchecked( &self, row: usize, col: usize ) -> Elem { (*(*self)).get_unchecked(row, col) }
+
+            #[inline] fn get( &self, row: usize, col: usize ) -> Option<Elem> { (*(*self)).get(row, col) }
+
+            #[inline] fn to_array( &self ) -> [[Elem; N]; N] { (*(*self)).to_array() }
         }
     };
 }

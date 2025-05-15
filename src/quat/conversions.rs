@@ -129,12 +129,9 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let cos_r: Num = Num::cos(rotation.roll() / (Num::ONE + Num::ONE));
-    let sin_r: Num = Num::sin(rotation.roll() / (Num::ONE + Num::ONE));
-    let cos_p: Num = Num::cos(rotation.pitch() / (Num::ONE + Num::ONE));
-    let sin_p: Num = Num::sin(rotation.pitch() / (Num::ONE + Num::ONE));
-    let cos_y: Num = Num::cos(rotation.yaw() / (Num::ONE + Num::ONE));
-    let sin_y: Num = Num::sin(rotation.yaw() / (Num::ONE + Num::ONE));
+    let (sin_r, cos_r) = Num::sin_cos(rotation.roll() / (Num::ONE + Num::ONE));
+    let (sin_p, cos_p) = Num::sin_cos(rotation.pitch() / (Num::ONE + Num::ONE));
+    let (sin_y, cos_y) = Num::sin_cos(rotation.yaw() / (Num::ONE + Num::ONE));
     QuaternionConstructor::new_quat(
         cos_r * cos_p * cos_y + sin_r * sin_p * sin_y,
         sin_r * cos_p * cos_y + cos_r * sin_p * sin_y,
@@ -690,5 +687,162 @@ where
             quaternion.j() * vec_inv_abs,
             quaternion.k() * vec_inv_abs,
         )
+    )
+}
+
+/// Gets the roll angle of a quaternion.
+/// 
+/// The reason why this is called `to_roll` instead of `get_roll`
+/// is for consistency with `from_roll` and `to_rotation`.
+/// 
+/// Equivalent to getting the roll value after a `to_rotation` call,
+/// this function is faster due to ignoring calculations for pitch and yaw.
+pub fn to_roll<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
+where 
+    Num: Axis,
+    Angle: ScalarConstructor<Num>,
+{
+    
+    let quat: Q<Num> = normalize(quaternion);
+
+    let two = Num::ONE + Num::ONE;
+    // here I misspelled 'pitch' but it's funny so I kept it
+    let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
+
+    if peach > Num::ONE - Num::ERROR {
+        return ScalarConstructor::new_scalar(
+            two * Num::atan2(quat.i(), quat.r())
+        )
+    }
+
+    if peach < Num::ERROR - Num::ONE {
+        return ScalarConstructor::new_scalar(
+            -two * Num::atan2(quat.i(), quat.r())
+        )
+    }
+
+    ScalarConstructor::new_scalar(
+            Num::atan2(
+            two * (quat.r() * quat.i() + quat.j() * quat.k()),
+            Num::ONE - two * ( quat.i() * quat.i() + quat.j() * quat.j())
+        )
+    )
+}
+
+/// Gets the pitch angle of a quaternion.
+/// 
+/// The reason why this is called `to_pitch` instead of `get_pitch`
+/// is for consistency with `from_pitch` and `to_rotation`.
+/// 
+/// Equivalent to getting the pitch value after a `to_rotation` call,
+/// this function is faster due to ignoring calculations for roll and yaw.
+pub fn to_pitch<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
+where 
+    Num: Axis,
+    Angle: ScalarConstructor<Num>,
+{
+    
+    let quat: Q<Num> = normalize(quaternion);
+
+    let two = Num::ONE + Num::ONE;
+    // here I misspelled 'pitch' but it's funny so I kept it
+    let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
+
+    if peach > Num::ONE - Num::ERROR {
+        return ScalarConstructor::new_scalar(
+            Num::TAU / (two + two),
+        )
+    }
+
+    if peach < Num::ERROR - Num::ONE {
+        return ScalarConstructor::new_scalar(
+            -Num::TAU / (two + two),
+        )
+    }
+
+    ScalarConstructor::new_scalar(peach.asin())
+}
+
+/// Gets the yaw angle of a quaternion.
+/// 
+/// The reason why this is called `to_yaw` instead of `get_yaw`
+/// is for consistency with `from_yaw` and `to_rotation`.
+/// 
+/// Equivalent to getting the yaw value after a `to_rotation` call,
+/// this function is faster due to ignoring calculations for roll and pitch.
+pub fn to_yaw<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
+where 
+    Num: Axis,
+    Angle: ScalarConstructor<Num>,
+{
+    
+    let quat: Q<Num> = normalize(quaternion);
+
+    let two = Num::ONE + Num::ONE;
+    // here I misspelled 'pitch' but it's funny so I kept it
+    let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
+
+    if peach > Num::ONE - Num::ERROR
+    || peach < Num::ERROR - Num::ONE
+    {
+        return ScalarConstructor::new_scalar(Num::ZERO);
+    }
+
+    ScalarConstructor::new_scalar(
+        Num::atan2(
+            two * (quat.r() * quat.k() + quat.i() * quat.j()),
+            Num::ONE - two * ( quat.j() * quat.j() + quat.k() * quat.k() )
+        )
+    )
+}
+
+/// Constructs a quaternion from a roll angle.
+/// 
+/// Equivalent to [`from_rotation`], but cheaper.
+pub fn from_roll<Num, Out>(roll: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let (sin, cos) = Num::sin_cos(roll.scalar() / (Num::ONE + Num::ONE));
+    QuaternionConstructor::new_quat(
+        sin,
+        cos,
+        Num::ZERO,
+        Num::ZERO,
+    )
+}
+
+/// Constructs a quaternion from a pitch angle.
+/// 
+/// Equivalent to [`from_rotation`], but cheaper.
+pub fn from_pitch<Num, Out>(pitch: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let (sin, cos) = Num::sin_cos(pitch.scalar() / (Num::ONE + Num::ONE));
+    QuaternionConstructor::new_quat(
+        sin,
+        Num::ZERO,
+        cos,
+        Num::ZERO,
+    )
+}
+
+/// Constructs a quaternion from a yaw angle.
+/// 
+/// Equivalent to [`from_rotation`], but cheaper.
+pub fn from_yaw<Num, Out>(yaw: impl Scalar<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let (sin, cos) = Num::sin_cos(yaw.scalar() / (Num::ONE + Num::ONE));
+    QuaternionConstructor::new_quat(
+        sin,
+        Num::ZERO,
+        Num::ZERO,
+        cos,
     )
 }

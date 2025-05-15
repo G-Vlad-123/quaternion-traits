@@ -11,4 +11,4 @@ mod std_struct;
 pub use std_struct::*;
 
 mod quaternion_formatter;
-pub use quaternion_formatter::QuaternionFormat;
+pub use quaternion_formatter::*;
