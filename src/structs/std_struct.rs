@@ -101,6 +101,14 @@ macro_rules! impl_scalar_for_std {
                 Std(-self.0)
             }
         }
+    
+        impl crate::core::str::FromStr for Std<$for> {
+            type Err = <$for as crate::core::str::FromStr>::Err;
+
+            #[inline] fn from_str(s: &str) -> crate::core::result::Result<Self, Self::Err> {
+                crate::core::result::Result::Ok(Std(<$for as crate::core::str::FromStr>::from_str(s)?))
+            }
+        }
 
         impl Scalar<Std<$for>> for f32 {
             #[inline]fn scalar( &self ) -> Std<$for> {
