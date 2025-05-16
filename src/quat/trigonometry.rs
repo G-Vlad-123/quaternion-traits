@@ -27,7 +27,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, Q<Num>>(quaternion);
-    unscale(&sub::<Num, Q<Num>>(&exp, &inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
+    unscale(sub::<Num, Q<Num>>(&exp, inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]

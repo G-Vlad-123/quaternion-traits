@@ -46,10 +46,12 @@ This crate provides currently an unstable form of these functions:
   or it's found that quaternion logs can not have a formula for whatever reason)
 
 List of features:
+- `std`: (enabled by default) Adds `alloc` feature, adds [Std](struct::Std) struct.
+- `alloc`: (enabled by default) Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
+Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
 - `unstable`: Enables items that may change functionality or may be removed entirely.
-- `std`: Adds `alloc` feature, adds [Std](struct::Std) struct.
-- `alloc`: Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
-Box, Arc, Rc and Cow.
+
+List of dependency features:
 - `num-traits`: (If `unstable` is enabled) adds [Pow](https://docs.rs/num-traits/latest/num_traits/pow/trait.Pow.html) to [Quat],
 (if `std` is enabled) adds [Float](https://docs.rs/num-traits/latest/num_traits/float/trait.Float.html)
 and all the required traits to the [Std](struct::Std) struct.
@@ -87,6 +89,7 @@ extern crate num_complex;
 
 extern crate core;
 extern crate libm;
+extern crate thiserror as err;
 
 pub mod traits;
 pub use traits::{
@@ -110,10 +113,14 @@ use traits::{
     Scalar,
     ScalarConstructor,
     ScalarConsts,
-
+};
+#[cfg(feature = "rotation")]
+use traits::{
     Rotation,
     RotationConstructor,
-
+};
+#[cfg(feature = "matrix")]
+use traits::{
     Matrix,
     MatrixConstructor,
 };

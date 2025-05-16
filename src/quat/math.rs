@@ -40,6 +40,7 @@ where
 /// assert_eq!( result, [4.25, 2.0, 3.0, 4.0] );
 /// ```
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn add_scalar<Num, Out>(quaternion: impl Quaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
@@ -66,6 +67,7 @@ where
 /// assert_eq!( result, [4.5, 4.5, 3.0, 4.0] );
 /// ```
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn add_complex<Num, Out>(quaternion: impl Quaternion<Num>, complex: impl Complex<Num>) -> Out
 where 
@@ -92,6 +94,7 @@ where
 /// assert_eq!( result, [1.0, 5.0, 5.0, 5.0] );
 /// ```
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn add_vector<Num, Out>(quaternion: impl Quaternion<Num>, vector: impl Vector<Num>) -> Out
 where 
@@ -134,6 +137,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Subtracts a scalar value from a quaternion.
 /// 
@@ -160,6 +164,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Subtracts a complex number from a quaternion.
 /// 
@@ -186,6 +191,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Subtracts a vector from a quaternion.
 /// 
@@ -248,6 +254,7 @@ where
     )
 }
 
+#[cfg(feature = "qol_fns")]
 /// Multiplies a quaternion with a complex number.
 /// 
 /// # Example
@@ -276,6 +283,7 @@ where
     )
 }
 
+#[cfg(feature = "qol_fns")]
 /// Multiplies a quaternion with a vector.
 /// 
 /// # Example
@@ -331,6 +339,7 @@ where
 { mul(left, right) }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies a complex number with a quaternion.
 /// 
@@ -362,6 +371,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies a vector with a quaternion.
 /// 
@@ -563,6 +573,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Spherical liniar interpolation for unit quaternions.
 /// 
@@ -587,6 +598,7 @@ where
 /// quaternions, returning a unit quaternion.
 /// 
 /// The two quaternions must be unit quaternions (have an absolite value of [`Num::ONE`](Axis::ONE)).
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn slerp_unchecked<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>, at: impl Scalar<Num>) -> Out
 where 
@@ -643,7 +655,7 @@ where
     Num: Axis,
     Out: ScalarConstructor<Num>,
 {
-    abs(&sub::<Num, Q<Num>>(from, to))
+    abs(sub::<Num, Q<Num>>(from, to))
 }
 
 /// Calculates the cosine distance between two quaternions.
@@ -654,13 +666,14 @@ where
     Num: Axis,
     Out: ScalarConstructor<Num>,
 {
-    Out::new_scalar(Num::ONE - angle_between_cos(from, to))
+    Out::new_scalar(Num::ONE - dot::<Num, Num>(&from, &to) / (abs_squared::<Num, Num>(from) * abs_squared(to)).sqrt())
 }
 
 /// Calculates the angle between two quaternions.
 /// 
 /// This does NOT use the [`angle`] function, and the two give diferent results.
 #[inline]
+#[cfg(feature = "rotation")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn angle_between<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
 where 
@@ -674,6 +687,7 @@ where
 /// 
 /// This does NOT use the [`angle`] function, and the two give diferent results.
 #[inline]
+#[cfg(feature = "rotation")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn angle_between_cos<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
 where 
@@ -796,6 +810,7 @@ where
 /// 
 /// assert_eq!( abs_small::<f32, f32>(smol), 1e-30 );
 /// ```
+#[cfg(feature = "math_fns")]
 pub fn abs_small<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -896,6 +911,7 @@ where
     )
 }
 
+#[cfg(any(feature = "math_fns", feature = "trigonometry"))]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the natural logarithm of a quaternion.
 /// 
@@ -926,6 +942,7 @@ where
     )
 }
 
+#[cfg(any(feature = "math_fns", feature = "trigonometry"))]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises the number e to a quaternion power.
 /// 
@@ -961,6 +978,7 @@ where
 
 #[inline]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the logarithm of a quaternion with a quaternion base.
 /// 
@@ -982,6 +1000,7 @@ where
     div::<Num, Out>(&ln::<Num, Q<Num>>(num), &ln::<Num, Q<Num>>(base))
 }
 
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates the square root of a quaternion.
 /// 
@@ -1042,6 +1061,7 @@ where
 /// );
 /// ```
 #[inline]
+#[cfg(any(feature = "qol_fns",feature = "math_fns"))]
 pub fn square<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -1055,6 +1075,7 @@ where
     )
 }
 
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises a quaternion to an integer power.
 /// 
@@ -1080,6 +1101,7 @@ where
     if is_inverse { inv(&out) } else { Out::from_quat(out) }
 }
 
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises a quaternion to a positive integer power.
 /// 
@@ -1100,6 +1122,7 @@ where
     Out::from_quat(out)
 }
 
+#[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises a quaternion to a scalar power.
 /// 
@@ -1122,8 +1145,9 @@ where
     )
 }
 
-#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Raises a quaternion to a quaternion power.
 /// 
 /// Used this paper as a refrence:
@@ -1145,6 +1169,8 @@ where
     crate::quat::exp(&mul::<Num, Q<Num>>(&ln::<Num, Q<Num>>(base), &exp))
 }
 
+#[cfg(feature = "math_fns")]
+#[inline(always)]
 fn γ<Num: Axis>() -> Num {
     let γ_limit = {
         (Num::ONE + Num::ONE)
@@ -1161,10 +1187,12 @@ fn γ<Num: Axis>() -> Num {
     result
 }
 
+#[cfg(feature = "math_fns")]
 const LNGAMMA_REPEATS: u16 = 2000;
 /// Calculates the natural logarithm of the gamma function with a quaternion input.
 /// 
 /// Equivalent to `ln(gamma(q))` (assuming infinite precision + infinite loops).
+#[cfg(feature = "math_fns")]
 pub fn lngamma<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -1202,6 +1230,7 @@ where
 /// This function uses [`lngamma`] to calculate it's value,
 /// if you need the naturla logarigthm of the gamma function
 /// use that function directly.
+#[cfg(feature = "math_fns")]
 pub fn gamma<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -1268,6 +1297,7 @@ where
 ///     [5.0, 8.0, 9.0, 8.0]
 /// )
 /// ```
+#[cfg(feature = "math_fns")]
 pub fn hadamard<Num, Out>(left: impl Quaternion<Num>, right: impl Quaternion<Num>) -> Out
 where 
     Num: Axis,

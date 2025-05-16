@@ -33,6 +33,23 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Changes the inner type used by the quaternion.
+pub fn convert_num<Num, To, Out>(from: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    To: Axis + ScalarConstructor<Num>,
+    Out: QuaternionConstructor<To>,
+{
+    Out::new_quat(
+        ScalarConstructor::new_scalar(from.r()), 
+        ScalarConstructor::new_scalar(from.i()), 
+        ScalarConstructor::new_scalar(from.j()), 
+        ScalarConstructor::new_scalar(from.k()),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a quaternion from a vector representation.
 /// 
 /// # Example
@@ -111,6 +128,7 @@ where
 
 // TODO add is_near
 
+#[cfg(feature = "rotation")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a quaternion from a rotation.
 /// 
@@ -140,6 +158,7 @@ where
     )
 }
 
+#[cfg(feature = "math_fns")] 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates a quaternion using the given polar form.
 /// 
@@ -162,6 +181,7 @@ where
     ) )
 }
 
+#[cfg(feature = "math_fns")] 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Calculates a quaternion using the given polar form.
 /// 
@@ -228,6 +248,7 @@ where
 ///     None
 /// );
 /// ```
+#[cfg(feature = "matrix")]
 pub fn from_matrix_2<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Option<Out>
 where 
     Num: Axis,
@@ -283,6 +304,7 @@ where
 ///     [1.0, 2.0, 3.0, 4.0]
 /// );
 /// ```
+#[cfg(feature = "matrix")]
 pub fn from_matrix_2_unchecked<Num, Elem, Out>(matrix: impl Matrix<Elem, 2>) -> Out
 where 
     Num: Axis,
@@ -302,6 +324,7 @@ where
 /// Note: There are quite a few ways to turn a 3x3 matrix into
 /// a quaternion, this one uses 4 formulas and choses one based on
 /// the inputs, for the most general use case.
+#[cfg(feature = "matrix")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn from_matrix_3<Num, Elem, Out>(matrix: impl Matrix<Elem, 3>) -> Out
 where 
@@ -369,6 +392,7 @@ where
 /// [`from_matrix_3`] but with the first 3 rows and columbs
 /// of this matrix instead.
 #[inline]
+#[cfg(feature = "matrix")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn from_matrix_4<Num, Elem, Out>(matrix: impl Matrix<Elem, 4>) -> Out
 where 
@@ -456,6 +480,7 @@ where
     )
 }
 
+#[cfg(feature = "rotation")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a rotation representation from a quaternion.
 /// 
@@ -531,6 +556,7 @@ where
 /// )
 /// ```
 #[inline]
+#[cfg(feature = "matrix")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn to_matrix_2<Num, Complex, Matrix>(quaternion: impl Quaternion<Num>) -> Matrix
 where 
@@ -553,6 +579,7 @@ where
 }
 
 /// Turns this quaternion into a 3x3 Matrix. (DCM)
+#[cfg(feature = "matrix")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn to_matrix_3<Num, Elem, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
@@ -621,6 +648,7 @@ where
 /// )
 /// ```
 #[inline]
+#[cfg(feature = "matrix")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn to_matrix_4<Num, Elem, Out>(quaternion: impl Quaternion<Num>) -> Out
 where 
@@ -656,6 +684,7 @@ where
     ])
 }
 
+#[cfg(feature = "math_fns")] 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the polar form of a quaternion.
 /// 
@@ -697,6 +726,7 @@ where
 /// 
 /// Equivalent to getting the roll value after a `to_rotation` call,
 /// this function is faster due to ignoring calculations for pitch and yaw.
+#[cfg(feature = "rotation")]
 pub fn to_roll<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
 where 
     Num: Axis,
@@ -736,6 +766,7 @@ where
 /// 
 /// Equivalent to getting the pitch value after a `to_rotation` call,
 /// this function is faster due to ignoring calculations for roll and yaw.
+#[cfg(feature = "rotation")]
 pub fn to_pitch<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
 where 
     Num: Axis,
@@ -770,6 +801,7 @@ where
 /// 
 /// Equivalent to getting the yaw value after a `to_rotation` call,
 /// this function is faster due to ignoring calculations for roll and pitch.
+#[cfg(feature = "rotation")]
 pub fn to_yaw<Num, Angle>(quaternion: impl Quaternion<Num>) -> Angle
 where 
     Num: Axis,
@@ -799,6 +831,7 @@ where
 /// Constructs a quaternion from a roll angle.
 /// 
 /// Equivalent to [`from_rotation`], but cheaper.
+#[cfg(feature = "rotation")]
 pub fn from_roll<Num, Out>(roll: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
@@ -816,6 +849,7 @@ where
 /// Constructs a quaternion from a pitch angle.
 /// 
 /// Equivalent to [`from_rotation`], but cheaper.
+#[cfg(feature = "rotation")]
 pub fn from_pitch<Num, Out>(pitch: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
@@ -833,6 +867,7 @@ where
 /// Constructs a quaternion from a yaw angle.
 /// 
 /// Equivalent to [`from_rotation`], but cheaper.
+#[cfg(feature = "rotation")]
 pub fn from_yaw<Num, Out>(yaw: impl Scalar<Num>) -> Out
 where 
     Num: Axis,

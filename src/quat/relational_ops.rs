@@ -93,6 +93,7 @@ where
 }
 
 #[inline]
+#[cfg(any(feature = "qol_fns", feature = "rotation"))]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks to see if this quaternion is on a axis plane.
 /// 
@@ -105,8 +106,8 @@ where
 /// let yes_planar = [0.0, 3.14, 0.0, 2.71];
 /// let no_planar = [1.0, 2.0, 3.0, 0.0];
 /// 
-/// assert!( is_on_axis_plane::<f32>(&yes_planar) );
-/// assert!( !is_on_axis_plane::<f32>(&no_planar) );
+/// assert!( is_on_axis_plane::<f32>(yes_planar) );
+/// assert!( !is_on_axis_plane::<f32>(no_planar) );
 /// ```
 pub fn is_on_axis_plane<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
@@ -275,6 +276,7 @@ where
 }
 
 #[inline]
+#[cfg(any(feature = "qol_fns", feature = "rotation"))]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if a quaternion is a unit quaternion.
 /// 
@@ -288,6 +290,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if `eq(mul(q, p), mul(p, q))` returns `true`.
 /// 
@@ -362,6 +365,7 @@ where
 }
 
 #[inline]
+#[cfg(feature = "qol_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Checks if `ia_near(mul(q, p), mul(p, q))` returns `true`.
 /// 

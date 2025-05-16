@@ -387,6 +387,7 @@ impl Axis for Std<f32> {
     #[inline] fn atan2( self, other: Self ) -> Self { Std(std::primitive::f32::atan2(self.0, other.0)) }
     #[inline] fn exp( self ) -> Self { Std(std::primitive::f32::exp(self.0)) }
     #[inline] fn ln( self ) -> Self { Std(std::primitive::f32::ln(self.0)) }
+    #[inline] fn from_u8( uint: u8 ) -> Self { Std( uint as f32) }
 }
     
 impl Axis for Std<f64> {
@@ -411,4 +412,5 @@ impl Axis for Std<f64> {
     #[inline] fn atan2( self, other: Self ) -> Self { Std(std::primitive::f64::atan2(self.0, other.0)) }
     #[inline] fn exp( self ) -> Self { Std(std::primitive::f64::exp(self.0)) }
     #[inline] fn ln( self ) -> Self { Std(std::primitive::f64::ln(self.0)) }
+    #[inline] fn from_u8( uint: u8 ) -> Self { Std( uint as f64) }
 }

@@ -368,3 +368,15 @@ impl Not for QuaternionFormat {
         }
     }
 }
+
+use crate::err::Error;
+
+/// The error given by the [`from_str`](crate::quat::from_str) function.
+#[derive(Error, Debug, Clone, Copy)]
+pub enum QuaternionParseError<Num: crate::core::str::FromStr> {
+    /// Failed to parse a number.
+    Invalid(Num::Err),
+    /// Found unknown symbol [`char`] at the index [`usize`].
+    #[from((char, usize))]
+    UnknownSymbol(char, usize),
+}

@@ -62,7 +62,7 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Checks if a quaternion is on an axis plane.
     /// 
     /// Check [the is_on_axis_plane function](crate::quat::is_on_axis_plane) in the root for more info.
-    #[inline] fn is_on_axis_plane(self) -> bool { quat::is_on_axis_plane(self) }
+    #[cfg(any(feature = "qol_fns", feature = "rotation"))] #[inline] fn is_on_axis_plane(self) -> bool { quat::is_on_axis_plane(self) }
     /// Checks if two quaternion represent the same value.
     /// 
     /// Check [the eq function](crate::quat::eq) in the root for more info.
@@ -130,77 +130,81 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Gets the square root of a quaternion.
     /// 
     /// Check [the sqrt function](crate::quat::sqrt) in the root for more info.
-    #[inline] fn sqrt(self) -> Self { quat::sqrt(self) }
+    #[cfg(feature = "math_fns")] #[inline] fn sqrt(self) -> Self { quat::sqrt(self) }
+    /// Gets the square of a quaternion.
+    /// 
+    /// Check [the square function](crate::quat::square) in the root for more info.
+    #[cfg(any(feature = "qol_fns",feature = "math_fns"))]#[inline] fn square(self) -> Self { quat::square(self) }
     /// Raises a quaternion to an integer power.
     /// 
     /// Check [the pow_i function](crate::quat::pow_i) in the root for more info.
-    #[inline] fn pow_i(self, exp: i32) -> Self { quat::pow_i(self, exp) }
+    #[cfg(feature = "math_fns")] #[inline] fn pow_i(self, exp: i32) -> Self { quat::pow_i(self, exp) }
     /// Raises a quaternion to a positive integer power.
     /// 
     /// Check [the pow_u function](crate::quat::pow_u) in the root for more info.
-    #[inline] fn pow_u(self, exp: u32) -> Self { quat::pow_u(self, exp) }
+    #[cfg(feature = "math_fns")] #[inline] fn pow_u(self, exp: u32) -> Self { quat::pow_u(self, exp) }
     /// Raises a quaternion to a scalar power.
     /// 
     /// Check [the pow_f function](crate::quat::pow_f) in the root for more info.
-    #[inline] fn pow_f(self, exp: impl Scalar<Num>) -> Self { quat::pow_f(self, exp) }
+    #[cfg(feature = "math_fns")] #[inline] fn pow_f(self, exp: impl Scalar<Num>) -> Self { quat::pow_f(self, exp) }
     /// Raises a quaternion to a quaternion power.
     /// 
     /// Check [the pow_q function](crate::quat::pow_q) in the root for more info.
     #[cfg(feature = "unstable")]
+    #[cfg(feature = "math_fns")] 
     #[inline] fn pow_q(self, exp: impl Quaternion<Num>) -> Self { quat::pow_q(self, exp) }
     /// Raises the number e to a quaternion power.
     /// 
     /// Check [the exp function](crate::quat::exp) in the root for more info.
-    #[inline] fn exp(self) -> Self { quat::exp(self) }
+    #[cfg(any(feature = "math_fns", feature = "trigonometry"))] #[inline] fn exp(self) -> Self { quat::exp(self) }
     /// Gets the natural logarithm of a quaternion.
     /// 
     /// Check [the ln function](crate::quat::ln) in the root for more info.
-    #[inline] fn ln(self) -> Self { quat::ln(self) }
+    #[cfg(any(feature = "math_fns", feature = "trigonometry"))] #[inline] fn ln(self) -> Self { quat::ln(self) }
     /// Gets the logarithm of a quaternion.
     /// 
     /// Check [the log function](crate::quat::log) in the root for more info.
-    #[cfg(feature = "unstable")]
-    #[inline] fn log(self, base: impl Quaternion<Num>) -> Self { quat::log(self, base) }
+    #[cfg(feature = "unstable")] #[inline] fn log(self, base: impl Quaternion<Num>) -> Self { quat::log(self, base) }
     /// Gets the sinus of a quaternion.
-    #[inline] fn sin(self) -> Self { quat::sin(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn sin(self) -> Self { quat::sin(self) }
     /// Gets the hyperbolic sinus of a quaternion.
-    #[inline] fn sinh(self) -> Self { quat::sinh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn sinh(self) -> Self { quat::sinh(self) }
     /// Gets the secant of a quaternion.
-    #[inline] fn sec(self) -> Self { quat::sec(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn sec(self) -> Self { quat::sec(self) }
     /// Gets the cosinus of a quaternion.
-    #[inline] fn cos(self) -> Self { quat::cos(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn cos(self) -> Self { quat::cos(self) }
     /// Gets the hyperbolic cosinus of a quaternion.
-    #[inline] fn cosh(self) -> Self { quat::cosh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn cosh(self) -> Self { quat::cosh(self) }
     /// Gets the cosecant of a quaternion.
-    #[inline] fn csc(self) -> Self { quat::csc(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn csc(self) -> Self { quat::csc(self) }
     /// Gets the tangent of a quaternion.
-    #[inline] fn tan(self) -> Self { quat::tan(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn tan(self) -> Self { quat::tan(self) }
     /// Gets the hyperbolic tangent of a quaternion.
-    #[inline] fn tanh(self) -> Self { quat::tanh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn tanh(self) -> Self { quat::tanh(self) }
     /// Gets the tangent of a quaternion.
-    #[inline] fn cot(self) -> Self { quat::cot(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn cot(self) -> Self { quat::cot(self) }
     /// Gets the hyperbolic tangent of a quaternion.
-    #[inline] fn coth(self) -> Self { quat::coth(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn coth(self) -> Self { quat::coth(self) }
     /// Gets the arcsinus of a quaternion.
-    #[inline] fn asin(self) -> Self { quat::asin(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn asin(self) -> Self { quat::asin(self) }
     /// Gets the inverse hyperbolic sinus of a quaternion.
-    #[inline] fn asinh(self) -> Self { quat::asinh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn asinh(self) -> Self { quat::asinh(self) }
     /// Gets the arcsecant of a quaternion.
-    #[inline] fn asec(self) -> Self { quat::asec(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn asec(self) -> Self { quat::asec(self) }
     /// Gets the arccosinus of a quaternion.
-    #[inline] fn acos(self) -> Self { quat::acos(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn acos(self) -> Self { quat::acos(self) }
     /// Gets the inverse hyperbolic cosinus of a quaternion.
-    #[inline] fn acosh(self) -> Self { quat::acosh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn acosh(self) -> Self { quat::acosh(self) }
     /// Gets the arccosecant of a quaternion.
-    #[inline] fn acsc(self) -> Self { quat::acsc(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn acsc(self) -> Self { quat::acsc(self) }
     /// Gets the arctangent of a quaternion.
-    #[inline] fn atan(self) -> Self { quat::atan(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn atan(self) -> Self { quat::atan(self) }
     /// Gets the inverse hyperbolic tangent of a quaternion.
-    #[inline] fn atanh(self) -> Self { quat::atanh(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn atanh(self) -> Self { quat::atanh(self) }
     /// Gets the arctangent of a quaternion.
-    #[inline] fn acot(self) -> Self { quat::acot(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn acot(self) -> Self { quat::acot(self) }
     /// Gets the inverse hyperbolic tangent of a quaternion.
-    #[inline] fn acoth(self) -> Self { quat::acoth(self) }
+    #[cfg(feature = "trigonometry")] #[inline] fn acoth(self) -> Self { quat::acoth(self) }
     /// Gets the vector part of a quaternion.
     /// 
     /// Check [the vector_part function](crate::quat::vector_part) in the root for more info.
@@ -228,57 +232,57 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Turns a quaternion representation into a rotation.
     /// 
     /// Check [the to_rotation function](crate::quat::to_rotation) in the root for more info.
-    #[inline] fn to_rotation<R: RotationConstructor<Num>>(self) -> R { quat::to_rotation(self) }
+    #[cfg(feature = "rotation")] #[inline] fn to_rotation<R: RotationConstructor<Num>>(self) -> R { quat::to_rotation(self) }
     /// Gets the polar form of a quaternion.
     /// 
     /// Check [the to_polar_form function](crate::quat::to_polar_form) in the root for more info.
-    #[inline] fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
+    #[cfg(feature = "math_fns")] #[inline] fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
     where 
         Abs: ScalarConstructor<Num>,
         Angle: ScalarConstructor<Num>,
         UnitVec: VectorConstructor<Num>,
     { quat::to_polar_form(self) }
     /// Turns a quaternion representation into a 2x2 complex matrix.
-    #[inline] fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M { quat::to_matrix_2(self) }
+    #[cfg(feature = "matrix")] #[inline] fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M { quat::to_matrix_2(self) }
     /// Turns a quaternion representation into a 3x3 matrix (DCM).
-    #[inline] fn to_matrix_3<M: MatrixConstructor<Num, 3>>(self) -> M { quat::to_matrix_3(self) }
+    #[cfg(feature = "matrix")] #[inline] fn to_matrix_3<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 3>>(self) -> M { quat::to_matrix_3(self) }
     /// Turns a quaternion representation into a 4x4 matrix.
-    #[inline] fn to_matrix_4<M: MatrixConstructor<Num, 4>>(self) -> M { quat::to_matrix_4(self) }
+    #[cfg(feature = "matrix")] #[inline] fn to_matrix_4<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 4>>(self) -> M { quat::to_matrix_4(self) }
     /// Constructs a quaternion representation from a vector.
     /// 
     /// Check [the from_vector function](crate::quat::from_vector) in the root for more info.
-    #[inline] fn from_vector<V: Vector<Num>>(vector: V) -> Self { quat::from_vector(vector) }
+    #[inline] fn from_vector(vector: impl Vector<Num>) -> Self { quat::from_vector(vector) }
     /// Constructs a quaternion representation from a complex number.
     /// 
     /// Check [the from_complex function](crate::quat::from_complex) in the root for more info.
-    #[inline] fn from_complex<C: Complex<Num>>(complex: C) -> Self { quat::from_complex(complex) }
+    #[inline] fn from_complex(complex: impl Complex<Num>) -> Self { quat::from_complex(complex) }
     /// Constructs a quaternion representation from a scalar value.
     /// 
     /// Check [the from_scalar function](crate::quat::from_scalar) in the root for more info.
-    #[inline] fn from_scalar<S: Scalar<Num>>(scalar: S) -> Self { quat::from_scalar(scalar) }
+    #[inline] fn from_scalar(scalar: impl Scalar<Num>) -> Self { quat::from_scalar(scalar) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_rotation function](crate::quat::from_rotation) in the root for more info.
-    #[inline] fn from_rotation<R: Rotation<Num>>(rotation: R) -> Self { quat::from_rotation(rotation) }
+    #[cfg(feature = "rotation")] #[inline] fn from_rotation(rotation: impl Rotation<Num>) -> Self { quat::from_rotation(rotation) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_polar_form function](crate::quat::from_polar_form) in the root for more info.
-    #[inline] fn from_polar_form<Abs, Angle, UnitVec>(abs: Abs, angle: Angle, unit_vec: UnitVec) -> Option<Self>
-    where 
-        Abs: Scalar<Num>,
-        Angle: Scalar<Num>,
-        UnitVec: Vector<Num>,
+    #[cfg(feature = "math_fns")] #[inline] fn from_polar_form(
+        abs: impl Scalar<Num>,
+        angle: impl Scalar<Num>,
+        unit_vec: impl Vector<Num>,
+    ) -> Option<Self>
     { quat::from_polar_form(abs, angle, unit_vec) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_matrix_2 function](crate::quat::from_matrix_2) in the root for more info.
-    #[inline] fn from_matrix_2<M: Matrix<Elem, 2>, Elem: Complex<Num>>(matrix: M) -> Option<Self> { quat::from_matrix_2(matrix) }
+    #[cfg(feature = "matrix")] #[inline] fn from_matrix_2<Elem: Complex<Num>>(matrix: impl Matrix<Elem, 2>) -> Option<Self> { quat::from_matrix_2(matrix) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_matrix_3 function](crate::quat::from_matrix_3) in the root for more info.
-    #[inline] fn from_matrix_3<M: Matrix<Elem, 3>, Elem: Scalar<Num>>(matrix: M) -> Self { quat::from_matrix_3(matrix) }
+    #[cfg(feature = "matrix")] #[inline] fn from_matrix_3<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 3>) -> Self { quat::from_matrix_3(matrix) }
     /// Constructs a unit quaternion representation from a rotation.
     /// 
     /// Check [the from_matrix_4 function](crate::quat::from_matrix_4) in the root for more info.
-    #[inline] fn from_matrix_4<M: Matrix<Elem, 4>, Elem: Scalar<Num>>(matrix: M) -> Self { quat::from_matrix_4::<Num, Elem, Self>(matrix) }
+    #[cfg(feature = "matrix")] #[inline] fn from_matrix_4<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 4>) -> Self { quat::from_matrix_4::<Num, Elem, Self>(matrix) }
 }

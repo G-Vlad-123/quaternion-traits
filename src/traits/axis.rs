@@ -124,6 +124,14 @@ pub trait Axis: Sized
         if self < other { self }
         else { other }
     }
+    /// Turns a [`u8`] into `Self`
+    fn from_u8( uint: u8 ) -> Self {
+        let mut out: Self = Self::ZERO;
+        for _ in 0..uint {
+            out = out + Self::ONE;
+        }
+        out
+    }
 }
 
 impl Axis for f32 {
@@ -171,6 +179,9 @@ impl Axis for f32 {
     
     #[inline(always)]
     fn atan2( self, bottom: Self ) -> Self { libm::atan2f(self, bottom) }
+
+    #[inline(always)]
+    fn from_u8( uint: u8 ) -> Self { uint as Self }
 }
 
 impl Axis for f64 {
@@ -218,4 +229,7 @@ impl Axis for f64 {
     
     #[inline(always)]
     fn atan2( self, bottom: Self ) -> Self { libm::atan2(self, bottom) }
+
+    #[inline(always)]
+    fn from_u8( uint: u8 ) -> Self { uint as Self }
 }

@@ -5,6 +5,8 @@ use crate::QuaternionConsts;
 use crate::QuaternionConstructor;
 use crate::QuaternionMethods;
 use crate::quat;
+#[cfg(feature = "std")]
+use crate::structs::Std;
 
 use crate::core::ops::{
     Add, AddAssign,
@@ -30,12 +32,30 @@ a quaternion struct and do not want to make your own or get one from another cra
 If the `std` feature is enabled the default is set to `Std<f32>`, otherwise it's set to `f32`
  */
 #[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 #[cfg(not(feature = "std"))]
 pub struct Quat<Num: Axis = f32, T = (Num, [Num; 3])> {
     /// The quaternion held by this struct.
     pub quat: T,
     _num: crate::core::marker::PhantomData<Num>,
 }
+/**
+The struct representation of the [`Quaternion`] trait.
+
+Try not to use this quaternion struct if:
+- If you don't mind using the a tuple or an array.
+- You don't plan on using any operators like `+` or `*` and just functions/traits.
+- You already have a quaternion type that implements the
+[`Quaternion`], [`QuaternionConstructor`], [`QuaternionConsts`]
+and [`QuaternionMethods`] traits.
+
+Reasoning: This struct exists just as a ease of use if you need
+a quaternion struct and do not want to make your own or get one from another crate.
+
+If the `std` feature is enabled the default is set to `Std<f32>`, otherwise it's set to `f32`
+ */
+#[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 #[cfg(feature = "std")]
 pub struct Quat<Num: Axis = crate::structs::Std<f32>, T = (Num, [Num; 3])> {
     /// The quaternion held by this struct.
@@ -48,6 +68,9 @@ pub struct Quat<Num: Axis = crate::structs::Std<f32>, T = (Num, [Num; 3])> {
 /// If the `std` feature is enabled thn this uses [`Std<f32>`](crate::structs::Std) instead of [`f32`].
 #[cfg(not(feature = "std"))]
 pub type Quat32<T = (f32, [f32; 3])> = Quat<f32, T>;
+/// Type alias for [`Quat`] or [`Quat<f32>`].
+/// 
+/// If the `std` feature is enabled thn this uses [`Std<f32>`](crate::structs::Std) instead of [`f32`].
 #[cfg(feature = "std")]
 pub type Quat32<T = (Std<f32>, [Std<f32>; 3])> = Quat<Std<f32>, T>;
 /// Type alias for [`Quat<f64>`].
@@ -55,6 +78,9 @@ pub type Quat32<T = (Std<f32>, [Std<f32>; 3])> = Quat<Std<f32>, T>;
 /// If the `std` feature is enabled thn this uses [`Std<f64>`](crate::structs::Std) instead of [`f64`].
 #[cfg(not(feature = "std"))]
 pub type Quat64<T = (f64, [f64; 3])> = Quat<f64, T>;
+/// Type alias for [`Quat<f64>`].
+/// 
+/// If the `std` feature is enabled thn this uses [`Std<f64>`](crate::structs::Std) instead of [`f64`].
 #[cfg(feature = "std")]
 pub type Quat64<T = (Std<f64>, [Std<f64>; 3])> = Quat<Std<f64>, T>;
 
@@ -74,11 +100,23 @@ impl<Num: Axis, T> Quat<Num, T> {
     }
 
     #[inline]
+    /// Gets a refrence to the wrapped value.
+    pub fn get_ref(&self) -> &T {
+        &self.quat
+    }
+
+    #[inline]
+    /// Gets a mutable refrence to the wrapped value.
+    pub fn get_mut(&mut self) -> &mut T {
+        &mut self.quat
+    }
+
+    #[inline]
     /// Gets a cloned version of the wrapped value.
     pub fn get_cloned(&self) -> T
     where T: crate::core::clone::Clone
     {
-        <Self as crate::core::clone::Clone>::clone(self).quat
+        self.quat.clone()
     }
 }
 
@@ -119,6 +157,7 @@ impl<Num: Axis, T: crate::core::default::Default> crate::core::default::Default 
     }
 }
 
+#[cfg(feature = "display")] 
 impl<Num: Axis + crate::core::fmt::Display, T: Quaternion<Num>> crate::core::fmt::Display for Quat<Num, T> {
     #[inline] fn fmt(&self, f: &mut crate::core::fmt::Formatter<'_>) -> crate::core::fmt::Result {
         quat::display(f, self, crate::structs::QuaternionFormat::DEFAULT)
@@ -258,6 +297,15 @@ impl_basic_ops_for_quat!{
     using = div;
 }
 
+#[cfg(feature = "display")] 
+impl<Num: Axis + crate::core::str::FromStr, T: QuaternionConstructor<Num>> crate::core::str::FromStr for Quat<Num, T> {
+    type Err = crate::structs::QuaternionParseError<Num>;
+
+    fn from_str(s: &str) -> crate::core::result::Result<Self, Self::Err> {
+        quat::from_str(s)
+    }
+}
+
 #[cfg(feature = "num-traits")]
 #[cfg(feature = "unstable")]
 use crate::num_traits::pow::Pow;
@@ -294,14 +342,238 @@ pub const fn q<Num: Axis>(r: Num, i: Num, j: Num, k: Num) -> Quat<Num> {
     Quat::new((r, [i, j, k]))
 }
 
+trait Take<To> {
+    fn take(self) -> To;
+}
+impl Take<f32> for f32 { fn take(self) -> f32 { self } }
+#[cfg(feature = "std")] impl Take<Std<f32>> for f32 { fn take(self) -> Std<f32> { Std(self) } }
+impl Take<f64> for f64 { fn take(self) -> f64 { self } }
+#[cfg(feature = "std")] impl Take<Std<f64>> for f64 { fn take(self) -> Std<f64> { Std(self) } }
+
 /// Constructs a [`Quat`] with `Num = f32` and `T = (f32, [f32; 3])`.
-pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num) -> Quat<f32> {
-    Quat::new((r.into(), [i.into(), j.into(), k.into()]))
+/// 
+/// Or uses [`Std<f32>`] instead of [`f32`] if the feature `std` is enabled.
+pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num) -> Quat32 {
+    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
 }
 
 /// Constructs a [`Quat`] with `Num = f64` and `T = (f64, [f64; 3])`.
-pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat<f64> {
-    Quat::new((r.into(), [i.into(), j.into(), k.into()]))
+/// 
+/// Or uses [`Std<f64>`] instead of [`f64`] if the feature `std` is enabled.
+pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat64 {
+    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
 }
 
-impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for Quat<Num, T> { }
+mod quat_struct_methods_impl {
+    #[allow(unused_imports)]
+    use crate::core::option::Option;
+    use super::Quat;
+    use crate::*;
+
+    macro_rules! impl_method_on_quaternion_methods {
+        (
+            $(
+                $( #[$($attrib:meta),+] )?
+                fn $func:ident // function name
+                $( < $( $generic:ident $( : $trait:ty $( | $extra:ty )* )? ),+ > )? // generics
+                ( self $ ( , $( $param:ident : $type:ty ),* $(,)? )? ) // parameters
+                -> Self // return type
+                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
+            );+
+            $(;)?
+        ) => {
+            $(
+                #[inline]
+                $( $(#[$attrib])+ )?
+                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
+                ( self, $( $($param: $type),* )? )
+                -> Self
+                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
+                { Quat::new( <T as QuaternionMethods<Num>>::$func( self.quat, $( $($param, )* )? ) ) }
+            )+
+        };
+
+        (
+            $(
+                $( #[$($attrib:meta),+] )?
+                fn $func:ident // function name
+                $( < $( $generic:ident $( : $trait:ident $( < $( $trait_extra:ident ),+ > )? $( | $extra:ident )* )? ),+ > )? // generics
+                ( self $ ( , $( $param:ident : $type:ty ),* $(,)? )? ) // parameters
+                -> $return:ty // return type
+                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
+            );+
+            $(;)?
+        ) => {
+            $(
+                #[inline]
+                $( $(#[$attrib])+ )?
+                fn $func $(<$($generic$(: $trait$(<$( $trait_extra, )+ > )? $(+ $extra)*)?)+>)?
+                ( self, $( $($param: $type),* )? )
+                -> $return
+                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
+                { <T as QuaternionMethods<Num>>::$func( self.quat, $( $($param, )* )? ) }
+            )+
+        };
+
+        (
+            $(
+                $( #[$($attrib:meta),+] )?
+                fn $func:ident // function name
+                $( < $( $generic:ident $( : $trait:ident $( | $extra:ident )* )? ),+ > )? // generics
+                ( $( $param:ident : $type:ty ),* $(,)? ) // parameters
+                -> Self // return type
+                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
+            );+
+            $(;)?
+        ) => {
+            $(
+                #[inline]
+                $( $(#[$attrib])+ )?
+                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
+                ( $($param: $type),* )
+                -> Self
+                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
+                { Quat::new( <T as QuaternionMethods<Num>>::$func( $($param, )* ) ) }
+            )+
+        };
+
+        (
+            $(
+                fn $func:ident // function name
+                $( < $( $generic:ident $( : $trait:ident $( | $extra:ident )* )? ),+ > )? // generics
+                ( $( $param:ident : $type:ty ),* $(,)? ) // parameters
+                -> Option<Self> // return type
+                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
+            );+
+            $(;)?
+        ) => {
+            $(
+                #[inline]
+                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
+                ( $($param: $type),* )
+                -> Option<Self>
+                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
+                { Option::Some(Quat::new( <T as QuaternionMethods<Num>>::$func( $($param, )* )? )) }
+            )+
+        };
+    }
+
+    impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for Quat<Num, T> {
+        // isntead of `+` use `|`
+        impl_method_on_quaternion_methods!{
+            fn add(self, other: impl Quaternion<Num>) -> Self;
+            fn sub(self, other: impl Quaternion<Num>) -> Self;
+            fn mul(self, other: impl Quaternion<Num>) -> Self;
+            fn mul_reversed(self, other: impl Quaternion<Num>) -> Self;
+            fn div(self, other: impl Quaternion<Num>) -> Self;
+            fn div_reversed(self, other: impl Quaternion<Num>) -> Self;
+
+            fn neg(self) -> Self;
+            fn conj(self) -> Self;
+            fn inv(self) -> Self;
+            fn norm(self) -> Self;
+            #[cfg(feature = "math_fns")] fn sqrt(self) -> Self;
+            #[cfg(any(feature = "math_fns", feature = "qol_fns"))] fn square(self) -> Self;
+            #[cfg(feature = "math_fns")] fn exp(self) -> Self;
+            #[cfg(feature = "math_fns")] fn ln(self) -> Self;
+            #[cfg(feature = "unstable")] fn log(self, base: impl Quaternion<Num>) -> Self;
+            #[cfg(feature = "trigonometry")] fn sin(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn sinh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn sec(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn cos(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn cosh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn csc(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn tan(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn tanh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn cot(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn coth(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn asin(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn asinh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn asec(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn acos(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn acosh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn acsc(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn atan(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn atanh(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn acot(self) -> Self;
+            #[cfg(feature = "trigonometry")] fn acoth(self) -> Self;
+
+            fn scale(self, scalar: impl Scalar<Num>) -> Self;
+            fn unscale(self, scalar: impl Scalar<Num>) -> Self;
+
+            #[cfg(feature = "math_fns")] fn pow_i(self, exp: i32) -> Self;
+            #[cfg(feature = "math_fns")] fn pow_u(self, exp: u32) -> Self;
+            #[cfg(feature = "math_fns")] fn pow_f(self, exp: impl Scalar<Num>) -> Self;
+            #[cfg(feature = "unstable"), cfg(feature = "math_fns")]
+            fn pow_q(self, exp: impl Quaternion<Num>) -> Self;
+
+            fn vector_part(self) -> Self;
+            fn complex_part(self) -> Self;
+            fn scalar_part(self) -> Self;
+        }
+
+        impl_method_on_quaternion_methods!{
+            fn eq(self, other: impl Quaternion<Num>) -> bool;
+
+            fn abs(self) -> Num;
+            fn abs_squared(self) -> Num;
+            fn angle(self) -> Num;
+            fn angle_cos(self) -> Num;
+            fn dot(self, other: impl Quaternion<Num>) -> Num;
+
+            fn is_scalar(self) -> bool;
+            fn is_vector(self) -> bool;
+            fn is_complex(self) -> bool;
+            #[cfg(feature = "qol_fns")] 
+            fn is_on_axis_plane(self) -> bool;
+
+            fn is_near(self, other: impl Quaternion<Num>) -> bool;
+            fn is_near_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
+            fn is_close(self, other: impl Quaternion<Num>) -> bool;
+            fn is_close_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
+            
+            fn dist_euclid(self, other: impl Quaternion<Num>) -> Num;
+            fn dist_cosine(self, other: impl Quaternion<Num>) -> Num;
+
+            fn to_vector<V: VectorConstructor<Num> >(self) -> V;
+            fn to_complex<C: ComplexConstructor<Num> >(self) -> C;
+            fn to_scalar<S: ScalarConstructor<Num> >(self) -> S;
+            #[cfg(feature = "rotation")]
+            fn to_rotation<R: RotationConstructor<Num> >(self) -> R;
+        }
+
+        #[inline]
+        #[cfg(feature = "math_fns")]
+        fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
+            where 
+                Abs: ScalarConstructor<Num>,
+                Angle: ScalarConstructor<Num>,
+                UnitVec: VectorConstructor<Num>,
+        { T::to_polar_form(self.quat) }
+
+        impl_method_on_quaternion_methods!{
+            fn from_vector(vector: impl Vector<Num>) -> Self;
+            fn from_complex(complex: impl Complex<Num>) -> Self;
+            fn from_scalar(scalar: impl Scalar<Num>) -> Self;
+            #[cfg(feature = "rotation")]
+            fn from_rotation(rotation: impl Rotation<Num>) -> Self;
+        }
+
+        #[cfg(feature = "math_fns")]
+        impl_method_on_quaternion_methods!{
+            fn from_polar_form(
+                abs: impl Scalar<Num>,
+                angle: impl Scalar<Num>,
+                unit_vec: impl Vector<Num>,
+            ) -> Option<Self>;
+        }
+
+        #[cfg(feature = "matrix")] #[inline] fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M {T::to_matrix_2(self.quat)}
+        #[cfg(feature = "matrix")] #[inline] fn to_matrix_3<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 3>>(self) -> M {T::to_matrix_3::<S, M>(self.quat)}
+        #[cfg(feature = "matrix")] #[inline] fn to_matrix_4<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 4>>(self) -> M {T::to_matrix_4::<S, M>(self.quat)}
+
+        #[cfg(feature = "matrix")] #[inline] fn from_matrix_2<Elem: Complex<Num>>(matrix: impl Matrix<Elem, 2>) -> Option<Self> {Option::Some(Quat::new(T::from_matrix_2(matrix)?))}
+        #[cfg(feature = "matrix")] #[inline] fn from_matrix_3<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 3>) -> Self {Quat::new(T::from_matrix_3::<Elem>(matrix))}
+        #[cfg(feature = "matrix")] #[inline] fn from_matrix_4<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 4>) -> Self {Quat::new(T::from_matrix_4::<Elem>(matrix))}
+    }
+}

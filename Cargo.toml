@@ -1,13 +1,14 @@
 [package]
 name = "quaternion_traits"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 categories = ["no-std"]
 keywords = ["quaternion", "math", "trait"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-libm = { version = "0.2" }
+libm = { version = "0.2.11" }
+thiserror = { version = "2.0.12" }
 num-complex = { version = "0.4", optional = true, default-features = false, features = ["libm"]}
 num-traits = { version = "0.2", optional = true, default-features = false, features = ["libm"]}
 
@@ -15,8 +16,19 @@ num-traits = { version = "0.2", optional = true, default-features = false, featu
 no-panic = "0.1.35"
 
 [features]
+default = ["std", "full"]
 std = ["alloc"]
 alloc = []
+
+full = ["trigonometry", "math_fns", "qol_fns", "rotation", "matrix", "display"]
+qol_fns = []
+math_fns = []
+trigonometry = ["math_fns"]
+rotation = ["math_fns"]
+matrix = []
+display = []
+
+unstable = []
+
 num-complex = ["dep:num-complex", "num-traits"]
 num-traits = ["dep:num-traits"]
-unstable = []

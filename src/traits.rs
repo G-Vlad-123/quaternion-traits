@@ -7,6 +7,7 @@ types like quaternions, vectors, scalar values and others.
 pub use axis::Axis;
 use crate::quat;
 use crate::core::marker::Sized;
+#[allow(unused_imports)]
 use crate::core::option::Option;
 
 /**
@@ -75,6 +76,7 @@ you just eather need a wrapper or to modify the values each time you use it.
 Note: The [`roll`](Rotation::roll), [`pitch`](Rotation::pitch) and [`yaw`](Rotation::yaw)
 methods are used as if they are cheap operations.
 */
+#[cfg(feature = "rotation")]
 pub trait Rotation<Num: Axis> {
     /// The roll of this rotation. (angle on the z axis)
     fn roll( &self ) -> Num;
@@ -91,6 +93,7 @@ Only `Matrix<_, 2>`, `Matrix<_, 3>` and `Matrix<_, 4>` have impls and are used.
 
 Note: The [`get_unchecked`](Matrix::get_unchecked) method is used as if it's a cheap operation.
 */
+#[cfg(feature = "matrix")]
 pub trait Matrix<T, const N: usize> {
     /// Gets the value represented at (row, col)
     /// 
@@ -379,6 +382,7 @@ A constructor for values that represent euler angles.
 
 Generally used for return types.
  */
+#[cfg(feature = "rotation")]
 pub trait RotationConstructor<Num: Axis>: Sized {
     /// Constructs a new rotation.
     fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> Self;
@@ -396,6 +400,7 @@ A constructor for values that represent a NxN matrix.
 
 Generally used for return types.
  */
+#[cfg(feature = "matrix")]
 pub trait MatrixConstructor<Num, const N: usize>: Sized {
     /// Constructs a new matrix.
     fn new_matrix(matrix: [[Num; N]; N]) -> Self;
@@ -679,13 +684,25 @@ where
     }
 
     #[inline]
-    fn from_vector<From: Vector<Num>>(vector: From) -> Self {
+    fn from_vector(vector: impl Vector<Num>) -> Self {
         (S::new_scalar(Num::ZERO), V::from_vector(vector))
     }
 
     #[inline]
-    fn from_scalar<From: Scalar<Num>>(scalar: From) -> Self {
+    fn from_scalar(scalar: impl Scalar<Num>) -> Self {
         (S::from_scalar(scalar), V::new_vector(Num::ZERO, Num::ZERO, Num::ZERO))
+    }
+
+    #[inline]
+    // There might be edgecases where `from_vector(v)` is not `new_vector(v.x(), v.y(), v.z())`
+    fn to_vector<Out: VectorConstructor<Num>>(self) -> Out {
+        VectorConstructor::from_vector(self.1)
+    }
+
+    #[inline]
+    // There might be edgecases where `from_scalar(s)` is not `new_scalar(s.scalar())`
+    fn to_scalar<Out: ScalarConstructor<Num>>(self) -> Out {
+        ScalarConstructor::from_scalar(self.0)
     }
 }
 impl<Num: Axis, S, V> QuaternionConsts<Num> for (S, V)
@@ -713,8 +730,14 @@ where
     }
 
     #[inline]
-    fn from_complex<From: Complex<Num>>(complex: From) -> Self {
+    fn from_complex(complex: impl Complex<Num>) -> Self {
         (C::from_complex(complex), J::new_scalar(Num::ZERO), K::new_scalar(Num::ZERO))
+    }
+
+    #[inline]
+    // There might be edgecases where `from_complex(c)` is not `new_complex(c.real(), c.imaginary())`
+    fn to_complex<Out: ComplexConstructor<Num>>(self) -> Out {
+        ComplexConstructor::from_complex(self.0)
     }
 }
 impl<Num: Axis, C, J, K> QuaternionConsts<Num> for (C, J, K)
@@ -1009,18 +1032,21 @@ where T: Vector<Num>
 
 // Rotation impls
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis> Rotation<Num> for () {
     #[inline(always)] fn roll(&self) -> Num { Num::ZERO }
     #[inline(always)] fn pitch(&self) -> Num { Num::ZERO }
     #[inline(always)] fn yaw(&self) -> Num { Num::ZERO }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, T> Rotation<Num> for [T; 0] {
     #[inline(always)] fn roll(&self) -> Num { Num::ZERO }
     #[inline(always)] fn pitch(&self) -> Num { Num::ZERO }
     #[inline(always)] fn yaw(&self) -> Num { Num::ZERO }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, X, Y, Z> Rotation<Num> for (X, Y, Z)
 where
     X: Scalar<Num>,
@@ -1032,6 +1058,7 @@ where
     #[inline(always)] fn yaw(&self) -> Num { self.2.scalar() }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, X, Y, Z> RotationConstructor<Num> for (X, Y, Z)
 where
     X: ScalarConstructor<Num>,
@@ -1047,6 +1074,7 @@ where
     }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, S> Rotation<Num> for [S; 3]
 where S: Scalar<Num>
 {
@@ -1055,6 +1083,7 @@ where S: Scalar<Num>
     #[inline(always)] fn yaw(&self) -> Num { self[2].scalar() }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, S> RotationConstructor<Num> for [S; 3]
 where
     S: ScalarConstructor<Num>,
@@ -1068,6 +1097,7 @@ where
     }
 }
 
+#[cfg(feature = "rotation")]
 impl<Num: Axis, T> Rotation<Num> for &T
 where T: Rotation<Num>
 {
@@ -1080,6 +1110,7 @@ where T: Rotation<Num>
 
 // TODO Try to optimize these transfomations + make then be as good to inline as they can get
 
+#[cfg(feature = "matrix")]
 impl<T: crate::core::clone::Clone, const N: usize> Matrix<T, N> for [[T; N]; N]
 {
     #[inline]
@@ -1088,14 +1119,17 @@ impl<T: crate::core::clone::Clone, const N: usize> Matrix<T, N> for [[T; N]; N]
     }
 }
 
+#[cfg(feature = "matrix")]
 impl<T: crate::core::clone::Clone, const N: usize> MatrixConstructor<T, N> for [[T; N]; N]
 {
     #[inline]
     fn new_matrix(matrix: [[T; N]; N]) -> Self { matrix }
 }
 
+#[cfg(feature = "matrix")]
 mod matrix;
 
+#[cfg(feature = "matrix")]
 impl<T, M, const N: usize> Matrix<T, N> for &M
 where M: Matrix<T, N>
 {
@@ -1151,6 +1185,7 @@ macro_rules! ref_impls {
             fn imaginary(&self) -> Num { (*(*self)).imaginary() }
         }
 
+        #[cfg(feature = "rotation")]
         impl<Num: Axis, T> Rotation<Num> for $ty
         where T: Rotation<Num> $($( + $trait )+)?
         {
@@ -1159,6 +1194,7 @@ macro_rules! ref_impls {
             fn yaw(&self) -> Num { (*(*self)).yaw() }
         }
 
+        #[cfg(feature = "matrix")]
         impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
         where T: Matrix<Elem, N> $($( + $trait )+)?
         {
@@ -1198,6 +1234,7 @@ macro_rules! ref_impls {
         }
 
         #[cfg(feature = "alloc")]
+        #[cfg(feature = "rotation")]
         impl<Num: Axis, T> Rotation<Num> for $ty
         where T: Rotation<Num> $($( + $trait )+)?
         {
@@ -1207,6 +1244,7 @@ macro_rules! ref_impls {
         }
 
         #[cfg(feature = "alloc")]
+        #[cfg(feature = "matrix")]
         impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
         where T: Matrix<Elem, N> $($( + $trait )+)?
         {

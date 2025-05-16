@@ -31,10 +31,16 @@ use crate::{
 
     Scalar,
     ScalarConstructor,
+};
 
+#[cfg(feature = "rotation")]
+use crate::{
     Rotation,
     RotationConstructor,
+};
 
+#[cfg(feature = "matrix")]
+use crate::{
     Matrix,
     MatrixConstructor,
 };
@@ -53,7 +59,9 @@ pub use math::*;
 mod relational_ops;
 pub use relational_ops::*;
 
+#[cfg(feature = "rotation")]
 mod rotation_ops;
+#[cfg(feature = "rotation")]
 pub use rotation_ops::*;
 
 mod iterator_ops;
@@ -62,8 +70,12 @@ pub use iterator_ops::*;
 mod conversions;
 pub use conversions::*;
 
+#[cfg(feature = "trigonometry")]
 mod trigonometry;
+#[cfg(feature = "trigonometry")]
 pub use trigonometry::*;
 
+#[cfg(feature = "display")]
 mod display;
+#[cfg(feature = "display")]
 pub use display::*;

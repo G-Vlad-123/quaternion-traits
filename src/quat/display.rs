@@ -1,6 +1,6 @@
 
-use crate::{Axis, Quaternion};
-use crate::structs::QuaternionFormat;
+use crate::{Axis, Quaternion, QuaternionConstructor};
+use crate::structs::{QuaternionFormat, QuaternionParseError};
 use crate::core::result::Result;
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -267,4 +267,118 @@ pub fn to_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quatern
 /// ```
 pub fn to_default_string<Num: Axis + crate::core::fmt::Display>(quaternion: impl Quaternion<Num>) -> Result<String, crate::core::fmt::Error> {
     to_string::<Num>(quaternion, QuaternionFormat::DEFAULT)
+}
+
+use crate::core::str::FromStr;
+
+/// Parses a [`str`] into a quaternion representation.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::from_str;
+/// 
+/// let mut quat: [f32; 4];
+/// 
+/// // Parsing the real part
+/// quat = from_str::<f32, _>("17.5").unwrap();
+/// assert_eq!(quat, [17.5, 0.0, 0.0, 0.0]);
+/// 
+/// // Parsing the imaginary part
+/// quat = from_str::<f32, _>("3i + j").unwrap();
+/// assert_eq!(quat, [0.0, 3.0, 1.0, 0.0]);
+/// 
+/// // Explicit real part
+/// quat = from_str::<f32, _>("4r - 17k").unwrap();
+/// assert_eq!(quat, [4.0, 0.0, 0.0, -17.0]);
+/// 
+/// // No + required (just in case you want to make it look nice)
+/// quat = from_str::<f32, _>("1 2i 3j 4k").unwrap();
+/// assert_eq!(quat, [1.0, 2.0, 3.0, 4.0]);
+/// 
+/// // No spaces required! Numbers are read after they see an:
+/// //    i, j, k, -, + along side ' ', '\\t', '\\n'
+/// quat = from_str::<f32, _>("ijk").unwrap();
+/// assert_eq!(quat, [0.0, 1.0, 1.0, 1.0]);
+/// 
+/// // Double negative
+/// quat = from_str::<f32, _>(" - - 3j").unwrap();
+/// assert_eq!(quat, [0.0, 0.0, 3.0, 0.0]);
+/// 
+/// // Uppercase
+/// quat = from_str::<f32, _>("1R - 2I + 3J - 4K").unwrap();
+/// assert_eq!(quat, [1.0, -2.0, 3.0, -4.0]);
+/// 
+/// // Any ordering
+/// quat = from_str::<f32, _>("1j + 2i + 3 + 4k").unwrap();
+/// assert_eq!(quat, [3.0, 2.0, 1.0, 4.0]);
+/// ```
+pub fn from_str<Num: Axis + FromStr, Out: QuaternionConstructor<Num>>(s: &str) -> Result<Out, QuaternionParseError<Num>> {
+    use crate::core::option::Option::{*, self};
+    
+    let mut quat: [Num; 4] = [Num::ZERO; 4];
+    let mut sign: Num = Num::ONE;
+    let mut num: Option<(usize, usize)> = None;
+
+    #[inline] fn read<Num: FromStr>(s: &str) -> Result<Num, QuaternionParseError<Num>> {
+        s.parse::<Num>().map_err(QuaternionParseError::Invalid)
+    }
+
+    for (index, c) in s.char_indices() {
+        match c {
+            ' ' | '\t' | '\n' | '-' | '+' => {
+                if let Some(n) = num {
+                    quat[0] = quat[0] + sign * read(&s[n.0..=(n.0 + n.1)])?;
+                    num = None;
+                    sign = Num::ONE;
+                }
+                if c == '-' {sign = -sign}
+            },
+            'r' | 'R' => {
+                if let Some(n) = num {
+                    quat[0] = quat[0] + sign * read(&s[n.0..=(n.0 + n.1)])?;
+                    num = None;
+                    sign = Num::ONE;
+                } else {
+                    quat[0] = quat[0] + Num::ONE;
+                }
+            },
+            'i' | 'I' => {
+                if let Some(n) = num {
+                    quat[1] = quat[1] + sign * read(&s[n.0..=(n.0 + n.1)])?;
+                    num = None;
+                    sign = Num::ONE;
+                } else {
+                    quat[1] = quat[1] + Num::ONE;
+                }
+            },
+            'j' | 'J' => {
+                if let Some(n) = num {
+                    quat[2] = quat[2] + sign * read(&s[n.0..=(n.0 + n.1)])?;
+                    num = None;
+                    sign = Num::ONE;
+                } else {
+                    quat[2] = quat[2] + Num::ONE;
+                }
+            },
+            'k' | 'K' => {
+                if let Some(n) = num {
+                    quat[3] = quat[3] + sign * read(&s[n.0..=(n.0 + n.1)])?;
+                    num = None;
+                    sign = Num::ONE;
+                } else {
+                    quat[3] = quat[3] + Num::ONE;
+                }
+            },
+            _ => match num {
+                Some((_, ref mut len)) => *len = *len + 1,
+                None => num = Some((index, 0))
+            },
+        }
+    }
+
+    if let Some(n) = num {
+        quat[0] = quat[0] + sign * read(&s[n.0..])?;
+    }
+
+    Result::Ok(Out::from_quat(quat))
 }

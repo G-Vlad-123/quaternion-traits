@@ -10,5 +10,7 @@ mod std_struct;
 #[cfg(feature = "std")]
 pub use std_struct::*;
 
+#[cfg(feature = "display")]
 mod quaternion_formatter;
+#[cfg(feature = "display")]
 pub use quaternion_formatter::*;
