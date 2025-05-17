@@ -447,7 +447,7 @@ where
 #[cfg(feature = "unstable")]
 pub fn rem<Num, Out>(quaternion: impl Quaternion<Num>, modulus: impl Quaternion<Num>) -> Out
 where 
-    Num: Axis + crate::core::ops::Rem<Num, Output = Num>,
+    Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
     let inv = inv::<Num, Q<Num>>(&quaternion);
@@ -462,25 +462,72 @@ where
     sub(quaternion, mul::<Num, Q<Num>>(modulus, gaussian))
 }
 
-// /// Multiplies two quaternions and then adds the addend.
-// /// 
-// /// Equivalent to `add(mul(q, f), a)` where
-// /// `q`, `f` and `a` are all quaternions.
-// /// 
-// /// # Example
-// /// ```
-// /// use quaternion_traits::quat::mul_add;
-// /// ```
-// #[inline]
-// #[cfg(feature = "qol_fns")]
-// #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
-// pub fn mul_add<Num, Out>(quaternion: impl Quaternion<Num>, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Out
-// where 
-//     Num: Axis,
-//     Out: QuaternionConstructor<Num>,
-// {
-//     add(mul::<Num, Q<Num>>(quaternion, factor), addend)
-// }
+/// Multiplies two quaternions and then adds the addend.
+/// 
+/// Equivalent to `add(mul(q, f), a)` where
+/// `q`, `f` and `a` are all quaternions.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::{mul, add};
+/// use quaternion_traits::quat::mul_add;
+/// 
+/// let q1: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let q2: [f32; 4] = [8.7, 6.5, 4.3, 2.1];
+/// let q3: [f32; 4] = [1.0, -1.0, 1.0, -1.0];
+/// 
+/// assert_eq!(
+///     mul_add::<f32, [f32; 4]>(q1, q2, q3),
+///     add::<f32, [f32; 4]>(
+///         mul::<f32, [f32; 4]>(q1, q2),
+///         q3,
+///     )
+/// )
+/// ```
+#[inline]
+#[cfg(feature = "qol_fns")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn mul_add<Num, Out>(quaternion: impl Quaternion<Num>, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    add(mul::<Num, Q<Num>>(quaternion, factor), addend)
+}
+
+/// Multiplies two quaternions in reversed
+/// order and then adds the addend.
+/// 
+/// Equivalent to `add(mul(f, q), a)` where
+/// `q`, `f` and `a` are all quaternions.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::{mul_reversed, add};
+/// use quaternion_traits::quat::mul_reversed_add;
+/// 
+/// let q1: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let q2: [f32; 4] = [8.7, 6.5, 4.3, 2.1];
+/// let q3: [f32; 4] = [1.0, -1.0, 1.0, -1.0];
+/// 
+/// assert_eq!(
+///     mul_reversed_add::<f32, [f32; 4]>(q1, q2, q3),
+///     add::<f32, [f32; 4]>(
+///         mul_reversed::<f32, [f32; 4]>(q1, q2),
+///         q3,
+///     )
+/// )
+/// ```
+#[inline]
+#[cfg(feature = "qol_fns")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn mul_reversed_add<Num, Out>(quaternion: impl Quaternion<Num>, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    add(mul::<Num, Q<Num>>(factor, quaternion), addend)
+}
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]

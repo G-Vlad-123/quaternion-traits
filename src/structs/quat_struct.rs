@@ -243,27 +243,27 @@ macro_rules! impl_basic_ops_for_quat {
         impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> $trait<Other> for Quat<Num, T> {
             type Output = Quat<Num, T>;
             #[inline] fn $trait_func(self, other: Other) -> Quat<Num, T> {
-                quat::$func(&self, &other)
+                quat::$func(self, other)
             }
         }
 
         impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> $trait<Other> for &Quat<Num, T> {
             type Output = Quat<Num, T>;
             #[inline] fn $trait_func(self, other: Other) -> Quat<Num, T> {
-                quat::$func(&self, &other)
+                quat::$func(self, other)
             }
         }
 
         impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> $trait<Other> for &mut Quat<Num, T> {
             type Output = Quat<Num, T>;
             #[inline] fn $trait_func(self, other: Other) -> Quat<Num, T> {
-                quat::$func(&self, &other)
+                quat::$func(self, other)
             }
         }
 
         impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> $assign<Other> for Quat<Num, T> {
             #[inline] fn $assign_func(&mut self, other: Other) {
-                *self = quat::$func(&self, &other);
+                *self = quat::$func(&self, other);
             }
         }
     };
@@ -301,20 +301,48 @@ impl_basic_ops_for_quat!{
     using = div;
 }
 
-#[cfg(feature = "unstable")]
-impl<Num: Axis + Rem<Num, Output = Num>, T: Quaternion<Num> + QuaternionConstructor<Num>> Rem for Quat<Num, T> {
-    type Output = Self;
+#[cfg(feature = "qol_fns")]
+#[cfg(feature = "num-traits")]
+mod mul_add_impl {
+    use crate::num_traits::{MulAdd, MulAddAssign};
+    use super::*;
 
-    fn rem(self, modulus: Self) -> Self {
-        quat::rem(self, modulus)
+    impl<Num: Axis, T: QuaternionMethods<Num>, Factor: Quaternion<Num>, Addend: Quaternion<Num>> MulAdd<Factor, Addend> for Quat<Num, T> {
+        type Output = Quat<Num, T>;
+        #[inline] fn mul_add(self, factor: Factor, addend: Addend) -> Quat<Num, T> {
+            quat::mul_add(self, factor, addend)
+        }
     }
+
+    impl<Num: Axis, T: QuaternionMethods<Num>, Factor: Quaternion<Num>, Addend: Quaternion<Num>> MulAdd<Factor, Addend> for &Quat<Num, T> {
+        type Output = Quat<Num, T>;
+        #[inline] fn mul_add(self, factor: Factor, addend: Addend) -> Quat<Num, T> {
+            quat::mul_add(self, factor, addend)
+        }
+    }
+
+    impl<Num: Axis, T: QuaternionMethods<Num>, Factor: Quaternion<Num>, Addend: Quaternion<Num>> MulAdd<Factor, Addend> for &mut Quat<Num, T> {
+        type Output = Quat<Num, T>;
+        #[inline] fn mul_add(self, factor: Factor, addend: Addend) -> Quat<Num, T> {
+            quat::mul_add(self, factor, addend)
+        }
+    }
+
+    impl<Num: Axis, T: QuaternionMethods<Num>, Factor: Quaternion<Num>, Addend: Quaternion<Num>> MulAddAssign<Factor, Addend> for Quat<Num, T> {
+        #[inline] fn mul_add_assign(&mut self, factor: Factor, addend: Addend) {
+            *self = quat::mul_add(&self, factor, addend);
+        }
+    }
+
 }
 
 #[cfg(feature = "unstable")]
-impl<Num: Axis + Rem<Num, Output = Num>, T: Quaternion<Num> + QuaternionConstructor<Num>> RemAssign for Quat<Num, T> {
-    fn rem_assign(&mut self, modulus: Self) {
-        *self = quat::rem(&*self, modulus)
-    }
+impl_basic_ops_for_quat!{
+    impl = Rem;
+    func = rem;
+    assign = RemAssign;
+    assign_func = rem_assign;
+    using = rem;
 }
 
 #[cfg(feature = "display")] 
@@ -560,7 +588,7 @@ impl<Num: Axis + crate::num_traits::Bounded, T: QuaternionConstructor<Num>> crat
 impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for Quat<Num, T> {
     type Output = Self;
 
-    fn inv(self) -> Self {
+    #[inline] fn inv(self) -> Self {
         quat::inv(self)
     }
 }
@@ -569,7 +597,7 @@ impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for Quat<Num, 
 impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &Quat<Num, T> {
     type Output = Quat<Num, T>;
 
-    fn inv(self) -> Quat<Num, T> {
+    #[inline] fn inv(self) -> Quat<Num, T> {
         quat::inv(self)
     }
 }
@@ -578,7 +606,7 @@ impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &Quat<Num,
 impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &mut Quat<Num, T> {
     type Output = Quat<Num, T>;
 
-    fn inv(self) -> Quat<Num, T> {
+    #[inline] fn inv(self) -> Quat<Num, T> {
         quat::inv(self)
     }
 }
@@ -713,6 +741,8 @@ mod quat_struct_methods_impl {
             fn mul_reversed(self, other: impl Quaternion<Num>) -> Self;
             fn div(self, other: impl Quaternion<Num>) -> Self;
             fn div_reversed(self, other: impl Quaternion<Num>) -> Self;
+            #[cfg(feature = "qol_fns")] fn mul_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
+            #[cfg(feature = "qol_fns")] fn mul_reversed_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
 
             fn neg(self) -> Self;
             fn conj(self) -> Self;

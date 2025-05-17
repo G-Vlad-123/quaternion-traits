@@ -1,7 +1,7 @@
 
 use crate::libm;
 use crate::core::{
-    ops::{Add, Sub, Mul, Div, Neg},
+    ops::{Add, Sub, Mul, Div, Rem, Neg},
     cmp::{PartialEq, PartialOrd},
     marker::{Copy, Sized}
 };
@@ -51,6 +51,7 @@ pub trait Axis: Sized
               + Sub<Output = Self>
               + Mul<Output = Self>
               + Div<Output = Self>
+              + Rem<Output = Self>
               + Neg<Output = Self>
               + PartialOrd
               + PartialEq

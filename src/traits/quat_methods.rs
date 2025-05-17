@@ -31,10 +31,22 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// 
     /// Check [the div function](crate::quat::div) in the root for more info.
     #[inline] fn div(self, other: impl Quaternion<Num>) -> Self { quat::div(self, other) }
-    /// Divides a quaternion from another one.
+    /// Divides a quaternion from another one in reversed order.
     /// 
     /// Check [the div_reversed function](crate::quat::div_reversed) in the root for more info.
     #[inline] fn div_reversed(self, other: impl Quaternion<Num>) -> Self { quat::div_reversed(self, other) }
+    /// Divides a quaternion from another one in reversed order.
+    /// 
+    /// Check [the rem function](crate::quat::rem) in the root for more info.
+    #[cfg(feature = "unstable")] #[inline] fn rem(self, modulus: impl Quaternion<Num>) -> Self { quat::rem(self, modulus) }
+    /// Multiplies two quaternions and then adds the addend.
+    /// 
+    /// Check [the mul_add function](crate::quat::mul_add) in the root for more info.
+    #[cfg(feature = "qol_fns")] #[inline] fn mul_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self { quat::mul_add(self, factor, addend) }
+    /// Multiplies two quaternions in reversed order and then adds the addend.
+    /// 
+    /// Check [the mul_reversed_add function](crate::quat::mul_reversed_add) in the root for more info.
+    #[cfg(feature = "qol_fns")] #[inline] fn mul_reversed_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self { quat::mul_reversed_add(self, factor, addend) }
     /// Scales a quaternion.
     /// 
     /// Equivalent to multiplying a quaternion by a scalar quaternion.
