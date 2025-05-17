@@ -1,6 +1,6 @@
 [package]
 name = "quaternion_traits"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2024"
 categories = ["quaternion", "no-std"]
 keywords = ["quaternion", "math", "core", "trait"]
