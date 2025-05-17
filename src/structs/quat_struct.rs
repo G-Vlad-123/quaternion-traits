@@ -301,6 +301,15 @@ impl_basic_ops_for_quat!{
     using = div;
 }
 
+#[cfg(feature = "unstable")]
+impl_basic_ops_for_quat!{
+    impl = Rem;
+    func = rem;
+    assign = RemAssign;
+    assign_func = rem_assign;
+    using = rem;
+}
+
 #[cfg(feature = "qol_fns")]
 #[cfg(feature = "num-traits")]
 mod mul_add_impl {
@@ -334,15 +343,6 @@ mod mul_add_impl {
         }
     }
 
-}
-
-#[cfg(feature = "unstable")]
-impl_basic_ops_for_quat!{
-    impl = Rem;
-    func = rem;
-    assign = RemAssign;
-    assign_func = rem_assign;
-    using = rem;
 }
 
 #[cfg(feature = "display")] 
