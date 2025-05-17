@@ -62,10 +62,11 @@ Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
 - `unstable`: Enables items that may change functionality or may be removed entirely.
 
 List of dependency features:
-- `num-traits`: (If `unstable` is enabled) adds [Pow](https://docs.rs/num-traits/latest/num_traits/pow/trait.Pow.html) to [Quat],
-(if `std` is enabled) adds [Float](https://docs.rs/num-traits/latest/num_traits/float/trait.Float.html)
-and all the required traits to the [Std](struct::Std) struct.
-- `num-complex`: Adds `num-traits` feature, adds [Complex] implementation for the Complex struct in this crate.
+- `num`: Adds all the num traits `num-traits`, `num-complex`, `num-rational`, `num-bigint`.
+- `num-traits`: Adds diverse traits to [`Quat`](structs::Quat).
+- `num-complex`: Adds [Complex] implementation for the Complex struct.
+- `num-rational`: Adds [Scalar] implementations for the Ratio struct.
+- `num-bigint`: Adds [Scalar] implementation for the BigUint and BigInt structs.
 
  */
 
@@ -91,11 +92,20 @@ extern crate std;
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-#[cfg(feature = "num-traits")]
+#[cfg(any(feature = "num-traits", feature = "num-complex", feature = "num-rational", feature = "num-bigint"))]
 extern crate num_traits;
 
 #[cfg(feature = "num-complex")]
 extern crate num_complex;
+
+#[cfg(feature = "num-rational")]
+extern crate num_rational;
+
+#[cfg(feature = "num-bigint")]
+extern crate num_bigint;
+
+#[cfg(feature = "num-rational")]
+extern crate num_integer;
 
 extern crate core;
 extern crate libm;
