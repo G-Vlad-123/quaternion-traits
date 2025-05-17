@@ -8,7 +8,7 @@ where
     Num: Axis,
     Out: VectorConstructor<Num>,
 {
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     let cross: [Num; 3] = [
         two * (vector.y() * quaternion.k() - vector.z() * quaternion.j()),
         two * (vector.z() * quaternion.i() - vector.x() * quaternion.k()),
@@ -72,7 +72,7 @@ where
         };
         len = Num::ONE / (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
         axis = [axis[0] * len, axis[1] * len, axis[2] * len];
-        return from_axis_angle_unchecked(axis, Num::TAU / (Num::ONE + Num::ONE));
+        return from_axis_angle_unchecked(axis, Num::from_f64(crate::core::f64::consts::PI));
     }
     
     let quat: Q<Num> = (
@@ -128,7 +128,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = (angle.scalar() / (Num::ONE + Num::ONE)).sin_cos();
+    let (sin, cos) = (angle.scalar() * Num::from_f64(0.5)).sin_cos();
     Out::new_quat(
         cos,
         axis.x() * sin,
@@ -227,7 +227,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = (angle.scalar() / (Num::ONE + Num::ONE)).sin_cos();
+    let (sin, cos) = (angle.scalar() * Num::from_f64(0.5)).sin_cos();
     let scalar = sin / (axis.x()*axis.x() + axis.y()*axis.y() + axis.z()*axis.z()).sqrt();
     Out::new_quat(
         cos,
@@ -251,10 +251,10 @@ where
     }
     let vec_abs = (quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k()).sqrt();
     let vec_inv_abs = Num::ONE / vec_abs;
-    let angle = (Num::ONE + Num::ONE) * vec_abs.min(Num::ONE).asin();
+    let angle = vec_abs.min(Num::ONE).asin();
     (
         Vector::new_vector(quaternion.i() * vec_inv_abs, quaternion.j() * vec_inv_abs, quaternion.k() * vec_inv_abs),
-        Scalar::new_scalar( if quaternion.r() >= Num::ZERO {angle} else {-angle} )
+        Scalar::new_scalar( if quaternion.r() >= Num::ZERO {angle + angle} else {-(angle + angle)} )
     )
 }
 
@@ -336,7 +336,7 @@ where
         quaternion.r() * vector.y() + quaternion.k() * vector.x() - quaternion.i() * vector.z(),
         quaternion.r() * vector.z() + quaternion.i() * vector.y() - quaternion.j() * vector.x(),
     ];
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     Out::new_vector(
         vector.x() + (quaternion.j() * temp[2] - quaternion.k() * temp[1]) * two,
         vector.y() + (quaternion.k() * temp[0] - quaternion.i() * temp[2]) * two,
@@ -419,7 +419,7 @@ where
         vector.y() * quaternion.r() + vector.z() * quaternion.i() - vector.x() * quaternion.k(),
         vector.z() * quaternion.r() + vector.x() * quaternion.j() - vector.y() * quaternion.i(),
     ];
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     Out::new_vector(
         vector.x() + (temp[1] * quaternion.k() - temp[2] * quaternion.j()) * two,
         vector.y() + (temp[2] * quaternion.i() - temp[0] * quaternion.k()) * two,

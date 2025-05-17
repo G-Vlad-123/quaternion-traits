@@ -16,6 +16,10 @@ It does not need to
 
 This is manualy implemented for [f32] and [f64] by default.
 
+# Important
+
+Depeanding on how this crate evolves and on what it needs, this trait will change and added.
+
 # Implementation
 
 If you want to implement this trait for a custom type `T` make sure the following holds:
@@ -72,6 +76,9 @@ pub trait Axis: Sized
     /// Checks to see if `self` is NAN. (`x == Self::NAN` is not guaranteed to work)
     fn is_nan(&self) -> bool;
 
+    /// Calculates `(self * factor) + addend`.
+    fn mul_add(self, factor: Self, addend: Self) -> Self;
+
     /// Calculates the square root of `self`.
     fn sqrt(self) -> Self;
     /// Calculates the `self` raised to the `exp` power.
@@ -124,7 +131,12 @@ pub trait Axis: Sized
         if self < other { self }
         else { other }
     }
-    /// Turns a [`u8`] into `Self`
+    
+    /// Turns a [`f64`] into `Self`
+    fn from_f64( float: f64 ) -> Self;
+    
+    // #[deprecated(note = "Use `from_f64` instead.")]
+    /// Turns a [`u8`] into `Self` (Note: this could be decapricated)
     fn from_u8( uint: u8 ) -> Self {
         let mut out: Self = Self::ZERO;
         for _ in 0..uint {
@@ -142,7 +154,10 @@ impl Axis for f32 {
     const ERROR: Self = 0.00001525878; // 2 ^ -16
 
     #[inline]
-    fn is_nan( &self ) -> bool { self != self }
+    fn is_nan( &self ) -> bool { f32::is_nan(*self) }
+
+    #[inline(always)]
+    fn mul_add( self, factor: Self, addend: Self ) -> Self { self * factor + addend }
 
     #[inline(always)]
     fn sqrt( self ) -> Self { libm::sqrtf(self) }
@@ -182,6 +197,9 @@ impl Axis for f32 {
 
     #[inline(always)]
     fn from_u8( uint: u8 ) -> Self { uint as Self }
+
+    #[inline(always)]
+    fn from_f64( float: f64 ) -> Self { float as Self }
 }
 
 impl Axis for f64 {
@@ -192,7 +210,10 @@ impl Axis for f64 {
     const ERROR: Self = 0.00001525878; // 2 ^ -16
 
     #[inline]
-    fn is_nan( &self ) -> bool { self != self }
+    fn is_nan( &self ) -> bool { f64::is_nan(*self) }
+
+    #[inline(always)]
+    fn mul_add( self, factor: Self, addend: Self ) -> Self { self * factor + addend }
 
     #[inline(always)]
     fn sqrt( self ) -> Self { libm::sqrt(self) }
@@ -232,4 +253,7 @@ impl Axis for f64 {
 
     #[inline(always)]
     fn from_u8( uint: u8 ) -> Self { uint as Self }
+
+    #[inline(always)]
+    fn from_f64( float: f64 ) -> Self { float }
 }

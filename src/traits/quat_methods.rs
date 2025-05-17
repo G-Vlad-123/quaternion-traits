@@ -164,7 +164,7 @@ pub trait QuaternionMethods<Num: Axis>: Quaternion<Num> + QuaternionConstructor<
     /// Gets the logarithm of a quaternion.
     /// 
     /// Check [the log function](crate::quat::log) in the root for more info.
-    #[cfg(feature = "unstable")] #[inline] fn log(self, base: impl Quaternion<Num>) -> Self { quat::log(self, base) }
+    #[cfg(feature = "unstable")] #[cfg(feature = "math_fns")] #[inline] fn log(self, base: impl Quaternion<Num>) -> Self { quat::log(self, base) }
     /// Gets the sinus of a quaternion.
     #[cfg(feature = "trigonometry")] #[inline] fn sin(self) -> Self { quat::sin(self) }
     /// Gets the hyperbolic sinus of a quaternion.

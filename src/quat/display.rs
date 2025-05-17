@@ -1,6 +1,6 @@
 
 use crate::{Axis, Quaternion, QuaternionConstructor};
-use crate::structs::{QuaternionFormat, QuaternionParseError};
+use crate::structs::QuaternionFormat;
 use crate::core::result::Result;
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -312,15 +312,15 @@ use crate::core::str::FromStr;
 /// quat = from_str::<f32, _>("1j + 2i + 3 + 4k").unwrap();
 /// assert_eq!(quat, [3.0, 2.0, 1.0, 4.0]);
 /// ```
-pub fn from_str<Num: Axis + FromStr, Out: QuaternionConstructor<Num>>(s: &str) -> Result<Out, QuaternionParseError<Num>> {
+pub fn from_str<Num: Axis + FromStr, Out: QuaternionConstructor<Num>>(s: &str) -> Result<Out, <Num as FromStr>::Err> {
     use crate::core::option::Option::{*, self};
     
     let mut quat: [Num; 4] = [Num::ZERO; 4];
     let mut sign: Num = Num::ONE;
     let mut num: Option<(usize, usize)> = None;
 
-    #[inline] fn read<Num: FromStr>(s: &str) -> Result<Num, QuaternionParseError<Num>> {
-        s.parse::<Num>().map_err(QuaternionParseError::Invalid)
+    #[inline] fn read<Num: FromStr>(s: &str) -> Result<Num, <Num as FromStr>::Err> {
+        s.parse::<Num>()
     }
 
     for (index, c) in s.char_indices() {

@@ -147,9 +147,9 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin_r, cos_r) = Num::sin_cos(rotation.roll() / (Num::ONE + Num::ONE));
-    let (sin_p, cos_p) = Num::sin_cos(rotation.pitch() / (Num::ONE + Num::ONE));
-    let (sin_y, cos_y) = Num::sin_cos(rotation.yaw() / (Num::ONE + Num::ONE));
+    let (sin_r, cos_r) = Num::sin_cos(rotation.roll() * Num::from_f64(0.5));
+    let (sin_p, cos_p) = Num::sin_cos(rotation.pitch() * Num::from_f64(0.5));
+    let (sin_y, cos_y) = Num::sin_cos(rotation.yaw() * Num::from_f64(0.5));
     QuaternionConstructor::new_quat(
         cos_r * cos_p * cos_y + sin_r * sin_p * sin_y,
         sin_r * cos_p * cos_y + cos_r * sin_p * sin_y,
@@ -334,7 +334,7 @@ where
 {
     // Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
 
-    let two: Num = Num::ONE + Num::ONE;
+    let two: Num = Num::from_f64(2.0);
     let r: Num =   matrix.get_unchecked(0, 0).scalar() + matrix.get_unchecked(1, 1).scalar() + matrix.get_unchecked(2, 2).scalar();
     let i: Num =   matrix.get_unchecked(0, 0).scalar() - matrix.get_unchecked(1, 1).scalar() - matrix.get_unchecked(2, 2).scalar();
     let j: Num = - matrix.get_unchecked(0, 0).scalar() + matrix.get_unchecked(1, 1).scalar() - matrix.get_unchecked(2, 2).scalar();
@@ -501,14 +501,14 @@ where
 {
     let quat: Q<Num> = normalize(quaternion);
 
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     // here I misspelled 'pitch' but it's funny so I kept it
     let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
 
     if peach > Num::ONE - Num::ERROR {
         return RotationConstructor::new_rotation(
             two * Num::atan2(quat.i(), quat.r()),
-            Num::TAU / (two + two),
+            Num::from_f64(crate::core::f64::consts::FRAC_PI_2),
             Num::ZERO,
         )
     }
@@ -516,7 +516,7 @@ where
     if peach < Num::ERROR - Num::ONE {
         return RotationConstructor::new_rotation(
             -two * Num::atan2(quat.i(), quat.r()),
-            -Num::TAU / (two + two),
+            Num::from_f64(-crate::core::f64::consts::FRAC_PI_2),
             Num::ZERO,
         )
     }
@@ -588,7 +588,7 @@ where
     Out: MatrixConstructor<Elem, 3>,
 {
     let q = quaternion;
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     Out::new_matrix([
         [
             Elem::new_scalar(q.r()*q.r() + q.i()*q.i() - q.j()*q.j() - q.k()*q.k()),
@@ -735,7 +735,7 @@ where
     
     let quat: Q<Num> = normalize(quaternion);
 
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     // here I misspelled 'pitch' but it's funny so I kept it
     let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
 
@@ -775,19 +775,19 @@ where
     
     let quat: Q<Num> = normalize(quaternion);
 
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     // here I misspelled 'pitch' but it's funny so I kept it
     let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
 
     if peach > Num::ONE - Num::ERROR {
         return ScalarConstructor::new_scalar(
-            Num::TAU / (two + two),
+            Num::from_f64(crate::core::f64::consts::FRAC_PI_2),
         )
     }
 
     if peach < Num::ERROR - Num::ONE {
         return ScalarConstructor::new_scalar(
-            -Num::TAU / (two + two),
+            Num::from_f64(-crate::core::f64::consts::FRAC_PI_2),
         )
     }
 
@@ -810,7 +810,7 @@ where
     
     let quat: Q<Num> = normalize(quaternion);
 
-    let two = Num::ONE + Num::ONE;
+    let two = Num::from_f64(2.0);
     // here I misspelled 'pitch' but it's funny so I kept it
     let peach = two * (quat.r() * quat.j() - quat.i() * quat.k());
 
@@ -837,7 +837,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = Num::sin_cos(roll.scalar() / (Num::ONE + Num::ONE));
+    let (sin, cos) = Num::sin_cos(roll.scalar() * Num::from_f64(0.5));
     QuaternionConstructor::new_quat(
         sin,
         cos,
@@ -855,7 +855,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = Num::sin_cos(pitch.scalar() / (Num::ONE + Num::ONE));
+    let (sin, cos) = Num::sin_cos(pitch.scalar() * Num::from_f64(0.5));
     QuaternionConstructor::new_quat(
         sin,
         Num::ZERO,
@@ -873,7 +873,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let (sin, cos) = Num::sin_cos(yaw.scalar() / (Num::ONE + Num::ONE));
+    let (sin, cos) = Num::sin_cos(yaw.scalar() * Num::from_f64(0.5));
     QuaternionConstructor::new_quat(
         sin,
         Num::ZERO,

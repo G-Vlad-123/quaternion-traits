@@ -27,7 +27,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, Q<Num>>(quaternion);
-    unscale(sub::<Num, Q<Num>>(&exp, inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
+    scale(sub::<Num, Q<Num>>(&exp, inv::<Num, Q<Num>>(&exp)), Num::from_f64(0.5))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -77,7 +77,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     let exp = exp::<Num, Q<Num>>(quaternion);
-    unscale(&add::<Num, Q<Num>>(&exp, &inv::<Num, Q<Num>>(&exp)), Num::ONE + Num::ONE)
+    scale(&add::<Num, Q<Num>>(&exp, &inv::<Num, Q<Num>>(&exp)), Num::from_f64(0.5))
 }
 
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
@@ -233,7 +233,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     mul(
-        (-Num::ONE / (Num::ONE + Num::ONE), ()),
+        (Num::from_f64(-0.5), ()),
         ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
             sub::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
             add::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
@@ -250,7 +250,7 @@ where
     Out: QuaternionConstructor<Num>,
 {
     mul(
-        (-Num::ONE / (Num::ONE + Num::ONE), ()),
+        (Num::from_f64(-0.5), ()),
         ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
             add::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
             sub::<Num, Q<Num>>(unit_i::<Num, Q<Num>>(), &quaternion),
@@ -322,12 +322,12 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    unscale(
+    scale(
         ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
             add::<Num, Q<Num>>(identity::<Num, Q<Num>>(), &quaternion),
             sub::<Num, Q<Num>>(identity::<Num, Q<Num>>(), &quaternion),
         )), 
-        Num::ONE + Num::ONE,
+        Num::from_f64(0.5),
     )
 }
 
@@ -339,12 +339,12 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    unscale(
+    scale(
         ln::<Num, Q<Num>>(div::<Num, Q<Num>>(
             add::<Num, Q<Num>>(&quaternion, identity::<Num, Q<Num>>()),
             sub::<Num, Q<Num>>(&quaternion, identity::<Num, Q<Num>>()),
         )), 
-        Num::ONE + Num::ONE,
+        Num::from_f64(0.5),
     )
 }
 

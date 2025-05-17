@@ -7,12 +7,16 @@ use crate::QuaternionMethods;
 use crate::quat;
 #[cfg(feature = "std")]
 use crate::structs::Std;
+#[allow(unused_imports)]
+use crate::core::option::Option;
 
+#[allow(unused_imports)]
 use crate::core::ops::{
     Add, AddAssign,
     Sub, SubAssign,
     Mul, MulAssign,
     Div, DivAssign,
+    Rem, RemAssign,
     Neg, Not,
 };
 
@@ -297,9 +301,25 @@ impl_basic_ops_for_quat!{
     using = div;
 }
 
+#[cfg(feature = "unstable")]
+impl<Num: Axis + Rem<Num, Output = Num>, T: Quaternion<Num> + QuaternionConstructor<Num>> Rem for Quat<Num, T> {
+    type Output = Self;
+
+    fn rem(self, modulus: Self) -> Self {
+        quat::rem(self, modulus)
+    }
+}
+
+#[cfg(feature = "unstable")]
+impl<Num: Axis + Rem<Num, Output = Num>, T: Quaternion<Num> + QuaternionConstructor<Num>> RemAssign for Quat<Num, T> {
+    fn rem_assign(&mut self, modulus: Self) {
+        *self = quat::rem(&*self, modulus)
+    }
+}
+
 #[cfg(feature = "display")] 
 impl<Num: Axis + crate::core::str::FromStr, T: QuaternionConstructor<Num>> crate::core::str::FromStr for Quat<Num, T> {
-    type Err = crate::structs::QuaternionParseError<Num>;
+    type Err = Num::Err;
 
     fn from_str(s: &str) -> crate::core::result::Result<Self, Self::Err> {
         quat::from_str(s)
@@ -308,10 +328,12 @@ impl<Num: Axis + crate::core::str::FromStr, T: QuaternionConstructor<Num>> crate
 
 #[cfg(feature = "num-traits")]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
 use crate::num_traits::pow::Pow;
 
 #[cfg(feature = "num-traits")]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {
@@ -321,6 +343,7 @@ impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> fo
 
 #[cfg(feature = "num-traits")]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for &Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {
@@ -330,10 +353,233 @@ impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> fo
 
 #[cfg(feature = "num-traits")]
 #[cfg(feature = "unstable")]
+#[cfg(feature = "math_fns")]
 impl<Num: Axis, T: QuaternionMethods<Num>, Other: Quaternion<Num>> Pow<Other> for &mut Quat<Num, T> {
     type Output = Quat<Num, T>;
     #[inline] fn pow(self, other: Other) -> Quat<Num, T> {
         quat::pow_q(&self, &other)
+    }
+}
+
+
+#[cfg(feature = "num-traits")]
+use crate::num_traits::{
+    Num as Number,
+    One, ConstOne,
+    Zero, ConstZero,
+};
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionMethods<Num>> One for Quat<Num, T>
+where Quat<Num, T>: Add<Self, Output = Self>
+{
+    fn one() -> Self {
+        quat::unit_r()
+    }
+
+    fn is_one(&self) -> bool {
+        quat::eq(&self.quat, quat::identity::<Num, T>())
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionMethods<Num>> Zero for Quat<Num, T> {
+    fn zero() -> Self {
+        quat::origin()
+    }
+
+    fn is_zero(&self) -> bool {
+        quat::eq(&self.quat, ())
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionConsts<Num> + QuaternionMethods<Num>> ConstZero for Quat<Num, T> {
+    const ZERO: Self = Self::ORIGIN;
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionConsts<Num> + QuaternionMethods<Num>> ConstOne for Quat<Num, T> {
+    const ONE: Self = Self::IDENTITY;
+}
+
+#[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
+impl<Num: Axis + Number, T: QuaternionMethods<Num>> Number for Quat<Num, T> {
+    type FromStrRadixErr = <Num as Number>::FromStrRadixErr;
+
+    fn from_str_radix(
+        s: &str,
+        radix: u32,
+    ) -> crate::core::result::Result<Self, Self::FromStrRadixErr> {
+        use crate::core::result::Result;
+        use crate::core::option::Option::{*, self};
+    
+        let mut quat: [Num; 4] = [Num::ZERO; 4];
+        let mut sign: Num = Num::ONE;
+        let mut num: Option<(usize, usize)> = None;
+
+        #[inline] fn read<Num: Number>(s: &str, radix: u32) -> Result<Num, <Num as Number>::FromStrRadixErr> {
+            Num::from_str_radix(s, radix)
+        }
+
+        for (index, c) in s.char_indices() {
+            match c {
+                ' ' | '\t' | '\n' | '-' | '+' => {
+                    if let Some(n) = num {
+                        quat[0] = quat[0] + sign * read(&s[n.0..=(n.0 + n.1)], radix)?;
+                        num = None;
+                        sign = Num::ONE;
+                    }
+                    if c == '-' {sign = -sign}
+                },
+                'r' | 'R' => {
+                    if let Some(n) = num {
+                        quat[0] = quat[0] + sign * read(&s[n.0..=(n.0 + n.1)], radix)?;
+                        num = None;
+                        sign = Num::ONE;
+                    } else {
+                        quat[0] = quat[0] + Num::ONE;
+                    }
+                },
+                'i' | 'I' => {
+                    if let Some(n) = num {
+                        quat[1] = quat[1] + sign * read(&s[n.0..=(n.0 + n.1)], radix)?;
+                        num = None;
+                        sign = Num::ONE;
+                    } else {
+                        quat[1] = quat[1] + Num::ONE;
+                    }
+                },
+                'j' | 'J' => {
+                    if let Some(n) = num {
+                        quat[2] = quat[2] + sign * read(&s[n.0..=(n.0 + n.1)], radix)?;
+                        num = None;
+                        sign = Num::ONE;
+                    } else {
+                        quat[2] = quat[2] + Num::ONE;
+                    }
+                },
+                'k' | 'K' => {
+                    if let Some(n) = num {
+                        quat[3] = quat[3] + sign * read(&s[n.0..=(n.0 + n.1)], radix)?;
+                        num = None;
+                        sign = Num::ONE;
+                    } else {
+                        quat[3] = quat[3] + Num::ONE;
+                    }
+                },
+                _ => match num {
+                    Some((_, ref mut len)) => *len = *len + 1,
+                    None => num = Some((index, 0))
+                },
+            }
+        }
+
+        if let Some(n) = num {
+            quat[0] = quat[0] + sign * read(&s[n.0..], radix)?;
+        }
+
+        Result::Ok(Self::from_quat(quat))
+    }
+}
+
+#[cfg(feature = "num-traits")]
+#[cfg(feature = "unstable")]
+impl<Num: Axis + 'static, T: Quaternion<Num> + crate::core::marker::Copy + 'static> crate::num_traits::AsPrimitive<Num> for Quat<Num, T> {
+    #[inline] fn as_(self) -> Num {
+        self.r() as Num
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis + crate::num_traits::ToPrimitive, T: Quaternion<Num>> crate::num_traits::ToPrimitive for Quat<Num, T> {
+    #[inline] fn to_i8(&self) -> Option<i8> { self.r().to_i8() }
+    #[inline] fn to_u8(&self) -> Option<u8> { self.r().to_u8() }
+    
+    #[inline] fn to_i16(&self) -> Option<i16> { self.r().to_i16() }
+    #[inline] fn to_u16(&self) -> Option<u16> { self.r().to_u16() }
+    
+    #[inline] fn to_i32(&self) -> Option<i32> { self.r().to_i32() }
+    #[inline] fn to_u32(&self) -> Option<u32> { self.r().to_u32() }
+    #[inline] fn to_f32(&self) -> Option<f32> { self.r().to_f32() }
+
+    #[inline] fn to_i64(&self) -> Option<i64> { self.r().to_i64() }
+    #[inline] fn to_u64(&self) -> Option<u64> { self.r().to_u64() }
+    #[inline] fn to_f64(&self) -> Option<f64> { self.r().to_f64() }
+    
+    #[inline] fn to_i128(&self) -> Option<i128> { self.r().to_i128() }
+    #[inline] fn to_u128(&self) -> Option<u128> { self.r().to_u128() }
+
+    #[inline] fn to_isize(&self) -> Option<isize> { self.r().to_isize() }
+    #[inline] fn to_usize(&self) -> Option<usize> { self.r().to_usize() }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis + crate::num_traits::FromPrimitive + Number, T: QuaternionConstructor<Num>> crate::num_traits::FromPrimitive for Quat<Num, T> {
+    #[inline] fn from_i8(primitive: i8) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_i8(primitive)?)) }
+    #[inline] fn from_u8(primitive: u8) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_u8(primitive)?)) }
+    
+    #[inline] fn from_i16(primitive: i16) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_i16(primitive)?)) }
+    #[inline] fn from_u16(primitive: u16) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_u16(primitive)?)) }
+    
+    #[inline] fn from_i32(primitive: i32) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_i32(primitive)?)) }
+    #[inline] fn from_u32(primitive: u32) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_u32(primitive)?)) }
+    #[inline] fn from_f32(primitive: f32) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_f32(primitive)?)) }
+
+    #[inline] fn from_i64(primitive: i64) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_i64(primitive)?)) }
+    #[inline] fn from_u64(primitive: u64) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_u64(primitive)?)) }
+    #[inline] fn from_f64(primitive: f64) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_f64(primitive)?)) }
+    
+    #[inline] fn from_i128(primitive: i128) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_i128(primitive)?)) }
+    #[inline] fn from_u128(primitive: u128) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_u128(primitive)?)) }
+
+    #[inline] fn from_isize(primitive: isize) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_isize(primitive)?)) }
+    #[inline] fn from_usize(primitive: usize) -> Option<Self> { Option::Some(quat::from_scalar(<Num as crate::num_traits::FromPrimitive>::from_usize(primitive)?)) }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis + crate::num_traits::NumCast + crate::num_traits::Num, T: QuaternionConstructor<Num> + Quaternion<Num>> crate::num_traits::NumCast for Quat<Num, T> {
+    #[inline]
+    fn from<O>(origin: O) -> Option<Self>
+    where O: crate::num_traits::ToPrimitive
+    {
+        Option::Some(
+            quat::from_scalar(Num::from(origin)?)
+        )
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis + crate::num_traits::Bounded, T: QuaternionConstructor<Num>> crate::num_traits::Bounded for Quat<Num, T> {
+    #[inline] fn min_value() -> Self { Quat::new_quat(Num::min_value(), Num::min_value(), Num::min_value(), Num::min_value())}
+    #[inline] fn max_value() -> Self { Quat::new_quat(Num::max_value(), Num::max_value(), Num::max_value(), Num::max_value())}
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for Quat<Num, T> {
+    type Output = Self;
+
+    fn inv(self) -> Self {
+        quat::inv(self)
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &Quat<Num, T> {
+    type Output = Quat<Num, T>;
+
+    fn inv(self) -> Quat<Num, T> {
+        quat::inv(self)
+    }
+}
+
+#[cfg(feature = "num-traits")]
+impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &mut Quat<Num, T> {
+    type Output = Quat<Num, T>;
+
+    fn inv(self) -> Quat<Num, T> {
+        quat::inv(self)
     }
 }
 
@@ -476,7 +722,7 @@ mod quat_struct_methods_impl {
             #[cfg(any(feature = "math_fns", feature = "qol_fns"))] fn square(self) -> Self;
             #[cfg(feature = "math_fns")] fn exp(self) -> Self;
             #[cfg(feature = "math_fns")] fn ln(self) -> Self;
-            #[cfg(feature = "unstable")] fn log(self, base: impl Quaternion<Num>) -> Self;
+            #[cfg(feature = "unstable"), cfg(feature = "math_fns")] fn log(self, base: impl Quaternion<Num>) -> Self;
             #[cfg(feature = "trigonometry")] fn sin(self) -> Self;
             #[cfg(feature = "trigonometry")] fn sinh(self) -> Self;
             #[cfg(feature = "trigonometry")] fn sec(self) -> Self;

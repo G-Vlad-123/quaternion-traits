@@ -39,6 +39,8 @@ This crate also currently has these pure maths functions for quaternions (exclud
 [`atan`](quat::atan), [`atanh`](quat::atanh), [`acot`](quat::acot), [`acoth`](quat::acoth).
 
 This crate provides currently an unstable form of these functions:
+- [`rem`](quat::rem) (the equasion used uses gaussian intigers, but untill a paper showing this is the convention
+or that another method is prefered this will remain as unstable)
 - [`pow`](quat::pow_q) (the equasion used seams to not be fully agreed on though so it's at risk of change if
   another equasion comes out that is guaranteed to be correct)
 - [`log`](quat::log) (simple [`ln`](quat::ln) division only works for complex quaternions that include the real axis and
@@ -47,8 +49,16 @@ This crate provides currently an unstable form of these functions:
 
 List of features:
 - `std`: (enabled by default) Adds `alloc` feature, adds [Std](struct::Std) struct.
-- `alloc`: (enabled by default) Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
+- `alloc`: Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
 Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
+- `full`: (enabled by default) Enables all stable feature flags that don't have any dependencies
+(`qol_fns`, `math_fns`, `trigonometry`, `rotation`, `matrix`, `display`).
+- `qol_fns`: Adds quality of life functions and methods. (eg: [`add_scalar`](quat::add_scalar))
+- `math_fns`: Adds pure math focused functions. (eg: [`sqrt`](quat::sqrt))
+- `trigonometry`: Adds trigonomentric functions. (eg: [`sin`](quat::sin))
+- `rotation`: Adds rotation arithmatic functions. (eg: [`rotation_from_to`](quat::rotation_from_to))
+- `matrix`: Adds matrix arithmatic functions. (eg: [`to_matrix_3`](quat::to_matrix_3))
+- `display`: Adds [`str`] and [`String`](crate::alloc::string::String) functions. (eg: [`display`](quat::display))
 - `unstable`: Enables items that may change functionality or may be removed entirely.
 
 List of dependency features:

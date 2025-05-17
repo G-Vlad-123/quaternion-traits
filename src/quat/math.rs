@@ -443,6 +443,45 @@ where
     mul::<Num, Out>(inv::<Num, Q<Num>>(left), &right)
 }
 
+/// Calculates the modulus of a quaternion to another quaternion.
+#[cfg(feature = "unstable")]
+pub fn rem<Num, Out>(quaternion: impl Quaternion<Num>, modulus: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis + crate::core::ops::Rem<Num, Output = Num>,
+    Out: QuaternionConstructor<Num>,
+{
+    let inv = inv::<Num, Q<Num>>(&quaternion);
+    let gaussian: Q<Num> = (
+        inv.r() - inv.r() % Num::ONE,
+        [
+            inv.i() - inv.i() % Num::ONE,
+            inv.j() - inv.j() % Num::ONE,
+            inv.k() - inv.k() % Num::ONE,
+        ]
+    );
+    sub(quaternion, mul::<Num, Q<Num>>(modulus, gaussian))
+}
+
+// /// Multiplies two quaternions and then adds the addend.
+// /// 
+// /// Equivalent to `add(mul(q, f), a)` where
+// /// `q`, `f` and `a` are all quaternions.
+// /// 
+// /// # Example
+// /// ```
+// /// use quaternion_traits::quat::mul_add;
+// /// ```
+// #[inline]
+// #[cfg(feature = "qol_fns")]
+// #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+// pub fn mul_add<Num, Out>(quaternion: impl Quaternion<Num>, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Out
+// where 
+//     Num: Axis,
+//     Out: QuaternionConstructor<Num>,
+// {
+//     add(mul::<Num, Q<Num>>(quaternion, factor), addend)
+// }
+
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the negative of this quaternion.
@@ -1036,9 +1075,9 @@ where
     let r: Num = quaternion.r();
     let unit = normalize::<Num, Q<Num>>(vector_part::<Num, Q<Num>>(&quaternion)).1;
     let abs: Num = abs::<Num, Num>(&quaternion);
-    let unreal_part: Num = Num::sqrt( (abs - r) / (Num::ONE + Num::ONE) );
+    let unreal_part: Num = Num::sqrt( (abs - r) * Num::from_f64(0.5) );
     Out::new_quat (
-        Num::sqrt( (abs + r) / (Num::ONE + Num::ONE) ),
+        Num::sqrt( (abs + r) * Num::from_f64(0.5) ),
         unit[0] * unreal_part,
         unit[1] * unreal_part,
         unit[2] * unreal_part,
@@ -1090,7 +1129,7 @@ where
         if exp > 0 { return origin(); }
         return nan()
     }
-    if eq(&base, &identity::<Num, Q<Num>>()) { return identity() }
+    if eq(&base, identity::<Num, Q<Num>>()) { return identity() }
     if exp == 0 { return identity(); }
     let mut out: Q<Num> = identity::<Num, Q<Num>>();
     let is_inverse = exp < 0;
@@ -1172,12 +1211,7 @@ where
 #[cfg(feature = "math_fns")]
 #[inline(always)]
 fn γ<Num: Axis>() -> Num {
-    let γ_limit = {
-        (Num::ONE + Num::ONE)
-        * (Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE)
-        * (Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE)
-        * (Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE + Num::ONE)
-    };
+    let γ_limit = Num::from_f64(2000.0);
     let mut at = Num::ZERO;
     let mut result = -γ_limit * γ_limit.ln();
     for _ in 1..2000 {
