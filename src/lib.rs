@@ -63,10 +63,13 @@ Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
 
 List of dependency features:
 - `num`: Adds all the num traits `num-traits`, `num-complex`, `num-rational`, `num-bigint`.
-- `num-traits`: Adds diverse traits to [`Quat`](structs::Quat).
+- `num-traits`: Adds diverse trait implementations for [`Quat`](structs::Quat).
 - `num-complex`: Adds [Complex] implementation for the Complex struct.
 - `num-rational`: Adds [Scalar] implementations for the Ratio struct.
 - `num-bigint`: Adds [Scalar] implementation for the BigUint and BigInt structs.
+- `serde`: Adds [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html)
+and [Deserialize](https://docs.rs/serde/latest/serde/trait.Deserialize.html) implementation
+for [`Std`](structs::Std).
 
  */
 
