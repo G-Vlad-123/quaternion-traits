@@ -117,6 +117,9 @@ extern crate serde;
 extern crate core;
 extern crate libm;
 extern crate thiserror as err;
+extern crate delegate;
+
+use delegate::delegate;
 
 pub mod traits;
 pub use traits::{

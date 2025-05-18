@@ -675,213 +675,285 @@ mod quat_struct_methods_impl {
     use super::Quat;
     use crate::*;
 
-    macro_rules! impl_method_on_quaternion_methods {
-        (
-            $(
-                $( #[$($attrib:meta),+] )?
-                fn $func:ident // function name
-                $( < $( $generic:ident $( : $trait:ty $( | $extra:ty )* )? ),+ > )? // generics
-                ( self $ ( , $( $param:ident : $type:ty ),* $(,)? )? ) // parameters
-                -> Self // return type
-                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
-            );+
-            $(;)?
-        ) => {
-            $(
-                #[inline]
-                $( $(#[$attrib])+ )?
-                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
-                ( self, $( $($param: $type),* )? )
-                -> Self
-                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
-                { Quat::new( <T as QuaternionMethods<Num>>::$func( self.quat, $( $($param, )* )? ) ) }
-            )+
-        };
-
-        (
-            $(
-                $( #[$($attrib:meta),+] )?
-                fn $func:ident // function name
-                $( < $( $generic:ident $( : $trait:ident $( < $( $trait_extra:ident ),+ > )? $( | $extra:ident )* )? ),+ > )? // generics
-                ( self $ ( , $( $param:ident : $type:ty ),* $(,)? )? ) // parameters
-                -> $return:ty // return type
-                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
-            );+
-            $(;)?
-        ) => {
-            $(
-                #[inline]
-                $( $(#[$attrib])+ )?
-                fn $func $(<$($generic$(: $trait$(<$( $trait_extra, )+ > )? $(+ $extra)*)?)+>)?
-                ( self, $( $($param: $type),* )? )
-                -> $return
-                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
-                { <T as QuaternionMethods<Num>>::$func( self.quat, $( $($param, )* )? ) }
-            )+
-        };
-
-        (
-            $(
-                $( #[$($attrib:meta),+] )?
-                fn $func:ident // function name
-                $( < $( $generic:ident $( : $trait:ident $( | $extra:ident )* )? ),+ > )? // generics
-                ( $( $param:ident : $type:ty ),* $(,)? ) // parameters
-                -> Self // return type
-                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
-            );+
-            $(;)?
-        ) => {
-            $(
-                #[inline]
-                $( $(#[$attrib])+ )?
-                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
-                ( $($param: $type),* )
-                -> Self
-                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
-                { Quat::new( <T as QuaternionMethods<Num>>::$func( $($param, )* ) ) }
-            )+
-        };
-
-        (
-            $(
-                fn $func:ident // function name
-                $( < $( $generic:ident $( : $trait:ident $( | $extra:ident )* )? ),+ > )? // generics
-                ( $( $param:ident : $type:ty ),* $(,)? ) // parameters
-                -> Option<Self> // return type
-                $( where $( $where_generic:ident : $where_trait:ty $( | $where_extra:ty)* ),+ )? // where clause
-            );+
-            $(;)?
-        ) => {
-            $(
-                #[inline]
-                fn $func $(<$($generic$(: $trait $(+ $extra)*)?)+>)?
-                ( $($param: $type),* )
-                -> Option<Self>
-                $( where $( $where_generic : $where_trait $(+ $where_extra)* )+ )?
-                { Option::Some(Quat::new( <T as QuaternionMethods<Num>>::$func( $($param, )* )? )) }
-            )+
-        };
-    }
-
     impl<Num: Axis, T: QuaternionMethods<Num>> QuaternionMethods<Num> for Quat<Num, T> {
-        // isntead of `+` use `|`
-        impl_method_on_quaternion_methods!{
-            fn add(self, other: impl Quaternion<Num>) -> Self;
-            fn sub(self, other: impl Quaternion<Num>) -> Self;
-            fn mul(self, other: impl Quaternion<Num>) -> Self;
-            fn mul_reversed(self, other: impl Quaternion<Num>) -> Self;
-            fn div(self, other: impl Quaternion<Num>) -> Self;
-            fn div_reversed(self, other: impl Quaternion<Num>) -> Self;
-            #[cfg(feature = "unstable")] fn rem(self, modulus: impl Quaternion<Num>) -> Self;
-            #[cfg(feature = "qol_fns")] fn mul_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
-            #[cfg(feature = "qol_fns")] fn mul_reversed_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
+        crate::delegate!{
+            to self.quat {
+                #[expr(Quat::new($))]
+                fn add(self, other: impl Quaternion<Num>) -> Self;
 
-            fn neg(self) -> Self;
-            fn conj(self) -> Self;
-            fn inv(self) -> Self;
-            fn norm(self) -> Self;
-            #[cfg(feature = "math_fns")] fn sqrt(self) -> Self;
-            #[cfg(any(feature = "math_fns", feature = "qol_fns"))] fn square(self) -> Self;
-            #[cfg(feature = "math_fns")] fn exp(self) -> Self;
-            #[cfg(feature = "math_fns")] fn ln(self) -> Self;
-            #[cfg(feature = "unstable"), cfg(feature = "math_fns")] fn log(self, base: impl Quaternion<Num>) -> Self;
-            #[cfg(feature = "trigonometry")] fn sin(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn sinh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn sec(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn cos(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn cosh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn csc(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn tan(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn tanh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn cot(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn coth(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn asin(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn asinh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn asec(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn acos(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn acosh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn acsc(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn atan(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn atanh(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn acot(self) -> Self;
-            #[cfg(feature = "trigonometry")] fn acoth(self) -> Self;
+                #[expr(Quat::new($))]
+                fn sub(self, other: impl Quaternion<Num>) -> Self;
 
-            fn scale(self, scalar: impl Scalar<Num>) -> Self;
-            fn unscale(self, scalar: impl Scalar<Num>) -> Self;
+                #[expr(Quat::new($))]
+                fn mul(self, other: impl Quaternion<Num>) -> Self;
 
-            #[cfg(feature = "math_fns")] fn pow_i(self, exp: i32) -> Self;
-            #[cfg(feature = "math_fns")] fn pow_u(self, exp: u32) -> Self;
-            #[cfg(feature = "math_fns")] fn pow_f(self, exp: impl Scalar<Num>) -> Self;
-            #[cfg(feature = "unstable"), cfg(feature = "math_fns")]
-            fn pow_q(self, exp: impl Quaternion<Num>) -> Self;
+                #[expr(Quat::new($))]
+                fn mul_reversed(self, other: impl Quaternion<Num>) -> Self;
 
-            fn vector_part(self) -> Self;
-            fn complex_part(self) -> Self;
-            fn scalar_part(self) -> Self;
+                #[expr(Quat::new($))]
+                fn div(self, other: impl Quaternion<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                fn div_reversed(self, other: impl Quaternion<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "unstable")]
+                fn rem(self, modulus: impl Quaternion<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "qol_fns")]
+                fn mul_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "qol_fns")]
+                fn mul_reversed_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
+
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn sqrt(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn neg(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn conj(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn inv(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn norm(self) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(any(feature = "math_fns", feature = "qol_fns"))]
+                fn square(self) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn exp(self) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn ln(self) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                #[cfg(feature = "unstable")]
+                fn log(self, base: impl Quaternion<Num>) -> Self;
+
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn sin(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn sinh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn sec(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn cos(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn cosh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn csc(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn tan(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn tanh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn cot(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn coth(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn asin(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn asinh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn asec(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn acos(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn acosh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn acsc(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn atan(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn atanh(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn acot(self) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "trigonometry")]
+                fn acoth(self) -> Self;
+
+
+                #[expr(Quat::new($))]
+                fn scale(self, scalar: impl Scalar<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                fn unscale(self, scalar: impl Scalar<Num>) -> Self;
+
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn pow_i(self, exp: i32) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn pow_u(self, exp: u32) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "math_fns")]
+                fn pow_f(self, exp: impl Scalar<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "unstable")]
+                #[cfg(feature = "math_fns")]
+                fn pow_q(self, exp: impl Quaternion<Num>) -> Self;
+
+
+                #[expr(Quat::new($))]
+                fn vector_part(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn complex_part(self) -> Self;
+
+                #[expr(Quat::new($))]
+                fn scalar_part(self) -> Self;
+
+
+                fn eq(self, other: impl Quaternion<Num>) -> bool;fn abs(self) -> Num;
+                
+                fn abs_squared(self) -> Num;
+
+                fn angle(self) -> Num;
+
+                fn angle_cos(self) -> Num;
+
+                fn dot(self, other: impl Quaternion<Num>) -> Num;
+
+
+                fn is_scalar(self) -> bool;
+
+                fn is_vector(self) -> bool;
+
+                fn is_complex(self) -> bool;
+                
+                #[cfg(feature = "qol_fns")] 
+                fn is_on_axis_plane(self) -> bool;
+
+
+                fn is_near(self, other: impl Quaternion<Num>) -> bool;
+
+                fn is_near_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
+
+                fn is_close(self, other: impl Quaternion<Num>) -> bool;
+
+                fn is_close_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
+                
+
+                fn dist_euclid(self, other: impl Quaternion<Num>) -> Num;
+                fn dist_cosine(self, other: impl Quaternion<Num>) -> Num;
+
+
+                fn to_vector<V: VectorConstructor<Num> >(self) -> V;
+
+                fn to_complex<C: ComplexConstructor<Num> >(self) -> C;
+
+                fn to_scalar<S: ScalarConstructor<Num> >(self) -> S;
+
+                #[cfg(feature = "rotation")]
+                fn to_rotation<R: RotationConstructor<Num> >(self) -> R;
+
+                // #[inline]
+                #[cfg(feature = "math_fns")]
+                fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
+                where 
+                    Abs: ScalarConstructor<Num>,
+                    Angle: ScalarConstructor<Num>,
+                    UnitVec: VectorConstructor<Num>;
+
+                #[cfg(feature = "matrix")]
+                fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M;
+                
+                #[cfg(feature = "matrix")]
+                fn to_matrix_3<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 3>>(self) -> M;
+                
+                #[cfg(feature = "matrix")]
+                fn to_matrix_4<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 4>>(self) -> M;
+            }
+
+            to T {
+                #[expr(Quat::new($))]
+                fn from_vector(vector: impl Vector<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                fn from_complex(complex: impl Complex<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                fn from_scalar(scalar: impl Scalar<Num>) -> Self;
+
+                #[expr(Quat::new($))]
+                #[cfg(feature = "rotation")]
+                fn from_rotation(rotation: impl Rotation<Num>) -> Self;
+
+                #[expr(Option::Some(Quat::new($?)))]
+                #[cfg(feature = "math_fns")]
+                fn from_polar_form(
+                    abs: impl Scalar<Num>,
+                    angle: impl Scalar<Num>,
+                    unit_vec: impl Vector<Num>,
+                ) -> Option<Self>;
+
+                #[expr(Option::Some(Quat::new($?)))]
+                #[cfg(feature = "matrix")]
+                fn from_matrix_2<Elem: Complex<Num>>(matrix: impl Matrix<Elem, 2>) -> Option<Self>;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "matrix")]
+                fn from_matrix_3<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 3>) -> Self;
+                
+                #[expr(Quat::new($))]
+                #[cfg(feature = "matrix")]
+                fn from_matrix_4<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 4>) -> Self;
+            }
         }
-
-        impl_method_on_quaternion_methods!{
-            fn eq(self, other: impl Quaternion<Num>) -> bool;
-
-            fn abs(self) -> Num;
-            fn abs_squared(self) -> Num;
-            fn angle(self) -> Num;
-            fn angle_cos(self) -> Num;
-            fn dot(self, other: impl Quaternion<Num>) -> Num;
-
-            fn is_scalar(self) -> bool;
-            fn is_vector(self) -> bool;
-            fn is_complex(self) -> bool;
-            #[cfg(feature = "qol_fns")] 
-            fn is_on_axis_plane(self) -> bool;
-
-            fn is_near(self, other: impl Quaternion<Num>) -> bool;
-            fn is_near_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
-            fn is_close(self, other: impl Quaternion<Num>) -> bool;
-            fn is_close_by(self, other: impl Quaternion<Num>, error: impl Scalar<Num>) -> bool;
-            
-            fn dist_euclid(self, other: impl Quaternion<Num>) -> Num;
-            fn dist_cosine(self, other: impl Quaternion<Num>) -> Num;
-
-            fn to_vector<V: VectorConstructor<Num> >(self) -> V;
-            fn to_complex<C: ComplexConstructor<Num> >(self) -> C;
-            fn to_scalar<S: ScalarConstructor<Num> >(self) -> S;
-            #[cfg(feature = "rotation")]
-            fn to_rotation<R: RotationConstructor<Num> >(self) -> R;
-        }
-
-        #[inline]
-        #[cfg(feature = "math_fns")]
-        fn to_polar_form<Abs, Angle, UnitVec>(self) -> (Abs, Angle, UnitVec)
-            where 
-                Abs: ScalarConstructor<Num>,
-                Angle: ScalarConstructor<Num>,
-                UnitVec: VectorConstructor<Num>,
-        { T::to_polar_form(self.quat) }
-
-        impl_method_on_quaternion_methods!{
-            fn from_vector(vector: impl Vector<Num>) -> Self;
-            fn from_complex(complex: impl Complex<Num>) -> Self;
-            fn from_scalar(scalar: impl Scalar<Num>) -> Self;
-            #[cfg(feature = "rotation")]
-            fn from_rotation(rotation: impl Rotation<Num>) -> Self;
-        }
-
-        #[cfg(feature = "math_fns")]
-        impl_method_on_quaternion_methods!{
-            fn from_polar_form(
-                abs: impl Scalar<Num>,
-                angle: impl Scalar<Num>,
-                unit_vec: impl Vector<Num>,
-            ) -> Option<Self>;
-        }
-
-        #[cfg(feature = "matrix")] #[inline] fn to_matrix_2<C: ComplexConstructor<Num>, M: MatrixConstructor<C, 2>>(self) -> M {T::to_matrix_2(self.quat)}
-        #[cfg(feature = "matrix")] #[inline] fn to_matrix_3<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 3>>(self) -> M {T::to_matrix_3::<S, M>(self.quat)}
-        #[cfg(feature = "matrix")] #[inline] fn to_matrix_4<S: ScalarConstructor<Num>, M: MatrixConstructor<Num, 4>>(self) -> M {T::to_matrix_4::<S, M>(self.quat)}
-
-        #[cfg(feature = "matrix")] #[inline] fn from_matrix_2<Elem: Complex<Num>>(matrix: impl Matrix<Elem, 2>) -> Option<Self> {Option::Some(Quat::new(T::from_matrix_2(matrix)?))}
-        #[cfg(feature = "matrix")] #[inline] fn from_matrix_3<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 3>) -> Self {Quat::new(T::from_matrix_3::<Elem>(matrix))}
-        #[cfg(feature = "matrix")] #[inline] fn from_matrix_4<Elem: Scalar<Num>>(matrix: impl Matrix<Elem, 4>) -> Self {Quat::new(T::from_matrix_4::<Elem>(matrix))}
     }
 }
