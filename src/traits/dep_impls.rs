@@ -128,6 +128,7 @@ mod num_bigint_impl {
         Scalar,
         ScalarConstructor,
     };
+    #[cfg(feature = "std")]
     use crate::structs::Std;
 
     impl Scalar<f32> for BigInt {
@@ -146,52 +147,60 @@ mod num_bigint_impl {
         #[inline] fn new_scalar(axis: f64) -> Self { BigInt::from_f64(axis) }
     }
 
+    #[cfg(feature = "std")]
     impl Scalar<Std<f32>> for BigInt {
         #[inline] fn scalar(&self) -> Std<f32> { Std(self.to_f32().unwrap()) } // Can not return `None`
     }
 
+    #[cfg(feature = "std")]
     impl ScalarConstructor<Std<f32>> for Option<BigInt> {
         #[inline] fn new_scalar(axis: Std<f32>) -> Self { BigInt::from_f32(axis.0) }
     }
 
+    #[cfg(feature = "std")]
     impl Scalar<Std<f64>> for BigInt {
         #[inline] fn scalar(&self) -> Std<f64> { Std(self.to_f64().unwrap()) } // Can not return `None`
     }
 
+    #[cfg(feature = "std")]
     impl ScalarConstructor<Std<f64>> for Option<BigInt> {
         #[inline] fn new_scalar(axis: Std<f64>) -> Self { BigInt::from_f64(axis.0) }
     }
 
-    impl Scalar<f32> for BigUiclsnt {
+    impl Scalar<f32> for BigUint {
         #[inline] fn scalar(&self) -> f32 { self.to_f32().unwrap() } // Can not return `None`
     }
 
-    impl ScalarConstructor<f32> for Option<BigUiclsnt> {
-        #[inline] fn new_scalar(axis: f32) -> Self { BigUiclsnt::from_f32(axis) }
+    impl ScalarConstructor<f32> for Option<BigUint> {
+        #[inline] fn new_scalar(axis: f32) -> Self { BigUint::from_f32(axis) }
     }
 
-    impl Scalar<f64> for BigUiclsnt {
+    impl Scalar<f64> for BigUint {
         #[inline] fn scalar(&self) -> f64 { self.to_f64().unwrap() } // Can not return `None`
     }
 
-    impl ScalarConstructor<f64> for Option<BigUiclsnt> {
-        #[inline] fn new_scalar(axis: f64) -> Self { BigUiclsnt::from_f64(axis) }
+    impl ScalarConstructor<f64> for Option<BigUint> {
+        #[inline] fn new_scalar(axis: f64) -> Self { BigUint::from_f64(axis) }
     }
 
-    impl Scalar<Std<f32>> for BigUiclsnt {
+    #[cfg(feature = "std")]
+    impl Scalar<Std<f32>> for BigUint {
         #[inline] fn scalar(&self) -> Std<f32> { Std(self.to_f32().unwrap()) } // Can not return `None`
     }
 
-    impl ScalarConstructor<Std<f32>> for Option<BigUiclsnt> {
-        #[inline] fn new_scalar(axis: Std<f32>) -> Self { BigUiclsnt::from_f32(axis.0) }
+    #[cfg(feature = "std")]
+    impl ScalarConstructor<Std<f32>> for Option<BigUint> {
+        #[inline] fn new_scalar(axis: Std<f32>) -> Self { BigUint::from_f32(axis.0) }
     }
 
-    impl Scalar<Std<f64>> for BigUiclsnt {
+    #[cfg(feature = "std")]
+    impl Scalar<Std<f64>> for BigUint {
         #[inline] fn scalar(&self) -> Std<f64> { Std(self.to_f64().unwrap()) } // Can not return `None`
     }
 
-    impl ScalarConstructor<Std<f64>> for Option<BigUiclsnt> {
-        #[inline] fn new_scalar(axis: Std<f64>) -> Self { BigUiclsnt::from_f64(axis.0) }
+    #[cfg(feature = "std")]
+    impl ScalarConstructor<Std<f64>> for Option<BigUint> {
+        #[inline] fn new_scalar(axis: Std<f64>) -> Self { BigUint::from_f64(axis.0) }
     }
 
 }

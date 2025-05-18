@@ -58,18 +58,18 @@ Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
 - `trigonometry`: Adds trigonomentric functions. (eg: [`sin`](quat::sin))
 - `rotation`: Adds rotation arithmatic functions. (eg: [`rotation_from_to`](quat::rotation_from_to))
 - `matrix`: Adds matrix arithmatic functions. (eg: [`to_matrix_3`](quat::to_matrix_3))
-- `display`: Adds [`str`] and [`String`](crate::alloc::string::String) functions. (eg: [`display`](quat::display))
+- `display`: Adds [str] and [String](crate::alloc::string::String) functions. (eg: [`display`](quat::display))
 - `unstable`: Enables items that may change functionality or may be removed entirely.
 
 List of dependency features:
 - `num`: Adds all the num traits `num-traits`, `num-complex`, `num-rational`, `num-bigint`.
-- `num-traits`: Adds diverse trait implementations for [`Quat`](structs::Quat).
+- `num-traits`: Adds diverse trait implementations for [Quat](structs::Quat).
 - `num-complex`: Adds [Complex] implementation for the Complex struct.
 - `num-rational`: Adds [Scalar] implementations for the Ratio struct.
 - `num-bigint`: Adds [Scalar] implementation for the BigUint and BigInt structs.
 - `serde`: Adds [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html)
 and [Deserialize](https://docs.rs/serde/latest/serde/trait.Deserialize.html) implementation
-for [`Std`](structs::Std).
+for [Std](structs::Std).
 
  */
 
@@ -88,6 +88,7 @@ for [`Std`](structs::Std).
 
 #![allow(confusable_idents)]
 #![allow(mixed_script_confusables)]
+// #![allow(rustdoc::broken_intra_doc_links)]
 
 #[cfg(feature = "std")]
 extern crate std;

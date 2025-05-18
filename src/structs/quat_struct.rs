@@ -105,13 +105,13 @@ impl<Num: Axis, T> Quat<Num, T> {
 
     #[inline]
     /// Gets a refrence to the wrapped value.
-    pub fn get_ref(&self) -> &T {
+    pub const fn get_ref(&self) -> &T {
         &self.quat
     }
 
     #[inline]
     /// Gets a mutable refrence to the wrapped value.
-    pub fn get_mut(&mut self) -> &mut T {
+    pub const fn get_mut(&mut self) -> &mut T {
         &mut self.quat
     }
 
@@ -772,6 +772,7 @@ mod quat_struct_methods_impl {
             fn mul_reversed(self, other: impl Quaternion<Num>) -> Self;
             fn div(self, other: impl Quaternion<Num>) -> Self;
             fn div_reversed(self, other: impl Quaternion<Num>) -> Self;
+            #[cfg(feature = "unstable")] fn rem(self, modulus: impl Quaternion<Num>) -> Self;
             #[cfg(feature = "qol_fns")] fn mul_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
             #[cfg(feature = "qol_fns")] fn mul_reversed_add(self, factor: impl Quaternion<Num>, addend: impl Quaternion<Num>) -> Self;
 
