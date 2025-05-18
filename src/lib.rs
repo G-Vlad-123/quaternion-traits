@@ -107,6 +107,9 @@ extern crate num_bigint;
 #[cfg(feature = "num-rational")]
 extern crate num_integer;
 
+#[cfg(feature = "serde")]
+extern crate serde;
+
 extern crate core;
 extern crate libm;
 extern crate thiserror as err;

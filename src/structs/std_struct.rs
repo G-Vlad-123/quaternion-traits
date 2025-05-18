@@ -16,6 +16,7 @@ use crate::std;
 Wrapper that changes the [`Axis`] methods from the [libm](https://docs.rs/libm/latest/libm/)
 ones to the [std](https://doc.rust-lang.org/std/index.html) ones.
 */
+#[repr(transparent)]
 #[allow(private_bounds)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Std<Num: Axis>(pub Num);
@@ -372,7 +373,31 @@ impl crate::num_traits::NumCast for Std<f64> {
         crate::core::option::Option::Some(Std(num.to_f64()?))
     }
 }
-    
+
+#[cfg(feature = "serde")]
+use crate::serde::{
+    Serialize,
+    Serializer,
+    Deserialize,
+    Deserializer,
+};
+
+#[cfg(feature = "serde")]
+impl<Num: Axis + Serialize> Serialize for Std<Num> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> crate::core::result::Result<S::Ok, S::Error>
+    where S: Serializer
+    { self.0.serialize(serializer) }
+}
+
+#[cfg(feature = "serde")]
+impl<'de, Num: Axis + Deserialize<'de>> Deserialize<'de> for Std<Num> {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> crate::core::result::Result<Self, D::Error>
+    where D: Deserializer<'de>
+    { crate::core::result::Result::Ok(Std(Num::deserialize(deserializer)?)) }
+}
+
 impl Axis for Std<f32> {
     const ONE: Self = Std(1.0);
     const ZERO: Self = Std(0.0);

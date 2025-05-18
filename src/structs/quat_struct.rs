@@ -35,9 +35,9 @@ a quaternion struct and do not want to make your own or get one from another cra
 
 If the `std` feature is enabled the default is set to `Std<f32>`, otherwise it's set to `f32`
  */
-#[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 #[cfg(not(feature = "std"))]
+#[derive(Debug, Clone, Copy)]
 pub struct Quat<Num: Axis = f32, T = (Num, [Num; 3])> {
     /// The quaternion held by this struct.
     pub quat: T,
@@ -58,9 +58,9 @@ a quaternion struct and do not want to make your own or get one from another cra
 
 If the `std` feature is enabled the default is set to `Std<f32>`, otherwise it's set to `f32`
  */
-#[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 #[cfg(feature = "std")]
+#[derive(Debug, Clone, Copy)]
 pub struct Quat<Num: Axis = crate::structs::Std<f32>, T = (Num, [Num; 3])> {
     /// The quaternion held by this struct.
     pub quat: T,
@@ -609,6 +609,37 @@ impl<Num: Axis, T: QuaternionMethods<Num>> crate::num_traits::Inv for &mut Quat<
     #[inline] fn inv(self) -> Quat<Num, T> {
         quat::inv(self)
     }
+}
+
+#[cfg(feature = "serde")]
+#[cfg(feature = "unstable")]
+use crate::serde::{
+    Serialize,
+    Serializer,
+    Deserialize,
+    Deserializer,
+};
+
+#[cfg(feature = "serde")]
+#[cfg(feature = "unstable")]
+/// May or may not change it from just passing the seralizer function furhtur on
+/// into giving some abstract quaternion representation.
+impl<Num: Axis, T: Serialize> Serialize for Quat<Num, T> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> crate::core::result::Result<S::Ok, S::Error>
+    where S: Serializer
+    { self.quat.serialize(serializer) }
+}
+
+#[cfg(feature = "serde")]
+#[cfg(feature = "unstable")]
+/// May or may not change it from just passing the seralizer function furhtur on
+/// into getting some abstract quaternion representation.
+impl<'de, Num: Axis, T: Deserialize<'de>> Deserialize<'de> for Quat<Num, T> {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> crate::core::result::Result<Self, D::Error>
+    where D: Deserializer<'de>
+    { crate::core::result::Result::Ok(Quat::new(T::deserialize(deserializer)?)) }
 }
 
 /// Constructs a [`Quat`] for any `Num` that implements axis and of `T = (Num, [Num; 3]`).
