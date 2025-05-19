@@ -132,6 +132,10 @@ pub use traits::{
     QuaternionConstructor,
     QuaternionConsts,
     QuaternionMethods,
+
+    UnitQuaternion,
+    UnitQuaternionConstructor,
+    UnitQuaternionConsts,
 };
 #[allow(unused_imports)]
 use traits::{
@@ -161,6 +165,8 @@ use traits::{
 };
 
 pub mod quat;
+
+pub mod unit;
 
 pub mod structs;
 

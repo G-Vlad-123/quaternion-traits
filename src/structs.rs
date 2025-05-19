@@ -5,6 +5,9 @@ This module provides structs for ease of use and/or changing functionality of ot
 mod quat_struct;
 pub use quat_struct::*;
 
+mod unit_struct;
+pub use unit_struct::*;
+
 #[cfg(feature = "std")]
 mod std_struct;
 #[cfg(feature = "std")]

@@ -50,6 +50,30 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a quaternion from a unit quaternion.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::structs::UnitQuat;
+/// use quaternion_traits::quat::from_unit_quat;
+/// 
+/// let unit_quat = UnitQuat::new().unwrap();
+/// ```
+pub fn from_unit_quat<Num, Out>(unit_quat: impl UnitQuaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: QuaternionConstructor<Num>
+{
+    Out::new_quat(
+        unit_quat.r(),
+        unit_quat.i(),
+        unit_quat.j(),
+        unit_quat.k(),
+    )
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a quaternion from a vector representation.
 /// 
 /// # Example

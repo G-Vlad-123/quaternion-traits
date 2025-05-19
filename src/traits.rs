@@ -28,6 +28,23 @@ pub trait Quaternion<Num: Axis> {
 }
 
 /**
+The general representation of any unit quaternion type.
+
+Note: The [`r`](Quaternion::r), [`i`](Quaternion::i), [`j`](Quaternion::j) and [`k`](Quaternion::k)
+methods are used as if they are cheap operations.
+ */
+pub trait UnitQuaternion<Num: Axis> {
+    /// The real part of this unit quaternion.
+    fn r(&self) -> Num;
+    /// The first imaginary part of this unit quaternion.
+    fn i(&self) -> Num;
+    /// The second imaginary part of this unit quaternion.
+    fn j(&self) -> Num;
+    /// The third imaginary part of this unit quaternion.
+    fn k(&self) -> Num;
+}
+
+/**
 The general representation for any scalar type.
 
 Marks that this type can turn into an [`Axis`] type.
@@ -263,6 +280,39 @@ pub trait QuaternionConstructor<Num: Axis>: Sized {
     /// ```
     #[inline]
     fn unit_k() -> Self { quat::unit_k() }
+}
+
+/**
+The general representation of any unit quaternion type.
+
+Note: The [`r`](Quaternion::r), [`i`](Quaternion::i), [`j`](Quaternion::j) and [`k`](Quaternion::k)
+methods are used as if they are cheap operations.
+ */
+pub trait UnitQuaternionConstructor<Num: Axis>: Sized {
+    /// Constructs a new unit quaternion.
+    fn new_unit_quat(r: Num, i: Num, j: Num, k: Num) -> Option<Self>;
+
+    /// Constructs a new unit quaternion without
+    /// checking if it's a valid unit quaternion.
+    unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self;
+
+    /// Constructs a new unit quaternion from another one.
+    /// 
+    /// Will have same values.
+    #[inline]
+    fn from_unit_quat(quat: impl UnitQuaternion<Num>) -> Self {
+        unsafe {
+            UnitQuaternionConstructor::new_unit_quat_unchecked(quat.r(), quat.i(), quat.j(), quat.k())
+        }
+    }
+
+    /// Constructs a new unit quaternion from a normal one.
+    /// 
+    /// Will have the same values.
+    #[inline]
+    fn from_quat(quat: impl Quaternion<Num>) -> Option<Self> {
+        UnitQuaternionConstructor::new_unit_quat(quat.r(), quat.i(), quat.j(), quat.k())
+    }
 } 
 
 /**
@@ -417,6 +467,23 @@ pub trait MatrixConstructor<Num, const N: usize>: Sized {
 pub trait QuaternionConsts<Num: Axis>: Sized + Quaternion<Num> {
     /// The origin quaternion. (Aditive identity)
     const ORIGIN: Self;
+    /// The positive real unit quaternion. (Multiplicative identity)
+    const IDENTITY: Self;
+    /// A quaternion with all [`Num::NAN`s](Axis::NAN).
+    const NAN: Self;
+
+    /// The unit quaternion on the real axis.
+    const UNIT_R: Self = Self::IDENTITY;
+    /// The unit quaternion on the first imaginary axis.
+    const UNIT_I: Self;
+    /// The unit quaternion on the second imaginary axis.
+    const UNIT_J: Self;
+    /// The unit quaternion on the third imaginary axis.
+    const UNIT_K: Self;
+}
+
+/// Adds constants associated with any unit quaternion.
+pub trait UnitQuaternionConsts<Num: Axis>: Sized + UnitQuaternion<Num> {
     /// The positive real unit quaternion. (Multiplicative identity)
     const IDENTITY: Self;
     /// A quaternion with all [`Num::NAN`s](Axis::NAN).
@@ -612,6 +679,7 @@ where T: Quaternion<Num>
     #[inline(always)] fn k(&self) -> Num { (*self).k() }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis> QuaternionMethods<Num> for () {}
 impl<Num: Axis> QuaternionConsts<Num> for () {
     const ORIGIN: Self = ();
@@ -622,6 +690,7 @@ impl<Num: Axis> QuaternionConsts<Num> for () {
     const UNIT_K: Self = ();
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis, T> QuaternionMethods<Num> for [T; 0] {}
 impl<Num: Axis, T> QuaternionConsts<Num> for [T; 0] {
     const ORIGIN: Self = [];
@@ -754,6 +823,41 @@ where
     const UNIT_K: Self = (C::ORIGIN, J::ZERO, K::ONE);
 }
 
+// Unit Quaternion impls
+
+impl<Num: Axis> UnitQuaternion<Num> for () {
+    fn r(&self) -> Num { <Num as Axis>::ONE }
+    fn i(&self) -> Num { <Num as Axis>::ZERO }
+    fn j(&self) -> Num { <Num as Axis>::ZERO }
+    fn k(&self) -> Num { <Num as Axis>::ZERO }
+}
+
+impl<Num: Axis> UnitQuaternionConstructor<Num> for () {
+    fn new_unit_quat(_: Num, _: Num, _: Num, _: Num) -> Option<Self> { Option::Some(()) }
+    unsafe fn new_unit_quat_unchecked(_: Num, _: Num, _: Num, _: Num) -> Self { }
+}
+
+impl<Num: Axis, T> UnitQuaternion<Num> for [T; 0] {
+    fn r(&self) -> Num { <Num as Axis>::ONE }
+    fn i(&self) -> Num { <Num as Axis>::ZERO }
+    fn j(&self) -> Num { <Num as Axis>::ZERO }
+    fn k(&self) -> Num { <Num as Axis>::ZERO }
+}
+
+impl<Num: Axis, T> UnitQuaternionConstructor<Num> for [T; 0] {
+    fn new_unit_quat(_: Num, _: Num, _: Num, _: Num) -> Option<Self> { Option::Some([]) }
+    unsafe fn new_unit_quat_unchecked(_: Num, _: Num, _: Num, _: Num) -> Self { [] }
+}
+
+impl<Num: Axis, U> UnitQuaternion<Num> for &U
+where U: UnitQuaternion<Num>
+{
+    fn r(&self) -> Num { (*self).r() }
+    fn i(&self) -> Num { (*self).i() }
+    fn j(&self) -> Num { (*self).j() }
+    fn k(&self) -> Num { (*self).k() }
+}
+
 // Scalar impls
 
 impl<Num: Axis> Scalar<Num> for () {
@@ -764,6 +868,7 @@ impl<Num: Axis, T> Scalar<Num> for [T; 0] {
     #[inline(always)] fn scalar(&self) -> Num { Num::ZERO }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis, T> ScalarConsts<Num> for [T; 0] {
     const ZERO: Self = [];
     const ONE: Self = [];
@@ -833,6 +938,7 @@ impl<Num: Axis> Complex<Num> for () {
     #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis> ComplexConsts<Num> for () {
     const ORIGIN: Self = ();
     const IDENTITY: Self = ();
@@ -845,6 +951,7 @@ impl<Num: Axis, T> Complex<Num> for [T; 0] {
     #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis, T> ComplexConsts<Num> for [T; 0] {
     const ORIGIN: Self = [];
     const IDENTITY: Self = [];
@@ -929,6 +1036,7 @@ impl<Num: Axis> Vector<Num> for () {
     #[inline(always)] fn z(&self) -> Num { Num::ZERO }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis> VectorConsts<Num> for () {
     const ORIGIN: Self = ();
     const NAN: Self = ();
@@ -943,6 +1051,7 @@ impl<Num: Axis, T> Vector<Num> for [T; 0] {
     #[inline(always)] fn z(&self) -> Num { Num::ZERO }
 }
 
+/// Marked for deletion in `2.0.0`
 impl<Num: Axis, T> VectorConsts<Num> for [T; 0] {
     const ORIGIN: Self = [];
     const NAN: Self = [];
@@ -1160,53 +1269,7 @@ use crate::core::cell::{
 };
 
 macro_rules! ref_impls {
-    ( core $ty:ty $(: $( $trait:ident ),+ )? ) => {
-        impl<Num: Axis, T> Quaternion<Num> for $ty
-        where T: Quaternion<Num> $($( + $trait )+)?
-        {
-            fn r(&self) -> Num { (*(*self)).r() }
-            fn i(&self) -> Num { (*(*self)).i() }
-            fn j(&self) -> Num { (*(*self)).j() }
-            fn k(&self) -> Num { (*(*self)).k() }
-        }
-
-        impl<Num: Axis, T> Vector<Num> for $ty
-        where T: Vector<Num> $($( + $trait )+)?
-        {
-            fn x(&self) -> Num { (*(*self)).x() }
-            fn y(&self) -> Num { (*(*self)).y() }
-            fn z(&self) -> Num { (*(*self)).z() }
-        }
-
-        impl<Num: Axis, T> Complex<Num> for $ty
-        where T: Complex<Num> $($( + $trait )+)?
-        {
-            fn real(&self) -> Num { (*(*self)).real() }
-            fn imaginary(&self) -> Num { (*(*self)).imaginary() }
-        }
-
-        #[cfg(feature = "rotation")]
-        impl<Num: Axis, T> Rotation<Num> for $ty
-        where T: Rotation<Num> $($( + $trait )+)?
-        {
-            fn roll(&self) -> Num { (*(*self)).roll() }
-            fn pitch(&self) -> Num { (*(*self)).pitch() }
-            fn yaw(&self) -> Num { (*(*self)).yaw() }
-        }
-
-        #[cfg(feature = "matrix")]
-        impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
-        where T: Matrix<Elem, N> $($( + $trait )+)?
-        {
-            #[inline] fn get_unchecked( &self, row: usize, col: usize ) -> Elem { (*(*self)).get_unchecked(row, col) }
-
-            #[inline] fn get( &self, row: usize, col: usize ) -> Option<Elem> { (*(*self)).get(row, col) }
-
-            #[inline] fn to_array( &self ) -> [[Elem; N]; N] { (*(*self)).to_array() }
-        }
-    };
     ( $ty:ty $(: $( $trait:ident ),+ )? ) => {
-        #[cfg(feature = "alloc")]
         impl<Num: Axis, T> Quaternion<Num> for $ty
         where T: Quaternion<Num> $($( + $trait )+)?
         {
@@ -1215,8 +1278,16 @@ macro_rules! ref_impls {
             fn j(&self) -> Num { (*(*self)).j() }
             fn k(&self) -> Num { (*(*self)).k() }
         }
+        
+        impl<Num: Axis, T> UnitQuaternion<Num> for $ty
+        where T: UnitQuaternion<Num> $($( + $trait )+)?
+        {
+            fn r(&self) -> Num { (*(*self)).r() }
+            fn i(&self) -> Num { (*(*self)).i() }
+            fn j(&self) -> Num { (*(*self)).j() }
+            fn k(&self) -> Num { (*(*self)).k() }
+        }
 
-        #[cfg(feature = "alloc")]
         impl<Num: Axis, T> Vector<Num> for $ty
         where T: Vector<Num> $($( + $trait )+)?
         {
@@ -1225,7 +1296,6 @@ macro_rules! ref_impls {
             fn z(&self) -> Num { (*(*self)).z() }
         }
 
-        #[cfg(feature = "alloc")]
         impl<Num: Axis, T> Complex<Num> for $ty
         where T: Complex<Num> $($( + $trait )+)?
         {
@@ -1233,7 +1303,6 @@ macro_rules! ref_impls {
             fn imaginary(&self) -> Num { (*(*self)).imaginary() }
         }
 
-        #[cfg(feature = "alloc")]
         #[cfg(feature = "rotation")]
         impl<Num: Axis, T> Rotation<Num> for $ty
         where T: Rotation<Num> $($( + $trait )+)?
@@ -1243,7 +1312,6 @@ macro_rules! ref_impls {
             fn yaw(&self) -> Num { (*(*self)).yaw() }
         }
 
-        #[cfg(feature = "alloc")]
         #[cfg(feature = "matrix")]
         impl<Elem, const N: usize, T> Matrix<Elem, N> for $ty
         where T: Matrix<Elem, N> $($( + $trait )+)?
@@ -1257,16 +1325,15 @@ macro_rules! ref_impls {
     };
 }
 
-ref_impls!{Box<T>}
-ref_impls!{Rc<T>}
-ref_impls!{Arc<T>}
-ref_impls!{Cow<'_, T>: ToOwned}
-
-ref_impls!{core LazyCell<T>}
-ref_impls!{core Ref<'_, T>}
-ref_impls!{core RefMut<'_, T>}
-ref_impls!{core ManuallyDrop<T>}
-ref_impls!{core &mut T}
+#[cfg(feature = "alloc")] ref_impls!{Box<T>}
+#[cfg(feature = "alloc")] ref_impls!{Rc<T>}
+#[cfg(feature = "alloc")] ref_impls!{Arc<T>}
+#[cfg(feature = "alloc")] ref_impls!{Cow<'_, T>: ToOwned}
+ref_impls!{LazyCell<T>}
+ref_impls!{Ref<'_, T>}
+ref_impls!{RefMut<'_, T>}
+ref_impls!{ManuallyDrop<T>}
+ref_impls!{&mut T}
 
 // Other impls
 

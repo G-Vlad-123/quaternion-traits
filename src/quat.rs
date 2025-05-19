@@ -23,6 +23,9 @@ use crate::{
     Quaternion,
     QuaternionConstructor,
 
+    UnitQuaternion,
+    UnitQuaternionConstructor,
+
     Vector,
     VectorConstructor,
 
