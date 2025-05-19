@@ -13,14 +13,19 @@ Curently this library is implemented for:
 - [core](https://doc.rust-lang.org/core/)
 - [std](https://doc.rust-lang.org/std/) (feature `std`)
 - [quaternion](https://crates.io/crates/quaternion)
-- [num-complex](https://crates.io/crates/num-complex) (feature `num-complex`)
+- [quaternion-core](https://crates.io/crates/quaternion-core)
+(No support for [RotationSequence](https://docs.rs/quaternion-core/latest/quaternion_core/enum.RotationSequence.html)
+and [RotationType](https://docs.rs/quaternion-core/latest/quaternion_core/enum.RotationType.html))
 - [num-traits](https://crates.io/crates/num-traits) (feature `num-traits`)
+- [num-complex](https://crates.io/crates/num-complex) (feature `num-complex`)
+- [num-rational](https://crates.io/crates/num-rational) (feature `num-rational`)
+- [num-bigint](https://crates.io/crates/num-bigint) (feature `num-bigint`)
 
 # Details
 
 Currently the quaternion traits are implemented only in core rust and num,
 but it's planned to add (though optional dependencies) these traits to crates like
-[bevy](https://crates.io/crates/bevy), [ggez](https://crates.io/crates/ggez)
+[bevy](https://crates.io/crates/bevy)
 and the other quaternion crates out there.
 
 Due to how the traits are implemented this crate is naturaly usable with the
@@ -48,7 +53,7 @@ or that another method is prefered this will remain as unstable)
   or it's found that quaternion logs can not have a formula for whatever reason)
 
 List of features:
-- `std`: (enabled by default) Adds `alloc` feature, adds [Std](struct::Std) struct.
+- `std`: (enabled by default) Adds `alloc` feature, adds [Std](structs::Std) struct.
 - `alloc`: Adds [Quaternion], [Vector], [Complex] and [Scalar] implementations for
 Box, Arc, Rc and Cow, adds the [`to_string`](quat::to_string) function.
 - `full`: (enabled by default) Enables all stable feature flags that don't have any dependencies
