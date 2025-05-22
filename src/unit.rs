@@ -14,7 +14,9 @@ Since this is a new module it may still have missing features.
  */
 
 use crate::core::option::Option;
+#[allow(unused_imports)]
 use crate::quat;
+#[allow(unused_imports)]
 use crate::{
     Axis,
 
@@ -35,12 +37,14 @@ use crate::{
 };
 
 #[cfg(feature = "rotation")]
+#[allow(unused_imports)]
 use crate::{
     Rotation,
     RotationConstructor,
 };
 
 #[cfg(feature = "matrix")]
+#[allow(unused_imports)]
 use crate::{
     Matrix,
     MatrixConstructor,
