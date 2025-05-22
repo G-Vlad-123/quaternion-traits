@@ -29,20 +29,8 @@ pub trait Quaternion<Num: Axis> {
 
 /**
 The general representation of any unit quaternion type.
-
-Note: The [`r`](Quaternion::r), [`i`](Quaternion::i), [`j`](Quaternion::j) and [`k`](Quaternion::k)
-methods are used as if they are cheap operations.
  */
-pub trait UnitQuaternion<Num: Axis> {
-    /// The real part of this unit quaternion.
-    fn r(&self) -> Num;
-    /// The first imaginary part of this unit quaternion.
-    fn i(&self) -> Num;
-    /// The second imaginary part of this unit quaternion.
-    fn j(&self) -> Num;
-    /// The third imaginary part of this unit quaternion.
-    fn k(&self) -> Num;
-}
+pub trait UnitQuaternion<Num: Axis>: Quaternion<Num> { }
 
 /**
 The general representation for any scalar type.
@@ -289,12 +277,25 @@ Note: The [`r`](Quaternion::r), [`i`](Quaternion::i), [`j`](Quaternion::j) and [
 methods are used as if they are cheap operations.
  */
 pub trait UnitQuaternionConstructor<Num: Axis>: Sized {
-    /// Constructs a new unit quaternion.
-    fn new_unit_quat(r: Num, i: Num, j: Num, k: Num) -> Option<Self>;
-
     /// Constructs a new unit quaternion without
     /// checking if it's a valid unit quaternion.
+    /// 
+    /// # Safety
+    /// Any quaternion representation that has the r, i, j and k
+    ///  valuesgiven as input is a unit quaternion.
     unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self;
+
+    /// Constructs a new unit quaternion.
+    #[inline]
+    fn new_unit_quat(r: Num, i: Num, j: Num, k: Num) -> Option<Self> {
+        if (r * r + i * i + j * j + k * k - Num::ONE).abs() < Num::ERROR * Num::ERROR {
+            unsafe {
+                Option::Some(Self::new_unit_quat_unchecked(r, i, j, k))
+            }
+        } else {
+            Option::None
+        }
+    }
 
     /// Constructs a new unit quaternion from another one.
     /// 
@@ -312,6 +313,19 @@ pub trait UnitQuaternionConstructor<Num: Axis>: Sized {
     #[inline]
     fn from_quat(quat: impl Quaternion<Num>) -> Option<Self> {
         UnitQuaternionConstructor::new_unit_quat(quat.r(), quat.i(), quat.j(), quat.k())
+    }
+
+    /// Constructs a new unit quaternion from a normal one.
+    /// 
+    /// Will have the same values.
+    /// 
+    /// # Safety
+    /// The given quaternion is a unit quaternion.
+    #[inline]
+    unsafe fn from_quat_unchecked(quat: impl Quaternion<Num>) -> Self {
+        unsafe {
+            UnitQuaternionConstructor::new_unit_quat_unchecked(quat.r(), quat.i(), quat.j(), quat.k())
+        }
     }
 } 
 
@@ -679,28 +693,6 @@ where T: Quaternion<Num>
     #[inline(always)] fn k(&self) -> Num { (*self).k() }
 }
 
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis> QuaternionMethods<Num> for () {}
-impl<Num: Axis> QuaternionConsts<Num> for () {
-    const ORIGIN: Self = ();
-    const IDENTITY: Self = ();
-    const NAN: Self = ();
-    const UNIT_I: Self = ();
-    const UNIT_J: Self = ();
-    const UNIT_K: Self = ();
-}
-
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis, T> QuaternionMethods<Num> for [T; 0] {}
-impl<Num: Axis, T> QuaternionConsts<Num> for [T; 0] {
-    const ORIGIN: Self = [];
-    const IDENTITY: Self = [];
-    const NAN: Self = [];
-    const UNIT_I: Self = [];
-    const UNIT_J: Self = [];
-    const UNIT_K: Self = [];
-}
-
 impl<Num: Axis, R, I, J, K> QuaternionMethods<Num> for (R, I, J, K)
 where 
     R: Scalar<Num> + ScalarConstructor<Num>,
@@ -825,37 +817,16 @@ where
 
 // Unit Quaternion impls
 
-impl<Num: Axis> UnitQuaternion<Num> for () {
-    fn r(&self) -> Num { <Num as Axis>::ONE }
-    fn i(&self) -> Num { <Num as Axis>::ZERO }
-    fn j(&self) -> Num { <Num as Axis>::ZERO }
-    fn k(&self) -> Num { <Num as Axis>::ZERO }
-}
-
-impl<Num: Axis> UnitQuaternionConstructor<Num> for () {
-    fn new_unit_quat(_: Num, _: Num, _: Num, _: Num) -> Option<Self> { Option::Some(()) }
-    unsafe fn new_unit_quat_unchecked(_: Num, _: Num, _: Num, _: Num) -> Self { }
-}
-
-impl<Num: Axis, T> UnitQuaternion<Num> for [T; 0] {
-    fn r(&self) -> Num { <Num as Axis>::ONE }
-    fn i(&self) -> Num { <Num as Axis>::ZERO }
-    fn j(&self) -> Num { <Num as Axis>::ZERO }
-    fn k(&self) -> Num { <Num as Axis>::ZERO }
-}
-
-impl<Num: Axis, T> UnitQuaternionConstructor<Num> for [T; 0] {
-    fn new_unit_quat(_: Num, _: Num, _: Num, _: Num) -> Option<Self> { Option::Some([]) }
-    unsafe fn new_unit_quat_unchecked(_: Num, _: Num, _: Num, _: Num) -> Self { [] }
-}
-
 impl<Num: Axis, U> UnitQuaternion<Num> for &U
 where U: UnitQuaternion<Num>
+{}
+
+impl<Num: Axis, S: ScalarConstructor<Num>> UnitQuaternionConstructor<Num> for [S; 4]
 {
-    fn r(&self) -> Num { (*self).r() }
-    fn i(&self) -> Num { (*self).i() }
-    fn j(&self) -> Num { (*self).j() }
-    fn k(&self) -> Num { (*self).k() }
+    #[inline]
+    unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self {
+        Self::new_quat(r, i, j, k)
+    }
 }
 
 // Scalar impls
@@ -866,13 +837,6 @@ impl<Num: Axis> Scalar<Num> for () {
 
 impl<Num: Axis, T> Scalar<Num> for [T; 0] {
     #[inline(always)] fn scalar(&self) -> Num { Num::ZERO }
-}
-
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis, T> ScalarConsts<Num> for [T; 0] {
-    const ZERO: Self = [];
-    const ONE: Self = [];
-    const NAN: Self = [];
 }
 
 impl<Num: Axis> Scalar<Num> for Num {
@@ -938,25 +902,9 @@ impl<Num: Axis> Complex<Num> for () {
     #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
 }
 
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis> ComplexConsts<Num> for () {
-    const ORIGIN: Self = ();
-    const IDENTITY: Self = ();
-    const NAN: Self = ();
-    const UNIT_IMAGINARY: Self = ();
-}
-
 impl<Num: Axis, T> Complex<Num> for [T; 0] {
     #[inline(always)] fn real(&self) -> Num { Num::ZERO }
     #[inline(always)] fn imaginary(&self) -> Num { Num::ZERO }
-}
-
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis, T> ComplexConsts<Num> for [T; 0] {
-    const ORIGIN: Self = [];
-    const IDENTITY: Self = [];
-    const NAN: Self = [];
-    const UNIT_IMAGINARY: Self = [];
 }
 
 impl<Num: Axis, R, I> Complex<Num> for (R, I)
@@ -1036,28 +984,10 @@ impl<Num: Axis> Vector<Num> for () {
     #[inline(always)] fn z(&self) -> Num { Num::ZERO }
 }
 
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis> VectorConsts<Num> for () {
-    const ORIGIN: Self = ();
-    const NAN: Self = ();
-    const UNIT_X: Self = ();
-    const UNIT_Y: Self = ();
-    const UNIT_Z: Self = ();
-}
-
 impl<Num: Axis, T> Vector<Num> for [T; 0] {
     #[inline(always)] fn x(&self) -> Num { Num::ZERO }
     #[inline(always)] fn y(&self) -> Num { Num::ZERO }
     #[inline(always)] fn z(&self) -> Num { Num::ZERO }
-}
-
-/// Marked for deletion in `2.0.0`
-impl<Num: Axis, T> VectorConsts<Num> for [T; 0] {
-    const ORIGIN: Self = [];
-    const NAN: Self = [];
-    const UNIT_X: Self = [];
-    const UNIT_Y: Self = [];
-    const UNIT_Z: Self = [];
 }
 
 impl<Num: Axis, X, Y, Z> Vector<Num> for (X, Y, Z)
@@ -1281,12 +1211,7 @@ macro_rules! ref_impls {
         
         impl<Num: Axis, T> UnitQuaternion<Num> for $ty
         where T: UnitQuaternion<Num> $($( + $trait )+)?
-        {
-            fn r(&self) -> Num { (*(*self)).r() }
-            fn i(&self) -> Num { (*(*self)).i() }
-            fn j(&self) -> Num { (*(*self)).j() }
-            fn k(&self) -> Num { (*(*self)).k() }
-        }
+        { }
 
         impl<Num: Axis, T> Vector<Num> for $ty
         where T: Vector<Num> $($( + $trait )+)?

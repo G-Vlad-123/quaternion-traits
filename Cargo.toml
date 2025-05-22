@@ -1,6 +1,6 @@
 [package]
 name = "quaternion_traits"
-version = "1.2.0"
+version = "2.0.0"
 edition = "2024"
 categories = ["quaternion", "no-std"]
 keywords = ["quaternion", "math", "core", "trait"]
@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 libm = { version = "0.2.11" }
-thiserror = { version = "2.0.12" }
+# thiserror = { version = "2.0.12" }
 delegate = { version = "0.13.3" }
 
 num-bigint = { version = "0.4", optional = true, default-features = false}

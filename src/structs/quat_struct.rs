@@ -77,6 +77,7 @@ pub type Quat32<T = (f32, [f32; 3])> = Quat<f32, T>;
 /// If the `std` feature is enabled thn this uses [`Std<f32>`](crate::structs::Std) instead of [`f32`].
 #[cfg(feature = "std")]
 pub type Quat32<T = (Std<f32>, [Std<f32>; 3])> = Quat<Std<f32>, T>;
+
 /// Type alias for [`Quat<f64>`].
 /// 
 /// If the `std` feature is enabled thn this uses [`Std<f64>`](crate::structs::Std) instead of [`f64`].
@@ -87,6 +88,26 @@ pub type Quat64<T = (f64, [f64; 3])> = Quat<f64, T>;
 /// If the `std` feature is enabled thn this uses [`Std<f64>`](crate::structs::Std) instead of [`f64`].
 #[cfg(feature = "std")]
 pub type Quat64<T = (Std<f64>, [Std<f64>; 3])> = Quat<Std<f64>, T>;
+
+trait Take<To> { fn take(self) -> To; }
+impl Take<f32> for f32 { fn take(self) -> f32 { self } }
+#[cfg(feature = "std")] impl Take<Std<f32>> for f32 { fn take(self) -> Std<f32> { Std(self) } }
+impl Take<f64> for f64 { fn take(self) -> f64 { self } }
+#[cfg(feature = "std")] impl Take<Std<f64>> for f64 { fn take(self) -> Std<f64> { Std(self) } }
+
+/// Constructs a [`Quat`] with `Num = f32` and `T = (f32, [f32; 3])`.
+/// 
+/// Or uses [`Std<f32>`] instead of [`f32`] if the feature `std` is enabled.
+pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num) -> Quat32 {
+    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
+}
+
+/// Constructs a [`Quat`] with `Num = f64` and `T = (f64, [f64; 3])`.
+/// 
+/// Or uses [`Std<f64>`] instead of [`f64`] if the feature `std` is enabled.
+pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat64 {
+    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
+} 
 
 impl<Num: Axis, T> Quat<Num, T> {
     #[inline]
@@ -642,31 +663,30 @@ impl<'de, Num: Axis, T: Deserialize<'de>> Deserialize<'de> for Quat<Num, T> {
     { crate::core::result::Result::Ok(Quat::new(T::deserialize(deserializer)?)) }
 }
 
+impl<Num: Axis, T: crate::UnitQuaternion<Num>> crate::UnitQuaternion<Num> for Quat<Num, T> { }
+
+impl<Num: Axis, T: crate::UnitQuaternionConstructor<Num>> crate::UnitQuaternionConstructor<Num> for Quat<Num, T> {
+    #[inline] fn new_unit_quat(r: Num, i: Num, j: Num, k: Num) -> Option<Self> {
+        Option::Some(Quat::new(T::new_unit_quat(r, i, j, k)?))
+    }
+
+    #[inline] unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self {
+        Quat::new( unsafe { T::new_unit_quat_unchecked(r, i, j, k) } )
+    }
+}
+
+impl<Num: Axis, T: crate::UnitQuaternionConsts<Num>> crate::UnitQuaternionConsts<Num> for Quat<Num, T> {
+    const IDENTITY: Self = Quat::new(T::IDENTITY);
+    const NAN: Self = Quat::new(T::NAN);
+    const UNIT_R: Self = Quat::new(T::UNIT_R);
+    const UNIT_I: Self = Quat::new(T::UNIT_I);
+    const UNIT_J: Self = Quat::new(T::UNIT_J);
+    const UNIT_K: Self = Quat::new(T::UNIT_K);
+}
+
 /// Constructs a [`Quat`] for any `Num` that implements axis and of `T = (Num, [Num; 3]`).
 pub const fn q<Num: Axis>(r: Num, i: Num, j: Num, k: Num) -> Quat<Num> {
     Quat::new((r, [i, j, k]))
-}
-
-trait Take<To> {
-    fn take(self) -> To;
-}
-impl Take<f32> for f32 { fn take(self) -> f32 { self } }
-#[cfg(feature = "std")] impl Take<Std<f32>> for f32 { fn take(self) -> Std<f32> { Std(self) } }
-impl Take<f64> for f64 { fn take(self) -> f64 { self } }
-#[cfg(feature = "std")] impl Take<Std<f64>> for f64 { fn take(self) -> Std<f64> { Std(self) } }
-
-/// Constructs a [`Quat`] with `Num = f32` and `T = (f32, [f32; 3])`.
-/// 
-/// Or uses [`Std<f32>`] instead of [`f32`] if the feature `std` is enabled.
-pub fn q32<Num: crate::core::convert::Into<f32>>(r: Num, i: Num, j: Num, k: Num) -> Quat32 {
-    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
-}
-
-/// Constructs a [`Quat`] with `Num = f64` and `T = (f64, [f64; 3])`.
-/// 
-/// Or uses [`Std<f64>`] instead of [`f64`] if the feature `std` is enabled.
-pub fn q64<Num: crate::core::convert::Into<f64>>(r: Num, i: Num, j: Num, k: Num) -> Quat64 {
-    Quat::new((r.into().take(), [i.into().take(), j.into().take(), k.into().take()]))
 }
 
 mod quat_struct_methods_impl {

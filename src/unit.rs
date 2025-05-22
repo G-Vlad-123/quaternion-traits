@@ -14,6 +14,7 @@ Since this is a new module it may still have missing features.
  */
 
 use crate::core::option::Option;
+use crate::quat;
 use crate::{
     Axis,
 
@@ -56,3 +57,6 @@ type U<N> = crate::structs::UnitQuat<N>;
 
 mod math;
 pub use math::*;
+
+mod inputless;
+pub use inputless::*;

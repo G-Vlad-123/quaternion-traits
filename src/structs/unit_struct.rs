@@ -49,12 +49,14 @@ impl<Num: Axis> UnitQuat<Num> {
     }
 }
 
-impl<Num: Axis> UnitQuaternion<Num> for UnitQuat<Num> {
+impl<Num: Axis> crate::Quaternion<Num> for UnitQuat<Num> {
     fn r(&self) -> Num { self.r }
     fn i(&self) -> Num { self.i }
     fn j(&self) -> Num { self.j }
     fn k(&self) -> Num { self.k }
 }
+
+impl<Num: Axis> UnitQuaternion<Num> for UnitQuat<Num> { }
 
 impl<Num: Axis> UnitQuaternionConstructor<Num> for UnitQuat<Num> {
     #[inline]

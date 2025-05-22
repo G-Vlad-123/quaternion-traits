@@ -23,6 +23,8 @@ and [RotationType](https://docs.rs/quaternion-core/latest/quaternion_core/enum.R
 
 # Details
 
+## Implementation
+
 Currently the quaternion traits are implemented only in core rust and num,
 but it's planned to add (though optional dependencies) these traits to crates like
 [bevy](https://crates.io/crates/bevy)
@@ -76,6 +78,20 @@ List of dependency features:
 and [Deserialize](https://docs.rs/serde/latest/serde/trait.Deserialize.html) implementation
 for [Std](structs::Std).
 
+## Versions
+
+Current version **0.1.2.0**
+
+This crate uses the *HUMAN.MAJOR.MINOR.PATCH* version format.
+And version *1.0.0.0* would be the first true release.
+
+Due to the fact that there is no support for 4 version numbers
+the crates.io version system willl be *[1000 * HUMAN + MAJOR].MINOR.PATCH*
+So the full release version would be *1000.0.0*.
+(So this crate uses epoch sematic versioning)
+
+This versioning scheme applies since *0.2.0.0*
+
  */
 
 #![crate_type = "lib"]
@@ -121,7 +137,7 @@ extern crate serde;
 
 extern crate core;
 extern crate libm;
-extern crate thiserror as err;
+// extern crate thiserror as err;
 extern crate delegate;
 
 use delegate::delegate;

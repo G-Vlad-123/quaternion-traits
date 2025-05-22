@@ -43,3 +43,17 @@ This crate provides currently unstable forms of these equasions:
 - `log` (simple `ln` division only works for complex quaternions that include the real axis and only one of 
   the other 3 imaginary axis. Will remain unstable untill a better algorithm is found
   or it's found that quaternion logs can not have a formula for whatever reason)
+
+# Versions
+
+Current version **0.1.2.0**
+
+This crate uses the *HUMAN.MAJOR.MINOR.PATCH* version format.
+And version *1.0.0.0* would be the first true release.
+
+Due to the fact that there is no support for 4 version numbers
+the crates.io version system willl be *[1000 * HUMAN + MAJOR].MINOR.PATCH*
+So the full release version would be *1000.0.0*
+(So this crate uses epoch sematic versioning)
+
+This versioning scheme applies since *0.2.0.0*

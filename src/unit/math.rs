@@ -202,11 +202,62 @@ where
     )
 }
 
-/// Calculates teh dot product of two unit quaternions.
+/// Calculates the dot product of two unit quaternions.
 pub fn dot<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Out
 where 
     Num: Axis,
     Out: ScalarConstructor<Num>,
 {
     Out::new_scalar(left.r() * right.r() + left.i() * right.i() + left.j() * right.j() + left.k() * right.k())
+}
+
+/// Calculates the square root of a unit quaternion.
+/// 
+/// Faster then [`quat::sqrt`] if you know you have a unit quaternion.
+#[cfg(feature = "math_fns")]
+pub fn sqrt<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: UnitQuaternionConstructor<Num>,
+{
+    if quat::is_scalar(&quaternion) {
+        use crate::core::cmp::Ordering::{Greater, Less};
+        use crate::core::option::Option::Some;
+        return match quaternion.r().partial_cmp(&Num::ZERO) {
+            Some(Greater) => unsafe { Out::from_quat_unchecked((Num::ONE, ())) },
+            Some(Less) => unsafe { Out::from_quat_unchecked([Num::ZERO, Num::ONE, Num::ZERO, Num::ZERO]) },
+            _ => nan(),
+        }
+    }
+
+    let r: Num = quaternion.r();
+    let frac_1_sqrt_2 = Num::from_f64(crate::core::f64::consts::FRAC_1_SQRT_2);
+
+    if r == Num::ZERO {
+        return unsafe {
+            Out::new_unit_quat_unchecked(
+                frac_1_sqrt_2,
+                quaternion.i() * frac_1_sqrt_2,
+                quaternion.j() * frac_1_sqrt_2,
+                quaternion.k() * frac_1_sqrt_2,
+            )
+        };
+    }
+    
+    let factor = Num::sqrt(
+        (Num::ONE - r) / (
+            quaternion.i() * quaternion.i()
+          + quaternion.j() * quaternion.j()
+          + quaternion.k() * quaternion.k()
+        )
+    ) * frac_1_sqrt_2;
+
+    unsafe {
+        Out::new_unit_quat_unchecked(
+            Num::sqrt(Num::ONE + r) * frac_1_sqrt_2,
+            quaternion.i() * factor,
+            quaternion.j() * factor,
+            quaternion.k() * factor,
+        )
+    }
 }

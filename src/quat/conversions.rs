@@ -434,6 +434,47 @@ where
 
 #[inline]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a unit quaternion from a normal quaternion by normalizing the quaternion.
+pub fn to_unit_quat<Num, Out>(quat: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: UnitQuaternionConstructor<Num>,
+{
+    let quat: Q<Num> = normalize(quat);
+    unsafe {
+        Out::new_unit_quat_unchecked(quat.r(), quat.i(), quat.j(), quat.k())
+    }
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a unit quaternion from a normal quaternion.
+/// 
+/// Returns [`None`](Option::None) if the quaternion is an invalid unit quaternion.
+pub fn to_unit_quat_checked<Num, Out>(quat: impl Quaternion<Num>) -> Option<Out>
+where 
+    Num: Axis,
+    Out: UnitQuaternionConstructor<Num>,
+{
+    Out::from_quat(quat)
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+/// Constructs a unit quaternion from a normal quaternion
+/// without checking if it's a valid unit quaternion.
+pub unsafe fn to_unit_quat_unchecked<Num, Out>(quat: impl Quaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: UnitQuaternionConstructor<Num>,
+{
+    unsafe {
+        Out::new_unit_quat_unchecked(quat.r(), quat.i(), quat.j(), quat.k())
+    }
+}
+
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Constructs a complex number representation from a quaternion.
 /// 
 /// # Example
