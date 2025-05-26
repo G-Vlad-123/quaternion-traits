@@ -92,6 +92,22 @@ where
     quaternion.r() == Num::ZERO
 }
 
+/// Checks if any axis of a quaternion is a [`Num::NAN`](Axis::NAN) value.
+pub fn is_nan<Num>(quaternion: impl Quaternion<Num>) -> bool
+where 
+    Num: Axis,
+{
+    quaternion.r().is_nan() || quaternion.i().is_nan() || quaternion.j().is_nan() || quaternion.k().is_nan()
+}
+
+/// Checks if all axis of a quaternion is a [`Num::NAN`](Axis::NAN) value.
+pub fn is_all_nan<Num>(quaternion: impl Quaternion<Num>) -> bool
+where 
+    Num: Axis,
+{
+    quaternion.r().is_nan() && quaternion.i().is_nan() && quaternion.j().is_nan() && quaternion.k().is_nan()
+}
+
 #[inline]
 #[cfg(any(feature = "qol_fns", feature = "rotation"))]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]

@@ -34,6 +34,46 @@ mod num_complex_impl {
         const NAN: Self = Complex::new(S::NAN, S::NAN);
         const UNIT_IMAGINARY: Self = Complex::new(S::ZERO, S::ONE);
     }
+
+    impl<Num: Axis, C: crate::Complex<Num>> crate::Quaternion<Num> for Complex<C> {
+        #[inline] fn r(&self) -> Num { self.re.real().scalar() }
+        #[inline] fn i(&self) -> Num { self.re.imaginary().scalar() }
+        #[inline] fn j(&self) -> Num { self.im.real().scalar() }
+        #[inline] fn k(&self) -> Num { self.im.imaginary().scalar() }
+    }
+
+    impl<Num: Axis, C: crate::ComplexConstructor<Num>> crate::QuaternionConstructor<Num> for Complex<C> {
+        #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self {
+            Complex::new(
+                C::new_complex(r, i),
+                C::new_complex(j, k),
+            )
+        }
+    }
+
+    impl<Num: Axis, C: crate::ComplexConsts<Num>> crate::QuaternionConsts<Num> for Complex<C> {
+        const ORIGIN: Self = Complex::new(C::ORIGIN, C::ORIGIN);
+        const IDENTITY: Self = Complex::new(C::IDENTITY, C::ORIGIN);
+        const NAN: Self = Complex::new(C::NAN, C::NAN);
+        
+        const UNIT_I: Self = Complex::new(C::UNIT_IMAGINARY, C::ORIGIN);
+        const UNIT_J: Self = Complex::new(C::ORIGIN, C::IDENTITY);
+        const UNIT_K: Self = Complex::new(C::ORIGIN, C::UNIT_IMAGINARY);
+    }
+
+    impl<Num: Axis, C: crate::Complex<Num> + crate::ComplexConstructor<Num>> crate::QuaternionMethods<Num> for Complex<C> {
+        #[inline] fn complex_part(self) -> Self {
+            Complex::new(self.re, C::new_complex(Num::ZERO, Num::ZERO))
+        }
+
+        #[inline] fn to_complex<To: crate::ComplexConstructor<Num>>(self) -> To {
+            To::from_complex(self.re)
+        }
+
+        #[inline] fn from_complex(complex: impl crate::Complex<Num>) -> Self {
+            Complex::new(C::from_complex(complex), C::new_complex(Num::ZERO, Num::ZERO))
+        }
+    }
 }
 
 #[cfg(feature = "num-rational")]

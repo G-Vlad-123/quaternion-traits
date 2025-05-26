@@ -2,6 +2,7 @@
 use super::*;
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Adds two unit quaternions.
 /// 
 /// # Safety
@@ -20,6 +21,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Adds two unit quaternions.
 pub unsafe fn add_checked<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Option<Out>
 where
@@ -41,6 +43,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Adds two unit quaternions.
 pub fn add_any<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Out
 where
@@ -56,6 +59,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies two unit quaternions.
 pub fn mul<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Out
 where
@@ -71,6 +75,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Multiplies two unit quaternions in reversed order.
 pub fn mul_reversed<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Out
 where
@@ -81,6 +86,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Divides a quaternion by another quaternion.
 pub fn div<Num, Out>(left: impl UnitQuaternion<Num>, right: impl UnitQuaternion<Num>) -> Out
 where
@@ -91,6 +97,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the negative of this unit quaternion.
 pub fn neg<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Out
 where
@@ -106,6 +113,7 @@ where
 }
 
 #[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 /// Gets the conjugate of this unit quaternion.
 pub fn conj<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Out
 where
@@ -189,6 +197,7 @@ where
 /// # Safety
 /// Eather the output is a unit quaternion or it's
 /// used in an operation that returns a unit quaternion.
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub unsafe fn scale<Num, Out>(quaternion: impl UnitQuaternion<Num>, scalar: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
@@ -211,10 +220,66 @@ where
     Out::new_scalar(left.r() * right.r() + left.i() * right.i() + left.j() * right.j() + left.k() * right.k())
 }
 
+/// Calculates the naturla logarithm of a unit quaternion.
+#[cfg(feature = "math_fns")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn ln<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Out
+where 
+    Num: Axis,
+    Out: QuaternionConstructor<Num>,
+{
+    let factor = quaternion.r().acos()
+                    / Num::sqrt(
+                        quaternion.i()*quaternion.i()
+                      + quaternion.j()*quaternion.j()
+                      + quaternion.k()*quaternion.k()
+                    );
+    Out::new_quat(
+        Num::ZERO,
+        quaternion.i() * factor, 
+        quaternion.j() * factor, 
+        quaternion.k() * factor,
+    )
+}
+
+#[cfg(any(feature = "math_fns", feature = "trigonometry"))]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+#[inline]
+/// Raises the number e to a unit quaternion power.
+/// 
+/// `e ≈ 2.71828...`
+/// 
+/// Faster then running [`quat::exp`],
+/// returns [`None`](Option::None) if `q.r()` is **not** near [`Num::ZERO`](Axis::ZERO).
+/// 
+/// If `q.r()` is not near use [`quat::exp`] as no optimizations can be made to it.
+pub fn exp<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Option<Out>
+where 
+    Num: Axis,
+    Out: UnitQuaternionConstructor<Num>,
+{
+    if quaternion.r().abs() < Num::ERROR {
+        const SIN: f64 = 0.8414709848;
+        const COS: f64 = 0.54030230586;
+        let factor = Num::from_f64(SIN);
+        Option::Some(
+            new_unit(
+                Num::from_f64(COS),
+                quaternion.i() * factor,
+                quaternion.j() * factor,
+                quaternion.k() * factor,
+            )
+        )
+    } else {
+        Option::None
+    }
+}
+
 /// Calculates the square root of a unit quaternion.
 /// 
 /// Faster then [`quat::sqrt`] if you know you have a unit quaternion.
 #[cfg(feature = "math_fns")]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
 pub fn sqrt<Num, Out>(quaternion: impl UnitQuaternion<Num>) -> Out
 where 
     Num: Axis,
@@ -230,10 +295,10 @@ where
         }
     }
 
-    let r: Num = quaternion.r();
+    let r: Num = quaternion.r(); // alias
     let frac_1_sqrt_2 = Num::from_f64(crate::core::f64::consts::FRAC_1_SQRT_2);
 
-    if r == Num::ZERO {
+    if r.abs() < Num::ERROR {
         return unsafe {
             Out::new_unit_quat_unchecked(
                 frac_1_sqrt_2,
@@ -252,12 +317,10 @@ where
         )
     ) * frac_1_sqrt_2;
 
-    unsafe {
-        Out::new_unit_quat_unchecked(
-            Num::sqrt(Num::ONE + r) * frac_1_sqrt_2,
-            quaternion.i() * factor,
-            quaternion.j() * factor,
-            quaternion.k() * factor,
-        )
-    }
+    new_unit(
+        Num::sqrt(Num::ONE + r) * frac_1_sqrt_2,
+        quaternion.i() * factor,
+        quaternion.j() * factor,
+        quaternion.k() * factor,
+    )
 }

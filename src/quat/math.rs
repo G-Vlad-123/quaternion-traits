@@ -755,6 +755,17 @@ where
     Out::new_scalar(Num::ONE - dot::<Num, Num>(&from, &to) / (abs_squared::<Num, Num>(from) * abs_squared(to)).sqrt())
 }
 
+/// Calculates the geodesic distance between two quaternions.
+#[inline]
+#[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+pub fn dist_geodesic<Num, Out>(from: impl Quaternion<Num>, to: impl Quaternion<Num>) -> Out
+where
+    Num: Axis,
+    Out: ScalarConstructor<Num>,
+{
+    Out::new_scalar((dot::<Num, Num>(from, to) - Num::ONE).acos())
+}
+
 /// Calculates the angle between two quaternions.
 /// 
 /// This does NOT use the [`angle`] function, and the two give diferent results.
@@ -985,7 +996,7 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    if eq(&quaternion, &()) {
+    if eq(&quaternion, origin::<Num, Q<Num>>()) {
         return Out::from_quat([Num::NAN; 4]);
     }
     let inv: Num = Num::ONE / abs_squared(&quaternion);
@@ -1005,7 +1016,7 @@ where
 /// ```
 /// use quaternion_traits::quat::{ln, exp, is_near};
 /// 
-/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// let quat: [f32; 4] = [1.0, 0.0, 6.28, 3.14];
 /// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(quat);
 /// 
 /// assert!( is_near::<f32>(exp::<f32, [f32; 4]>(ln_quat), quat) );
@@ -1017,14 +1028,13 @@ where
     Out: QuaternionConstructor<Num>,
 {
     let absolute: Num = abs(&quaternion);
-    add(
-        scale::<Num, Q<Num>>(
-            normalize::<Num, Q<Num>>(
-                vector_part::<Num, Q<Num>>(&quaternion),
-            ),
-            (quaternion.r() / absolute).acos()
-        ), 
-        (absolute.ln(), ())
+    let factor = (quaternion.r() / absolute).acos()
+                    / (quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k()).sqrt();
+    new_quat(
+        absolute.ln(),
+        quaternion.i() * factor, 
+        quaternion.j() * factor, 
+        quaternion.k() * factor,
     )
 }
 
@@ -1035,12 +1045,18 @@ where
 /// e ≈ 2.71828...
 /// 
 /// ```
-/// use quaternion_traits::quat::{exp, ln, is_near};
+/// # use quaternion_traits::quat::{ln, is_near};
+/// use quaternion_traits::quat::exp;
 /// 
-/// let quat: [f32; 4] = [1.0, 3.14, 0.0, 0.0];
-/// let exp_quat: [f32; 4] = exp::<f32, [f32; 4]>(quat);
+/// let quat: [f32; 4] = [1.0, 3.14, 2.0, 0.0];
+/// let ln_quat: [f32; 4] = ln::<f32, [f32; 4]>(quat);
 /// 
-/// assert!( is_near::<f32>(ln::<f32, [f32; 4]>(exp_quat), quat) );
+/// assert!(
+///     is_near::<f32>(
+///         exp::<f32, [f32; 4]>(ln_quat),
+///         quat
+///     )
+/// );
 /// ```
 /// The function [`is_near`] is used here because of finite floating point precision.
 pub fn exp<Num, Out>(quaternion: impl Quaternion<Num>) -> Out
@@ -1048,17 +1064,15 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    let vec: Q<Num> = vector_part(&quaternion);
-    let (sin, cos) = abs::<Num, Num>(&vec).sin_cos();
-    scale::<Num, Out>(
-        add::<Num, Q<Num>>(
-            scale::<Num, Q<Num>>(
-                normalize::<Num, Q<Num>>(&vec),
-                sin
-            ),
-            (cos, ())
-        ),
-        quaternion.r().exp(),
+    let len = (quaternion.i()*quaternion.i() + quaternion.j()*quaternion.j() + quaternion.k()*quaternion.k()).sqrt();
+    let (sin, cos) = len.sin_cos();
+    let r_exp = quaternion.r().exp();
+    let factor = sin * r_exp / len;
+    new_quat(
+        cos * r_exp,
+        quaternion.i() * factor,
+        quaternion.j() * factor,
+        quaternion.k() * factor,
     )
 }
 
@@ -1213,6 +1227,24 @@ where
 /// Raises a quaternion to a scalar power.
 /// 
 /// Doesn't use eather `exp(ln(base) * exp)` or `exp(exp * ln(base))`.
+/// 
+/// # Example
+/// ```
+/// # use quaternion_traits::quat::{mul, is_near};
+/// use quaternion_traits::quat::pow_f;
+/// 
+/// let quat: [f32; 4] = [1.0, 2.0, 3.0, 4.0];
+/// 
+/// let quat_1: [f32; 4] = pow_f::<f32, _>(quat, 1.0 / 3.0);
+/// assert!(
+///     is_near::<f32>(
+///         mul::<f32, [f32; 4]>(mul::<f32, [f32; 4]>(quat_1, quat_1), quat_1),
+///         quat
+///     )
+/// );
+/// 
+/// let quat_2: [f32; 4] = pow_f::<f32, _>(quat, 2.5);
+/// ```
 pub fn pow_f<Num, Out>(base: impl Quaternion<Num>, exp: impl Scalar<Num>) -> Out
 where 
     Num: Axis,
@@ -1220,13 +1252,15 @@ where
 {
     let abs: Num = abs(&base);
     let angle = (base.r() / abs).acos();
+    let (sin, cos) = (exp.scalar() * angle).sin_cos();
+    let factor = sin / (base.i()*base.i() + base.j()*base.j() + base.k()*base.k()).sqrt();
     scale(
-        crate::quat::exp::<Num, Q<Num>>(
-            scale::<Num, Q<Num>>(
-                vector_part::<Num, Q<Num>>(base),
-                exp.scalar() * angle
-            )
-        ),
+        [
+            cos,
+            base.i() * factor,
+            base.j() * factor,
+            base.k() * factor,
+        ],
         abs.pow(exp.scalar()) // replaces one use of sqrt with one div
     )
 }

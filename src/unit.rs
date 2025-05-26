@@ -14,6 +14,7 @@ Since this is a new module it may still have missing features.
  */
 
 use crate::core::option::Option;
+use crate::core::result::Result;
 #[allow(unused_imports)]
 use crate::quat;
 #[allow(unused_imports)]

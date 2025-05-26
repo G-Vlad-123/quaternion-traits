@@ -55,9 +55,14 @@ where
 /// # Example
 /// ```
 /// # use quaternion_traits::structs::UnitQuat;
+/// # use quaternion_traits::quat::eq;
 /// use quaternion_traits::quat::from_unit_quat;
 /// 
-/// let unit_quat = UnitQuat::new().unwrap();
+/// let unit_quat: UnitQuat<f32> = UnitQuat::new_normalized(1.0, 2.0, 3.0, 4.0);
+/// 
+/// let quat: [f32; 4] = from_unit_quat::<f32, _>(unit_quat);
+/// 
+/// assert!( eq(quat, unit_quat) )
 /// ```
 pub fn from_unit_quat<Num, Out>(unit_quat: impl UnitQuaternion<Num>) -> Out
 where

@@ -6,6 +6,9 @@ use quaternion_traits::*;
 use core::assert;
 use core::assert_eq;
 
+type Q<N> = (N, [N; 3]);
+type U<N> = structs::UnitQuat<N>;
+
 /// made my own for the sake of testing in both release and dev mode
 #[cfg(feature = "std")]
 macro_rules! timer {
@@ -235,3 +238,5 @@ fn timing_pow_f_vs_sqrt() {
     ");
     assert!( sqrt_average < pow_f_average );
 }
+
+// mod exp;

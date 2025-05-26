@@ -10,10 +10,10 @@ use super::*;
 /// 
 /// let quat: UnitQuat<f32> = nan::<f32, _>();
 /// 
-/// assert!( quat.r.is_nan() );
-/// assert!( quat.i.is_nan() );
-/// assert!( quat.j.is_nan() );
-/// assert!( quat.k.is_nan() );
+/// assert!( quat.r().is_nan() );
+/// assert!( quat.i().is_nan() );
+/// assert!( quat.j().is_nan() );
+/// assert!( quat.k().is_nan() );
 /// ```
 #[inline]
 pub fn nan<Num, Out>() -> Out
