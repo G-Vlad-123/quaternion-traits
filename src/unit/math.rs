@@ -35,7 +35,7 @@ where
         left.k() + right.k(),
     );
     
-    if dot::<Num, Num>(unit, unit) - Num::ONE < Num::ERROR * Num::ERROR {
+    if (dot::<Num, Num>(unit, unit) - Num::ONE).abs() < Num::ERROR * Num::ERROR {
         return Option::Some(Out::from_unit_quat(unit))
     }
 
