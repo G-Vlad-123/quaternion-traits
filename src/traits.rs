@@ -815,6 +815,44 @@ where
     const UNIT_K: Self = (C::ORIGIN, J::ZERO, K::ONE);
 }
 
+impl<Num: Axis, Q> Quaternion<Num> for (Q, )
+where Q: Quaternion<Num>
+{
+    #[inline(always)] fn r(&self) -> Num { self.0.r() }
+    #[inline(always)] fn i(&self) -> Num { self.0.i() }
+    #[inline(always)] fn j(&self) -> Num { self.0.j() }
+    #[inline(always)] fn k(&self) -> Num { self.0.k() }
+}
+
+impl<Num: Axis, Q> QuaternionConstructor<Num> for (Q, )
+where Q: QuaternionConstructor<Num>
+{
+    #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self {
+        (
+            QuaternionConstructor::new_quat(r, i, j, k),
+        )
+    }
+}
+
+impl<Num: Axis, Q> Quaternion<Num> for [Q; 1]
+where Q: Quaternion<Num>
+{
+    #[inline(always)] fn r(&self) -> Num { self[0].r() }
+    #[inline(always)] fn i(&self) -> Num { self[0].i() }
+    #[inline(always)] fn j(&self) -> Num { self[0].j() }
+    #[inline(always)] fn k(&self) -> Num { self[0].k() }
+}
+
+impl<Num: Axis, Q> QuaternionConstructor<Num> for [Q; 1]
+where Q: QuaternionConstructor<Num>
+{
+    #[inline] fn new_quat(r: Num, i: Num, j: Num, k: Num) -> Self {
+        [
+            QuaternionConstructor::new_quat(r, i, j, k),
+        ]
+    }
+}
+
 // Unit Quaternion impls
 
 impl<Num: Axis, U> UnitQuaternion<Num> for &U
@@ -826,6 +864,34 @@ impl<Num: Axis, S: ScalarConstructor<Num>> UnitQuaternionConstructor<Num> for [S
     #[inline]
     unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self {
         Self::new_quat(r, i, j, k)
+    }
+}
+
+impl<Num: Axis, Q> UnitQuaternion<Num> for (Q, )
+where Q: UnitQuaternion<Num>
+{ }
+
+impl<Num: Axis, Q> UnitQuaternionConstructor<Num> for (Q, )
+where Q: UnitQuaternionConstructor<Num>
+{
+    #[inline] unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self {
+        (
+            unsafe {UnitQuaternionConstructor::new_unit_quat_unchecked(r, i, j, k)},
+        )
+    }
+}
+
+impl<Num: Axis, Q> UnitQuaternion<Num> for [Q; 1]
+where Q: UnitQuaternion<Num>
+{ }
+
+impl<Num: Axis, Q> UnitQuaternionConstructor<Num> for [Q; 1]
+where Q: UnitQuaternionConstructor<Num>
+{
+    #[inline] unsafe fn new_unit_quat_unchecked(r: Num, i: Num, j: Num, k: Num) -> Self {
+        [
+            unsafe {UnitQuaternionConstructor::new_unit_quat_unchecked(r, i, j, k)},
+        ]
     }
 }
 
@@ -976,6 +1042,40 @@ where T: Complex<Num>
     #[inline(always)] fn imaginary(&self) -> Num { (*self).imaginary() }
 }
 
+impl<Num: Axis, C> Complex<Num> for (C, )
+where C: Complex<Num>
+{
+    #[inline(always)] fn real(&self) -> Num { self.0.real() }
+    #[inline(always)] fn imaginary(&self) -> Num { self.0.imaginary() }
+}
+
+impl<Num: Axis, C> ComplexConstructor<Num> for (C, )
+where C: ComplexConstructor<Num>
+{
+    #[inline] fn new_complex(real: Num, imaginary: Num) -> Self {
+        (
+            ComplexConstructor::new_complex(real, imaginary),
+        )
+    }
+}
+
+impl<Num: Axis, C> Complex<Num> for [C; 1]
+where C: Complex<Num>
+{
+    #[inline(always)] fn real(&self) -> Num { self[0].real() }
+    #[inline(always)] fn imaginary(&self) -> Num { self[0].imaginary() }
+}
+
+impl<Num: Axis, C> ComplexConstructor<Num> for [C; 1]
+where C: ComplexConstructor<Num>
+{
+    #[inline] fn new_complex(real: Num, imaginary: Num) -> Self {
+        [
+            ComplexConstructor::new_complex(real, imaginary),
+        ]
+    }
+}
+
 // Vector impls
 
 impl<Num: Axis> Vector<Num> for () {
@@ -1069,6 +1169,42 @@ where T: Vector<Num>
     #[inline(always)] fn z(&self) -> Num { (*self).z() }
 }
 
+impl<Num: Axis, V> Vector<Num> for (V, )
+where V: Vector<Num>
+{
+    #[inline(always)] fn x(&self) -> Num { self.0.x() }
+    #[inline(always)] fn y(&self) -> Num { self.0.y() }
+    #[inline(always)] fn z(&self) -> Num { self.0.z() }
+}
+
+impl<Num: Axis, V> VectorConstructor<Num> for (V, )
+where V: VectorConstructor<Num>
+{
+    #[inline] fn new_vector(x: Num, y: Num, z: Num) -> Self {
+        (
+            VectorConstructor::new_vector(x, y, z),
+        )
+    }
+}
+
+impl<Num: Axis, V> Vector<Num> for [V; 1]
+where V: Vector<Num>
+{
+    #[inline(always)] fn x(&self) -> Num { self[0].x() }
+    #[inline(always)] fn y(&self) -> Num { self[0].y() }
+    #[inline(always)] fn z(&self) -> Num { self[0].z() }
+}
+
+impl<Num: Axis, V> VectorConstructor<Num> for [V; 1]
+where V: VectorConstructor<Num>
+{
+    #[inline] fn new_vector(x: Num, y: Num, z: Num) -> Self {
+        [
+            VectorConstructor::new_vector(x, y, z),
+        ]
+    }
+}
+
 // Rotation impls
 
 #[cfg(feature = "rotation")]
@@ -1086,11 +1222,51 @@ impl<Num: Axis, T> Rotation<Num> for [T; 0] {
 }
 
 #[cfg(feature = "rotation")]
-impl<Num: Axis, X, Y, Z> Rotation<Num> for (X, Y, Z)
+impl<Num: Axis, R> Rotation<Num> for (R, )
+where R: Rotation<Num>
+{
+    #[inline(always)] fn roll(&self) -> Num { self.0.roll() }
+    #[inline(always)] fn pitch(&self) -> Num { self.0.pitch() }
+    #[inline(always)] fn yaw(&self) -> Num { self.0.yaw() }
+}
+
+#[cfg(feature = "rotation")]
+impl<Num: Axis, R> RotationConstructor<Num> for (R, )
+where R: RotationConstructor<Num>
+{
+    #[inline] fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> (R, ) {
+        (
+            RotationConstructor::new_rotation(roll, pitch, yaw),
+        )
+    }
+}
+
+#[cfg(feature = "rotation")]
+impl<Num: Axis, R> Rotation<Num> for [R; 1]
+where R: Rotation<Num>
+{
+    #[inline(always)] fn roll(&self) -> Num { self[0].roll() }
+    #[inline(always)] fn pitch(&self) -> Num { self[0].pitch() }
+    #[inline(always)] fn yaw(&self) -> Num { self[0].yaw() }
+}
+
+#[cfg(feature = "rotation")]
+impl<Num: Axis, R> RotationConstructor<Num> for [R; 1]
+where R: RotationConstructor<Num>
+{
+    #[inline] fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> [R; 1] {
+        [
+            RotationConstructor::new_rotation(roll, pitch, yaw),
+        ]
+    }
+}
+
+#[cfg(feature = "rotation")]
+impl<Num: Axis, R, P, Y> Rotation<Num> for (R, P, Y)
 where
-    X: Scalar<Num>,
+    R: Scalar<Num>,
+    P: Scalar<Num>,
     Y: Scalar<Num>,
-    Z: Scalar<Num>,
 {
     #[inline(always)] fn roll(&self) -> Num { self.0.scalar() }
     #[inline(always)] fn pitch(&self) -> Num { self.1.scalar() }
@@ -1098,17 +1274,17 @@ where
 }
 
 #[cfg(feature = "rotation")]
-impl<Num: Axis, X, Y, Z> RotationConstructor<Num> for (X, Y, Z)
+impl<Num: Axis, R, P, Y> RotationConstructor<Num> for (R, P, Y)
 where
-    X: ScalarConstructor<Num>,
+    R: ScalarConstructor<Num>,
+    P: ScalarConstructor<Num>,
     Y: ScalarConstructor<Num>,
-    Z: ScalarConstructor<Num>,
 {
-    #[inline] fn new_rotation(i: Num, j: Num, k: Num) -> (X, Y, Z) {
+    #[inline] fn new_rotation(roll: Num, pitch: Num, yaw: Num) -> (R, P, Y) {
         (
-            ScalarConstructor::new_scalar(i),
-            ScalarConstructor::new_scalar(j),
-            ScalarConstructor::new_scalar(k),
+            ScalarConstructor::new_scalar(roll),
+            ScalarConstructor::new_scalar(pitch),
+            ScalarConstructor::new_scalar(yaw),
         )
     }
 }
@@ -1175,6 +1351,26 @@ where M: Matrix<T, N>
     #[inline]
     fn get_unchecked( &self, row: usize, col: usize ) -> T {
         (*self).get_unchecked(row, col)
+    }
+}
+
+#[cfg(feature = "matrix")]
+impl<Num: Axis, M, const N: usize> Matrix<Num, N> for (M, )
+where M: Matrix<Num, N>
+{
+    #[inline(always)] fn get_unchecked( &self, row: usize, col: usize ) -> Num {
+        self.0.get_unchecked(row, col)
+    }
+}
+
+#[cfg(feature = "matrix")]
+impl<Num: Axis, M, const N: usize> MatrixConstructor<Num, N> for (M, )
+where M: MatrixConstructor<Num, N>
+{
+    #[inline] fn new_matrix(matrix: [[Num; N]; N]) -> Self {
+        (
+            MatrixConstructor::new_matrix(matrix),
+        )
     }
 }
 
