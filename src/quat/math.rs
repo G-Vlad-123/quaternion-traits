@@ -1097,8 +1097,30 @@ where
     Num: Axis,
     Out: QuaternionConstructor<Num>,
 {
-    div::<Num, Out>(&ln::<Num, Q<Num>>(num), &ln::<Num, Q<Num>>(base))
+    div::<Num, Out>(ln::<Num, Q<Num>>(num), ln::<Num, Q<Num>>(base))
 }
+
+// #[cfg(feature = "math_fns")]
+// #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]
+// /// Calculates the log of a quaternion with a scalar base.
+// /// 
+// /// # Example
+// /// ```
+// /// # use quaternion_traits::quat::{pow};
+// /// use quaternion_traits::quat::log_scalar;
+// /// 
+// /// let base: f32 = 2.0;
+// /// let quat: [f32; 4] = [1.0, 3.14, 0.0, 0.0];
+// /// let log_quat: [f32; 4] = log_scalar::<f32, [f32; 4]>(base, quat);
+// /// 
+// /// assert!( log_quat, [3.0, 0.0, 0.0, 0.0] );
+// pub fn log_scalar<Num, Out>(base: impl Scalar<Num>, num: impl Quaternion<Num>) -> Out
+// where 
+//     Num: Axis,
+//     Out: QuaternionConstructor<Num>,
+// {
+//     unscale::<Num, Out>(ln::<Num, Q<Num>>(num), base.scalar().ln())
+// }
 
 #[cfg(feature = "math_fns")]
 #[cfg_attr(all(test, panic = "abort"), no_panic::no_panic)]

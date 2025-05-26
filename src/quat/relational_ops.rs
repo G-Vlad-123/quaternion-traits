@@ -93,6 +93,33 @@ where
 }
 
 /// Checks if any axis of a quaternion is a [`Num::NAN`](Axis::NAN) value.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::is_nan;
+/// 
+/// assert!(
+///     is_nan::<f32>(
+///         [
+///             1.0,
+///             2.0,
+///             f32::NAN,
+///             4.0,
+///         ]
+///     )
+/// );
+/// 
+/// assert!(
+///     is_nan::<f32>(
+///         [
+///             f32::NAN,
+///             f32::NAN,
+///             f32::NAN,
+///             f32::NAN,
+///         ]
+///     )
+/// );
+/// ```
 pub fn is_nan<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
@@ -101,6 +128,33 @@ where
 }
 
 /// Checks if all axis of a quaternion is a [`Num::NAN`](Axis::NAN) value.
+/// 
+/// # Example
+/// ```
+/// use quaternion_traits::quat::is_all_nan;
+/// 
+/// assert!(
+///     !is_all_nan::<f32>(
+///         [
+///             1.0,
+///             2.0,
+///             f32::NAN,
+///             4.0,
+///         ]
+///     )
+/// );
+/// 
+/// assert!(
+///     is_all_nan::<f32>(
+///         [
+///             f32::NAN,
+///             f32::NAN,
+///             f32::NAN,
+///             f32::NAN,
+///         ]
+///     )
+/// );
+/// ```
 pub fn is_all_nan<Num>(quaternion: impl Quaternion<Num>) -> bool
 where 
     Num: Axis,
