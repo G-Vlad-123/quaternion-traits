@@ -36,6 +36,9 @@ matrix = []
 display = []
 
 unstable = []
+f16 = []
+f128 = []
+portable_simd = []
 
 num = ["num-rational", "num-complex", "num-bigint", "num-traits"]
 num-rational = ["dep:num-rational", "dep:num-integer", "dep:num-traits"]

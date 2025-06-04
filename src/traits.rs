@@ -1465,3 +1465,5 @@ mod quat_methods;
 mod core_impls;
 
 mod dep_impls;
+
+mod target_arch_impls;

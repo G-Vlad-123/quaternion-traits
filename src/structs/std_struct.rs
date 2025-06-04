@@ -1,5 +1,8 @@
 
+use crate::quat;
 use crate::Axis;
+use crate::Quaternion;
+use crate::QuaternionConstructor;
 use crate::Scalar;
 use crate::ScalarConstructor;
 use crate::core::num::{
@@ -19,7 +22,7 @@ ones to the [std](https://doc.rust-lang.org/std/index.html) ones.
 #[repr(transparent)]
 #[allow(private_bounds)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct Std<Num: Axis>(pub Num);
+pub struct Std<T>(pub T);
 
 /// A type alias for [`Std<f32>`](Std).
 pub type Std32 = Std<f32>;
@@ -398,6 +401,54 @@ impl<'de, Num: Axis + Deserialize<'de>> Deserialize<'de> for Std<Num> {
     { crate::core::result::Result::Ok(Std(Num::deserialize(deserializer)?)) }
 }
 
+#[inline]
+/// Turns a quaternion that returns std values into a quaternion that returns normal ones.
+pub fn from_quat_std<Num, Out>(quaternion: impl Quaternion<Std<Num>>) -> Out
+where 
+    Num: Axis,
+    Std<Num>: Axis,
+    Out: QuaternionConstructor<Num>
+{
+    let [Std(r), Std(i), Std(j), Std(k)] = quat::convert_quat(quaternion);
+    Out::new_quat(r, i, j, k)
+}
+
+#[inline]
+/// Turns a vector that returns std values into a vector that returns normal ones.
+pub fn from_vector_std<Num, Out>(vector: impl crate::Vector<Std<Num>>) -> Out
+where 
+    Num: Axis,
+    Std<Num>: Axis,
+    Out: crate::VectorConstructor<Num>
+{
+    let [Std(x), Std(y), Std(z)] = <[Std<Num>; 3] as crate::VectorConstructor<Std<Num>>>::from_vector(vector);
+    Out::new_vector(x, y, z)
+}
+
+#[inline]
+/// Turns a vector that returns std values into a vector that returns normal ones.
+pub fn from_complex_std<Num, Out>(vector: impl crate::Complex<Std<Num>>) -> Out
+where 
+    Num: Axis,
+    Std<Num>: Axis,
+    Out: crate::ComplexConstructor<Num>
+{
+    let [Std(real), Std(imaginary)] = <[Std<Num>; 2] as crate::ComplexConstructor<Std<Num>>>::from_complex(vector);
+    Out::new_complex(real, imaginary)
+}
+
+#[inline]
+/// Turns a vector that returns std values into a vector that returns normal ones.
+pub fn from_scalar_std<Num, Out>(vector: impl crate::Scalar<Std<Num>>) -> Out
+where 
+    Num: Axis,
+    Std<Num>: Axis,
+    Out: crate::ScalarConstructor<Num>
+{
+    let Std(scalar) = <Std<Num> as crate::ScalarConstructor<Std<Num>>>::from_scalar(vector);
+    Out::new_scalar(scalar)
+}
+
 impl Axis for Std<f32> {
     const ONE: Self = Std(1.0);
     const ZERO: Self = Std(0.0);
@@ -450,4 +501,132 @@ impl Axis for Std<f64> {
     #[inline] fn ln( self ) -> Self { Std(std::primitive::f64::ln(self.0)) }
     #[inline] fn from_u8( uint: u8 ) -> Self { Std( uint as f64) }
     #[inline(always)] fn from_f64( float: f64 ) -> Self { Std(float) }
+}
+
+impl<Num: Axis, Q> crate::Quaternion<Std<Num>> for Std<Q>
+where
+    Q: crate::Quaternion<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn r(&self) -> Std<Num> { Std(self.0.r()) }
+    #[inline] fn i(&self) -> Std<Num> { Std(self.0.i()) }
+    #[inline] fn j(&self) -> Std<Num> { Std(self.0.j()) }
+    #[inline] fn k(&self) -> Std<Num> { Std(self.0.k()) }
+}
+
+impl<Num: Axis, Q> crate::QuaternionConstructor<Std<Num>> for Std<Q>
+where
+    Q: crate::QuaternionConstructor<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn new_quat(r: Std<Num>, i: Std<Num>, j: Std<Num>, k: Std<Num>) -> Self {
+        Std(Q::new_quat(r.0, i.0, j.0, k.0))
+    }
+
+    #[inline] fn from_quat(quaternion: impl crate::Quaternion<Std<Num>>) -> Self {
+        let [Std(r), Std(i), Std(j), Std(k)] = quat::convert_quat(quaternion);
+        Std(Q::from_quat([r, i, j, k]))
+    }
+
+    #[inline] fn origin() -> Self { Std(Q::origin()) }
+    #[inline] fn identity() -> Self { Std(Q::identity()) }
+    #[inline] fn nan() -> Self { Std(Q::nan()) }
+    #[inline] fn unit_r() -> Self { Std(Q::unit_r()) }
+    #[inline] fn unit_i() -> Self { Std(Q::unit_i()) }
+    #[inline] fn unit_j() -> Self { Std(Q::unit_j()) }
+    #[inline] fn unit_k() -> Self { Std(Q::unit_k()) }
+}
+
+impl<Num: Axis, Q> crate::QuaternionConsts<Std<Num>> for Std<Q>
+where
+    Q: crate::QuaternionConsts<Num>,
+    Std<Num>: Axis,
+{
+    const ORIGIN: Self = Std(Q::ORIGIN);
+    const IDENTITY: Self = Std(Q::IDENTITY);
+    const NAN: Self = Std(Q::NAN);
+
+    const UNIT_R: Self = Std(Q::UNIT_R);
+    const UNIT_I: Self = Std(Q::UNIT_I);
+    const UNIT_J: Self = Std(Q::UNIT_J);
+    const UNIT_K: Self = Std(Q::UNIT_K);
+}
+
+impl<Num: Axis, Q> crate::QuaternionMethods<Std<Num>> for Std<Q>
+where
+    Q: crate::QuaternionMethods<Num>,
+    Std<Num>: Axis,
+{ }
+
+impl<Num: Axis, V> crate::Vector<Std<Num>> for Std<V>
+where
+    V: crate::Vector<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn x(&self) -> Std<Num> { Std(self.0.x()) }
+    #[inline] fn y(&self) -> Std<Num> { Std(self.0.y()) }
+    #[inline] fn z(&self) -> Std<Num> { Std(self.0.z()) }
+}
+
+impl<Num: Axis, Q> crate::VectorConstructor<Std<Num>> for Std<Q>
+where
+    Q: crate::VectorConstructor<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn new_vector(x: Std<Num>, y: Std<Num>, z: Std<Num>) -> Self {
+        Std(Q::new_vector(x.0, y.0, z.0))
+    }
+
+    #[inline] fn from_vector(vector: impl crate::Vector<Std<Num>>) -> Self {
+        Std(Q::from_vector(from_vector_std::<Num, [Num; 3]>(vector)))
+    }
+}
+
+impl<Num: Axis, V> crate::VectorConsts<Std<Num>> for Std<V>
+where
+    V: crate::VectorConsts<Num>,
+    Std<Num>: Axis,
+{
+    const ORIGIN: Self = Std(V::ORIGIN);
+    const NAN: Self = Std(V::NAN);
+
+    const UNIT_X: Self = Std(V::UNIT_X);
+    const UNIT_Y: Self = Std(V::UNIT_Y);
+    const UNIT_Z: Self = Std(V::UNIT_Z);
+}
+
+impl<Num: Axis, C> crate::Complex<Std<Num>> for Std<C>
+where
+    C: crate::Complex<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn real(&self) -> Std<Num> { Std(self.0.real()) }
+    #[inline] fn imaginary(&self) -> Std<Num> { Std(self.0.imaginary()) }
+}
+
+impl<Num: Axis, C> crate::ComplexConstructor<Std<Num>> for Std<C>
+where
+    C: crate::ComplexConstructor<Num>,
+    Std<Num>: Axis,
+{
+    #[inline] fn new_complex(real: Std<Num>, imaginary: Std<Num>) -> Self {
+        Std(C::new_complex(real.0, imaginary.0))
+    }
+
+    #[inline] fn from_complex(complex: impl crate::Complex<Std<Num>>) -> Self {
+        Std(C::from_complex(from_complex_std::<Num, [Num; 2]>(complex)))
+    }
+}
+
+impl<Num: Axis, C> crate::ComplexConsts<Std<Num>> for Std<C>
+where
+    C: crate::ComplexConsts<Num>,
+    Std<Num>: Axis,
+{
+    const ORIGIN: Self = Std(C::ORIGIN);
+    const IDENTITY: Self = Std(C::IDENTITY);
+    const NAN: Self = Std(C::NAN);
+
+    const UNIT_REAL: Self = Std(C::UNIT_REAL);
+    const UNIT_IMAGINARY: Self = Std(C::UNIT_IMAGINARY);
 }

@@ -111,6 +111,10 @@ This versioning scheme applies since *0.2.0.0*
 #![allow(mixed_script_confusables)]
 // #![allow(rustdoc::broken_intra_doc_links)]
 
+#![cfg_attr(feature = "f16", feature(f16))]
+#![cfg_attr(feature = "f128", feature(f128))]
+#![cfg_attr(feature = "portable_simd", feature(portable_simd))]
+
 #[cfg(feature = "std")]
 extern crate std;
 
